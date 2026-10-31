@@ -146,6 +146,52 @@ export default function AboutPage() {
           ))}
         </div>
       </div>
+
+      {/* Clinical Governance, Privacy & Standards */}
+      <div style={{ background: "var(--bg-secondary)", borderTop: "1px solid var(--border)", padding: "4.5rem 0" }}>
+        <div className="container">
+          <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexDirection: "column", gap: "3rem" }}>
+            {/* Standards */}
+            <div id="standards" style={{ scrollMarginTop: "100px" }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--primary)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "4px" }}>
+                <Shield size={14} /> CLINICAL EXCELLENCE
+              </div>
+              <h3 style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.75rem" }}>
+                Board Verification &amp; Credentialing Standards
+              </h3>
+              <p style={{ color: "var(--text-secondary)", lineHeight: 1.8, fontSize: "0.95rem" }}>
+                Every healthcare practitioner listed on the NewCare platform undergoes comprehensive primary-source credential verification. We validate medical board certifications (BMDC, USMLE, GMC equivalent), active clinical licensing, malpractice history, and hospital affiliations prior to onboarding.
+              </p>
+            </div>
+
+            {/* Privacy */}
+            <div id="privacy" style={{ scrollMarginTop: "100px" }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#10b981", fontWeight: 700, fontSize: "0.82rem", marginBottom: "4px" }}>
+                <Shield size={14} /> SECURITY &amp; CONFIDENTIALITY
+              </div>
+              <h3 style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.75rem" }}>
+                Patient Data &amp; Privacy Policy
+              </h3>
+              <p style={{ color: "var(--text-secondary)", lineHeight: 1.8, fontSize: "0.95rem" }}>
+                NewCare employs 256-bit AES encryption in transit and at rest for all electronic health records, consultation notes, and virtual video sessions. Patient health data is strictly segregated using role-based access control (RBAC), ensuring that only treating clinicians and authenticated patients access personal medical slips.
+              </p>
+            </div>
+
+            {/* Terms */}
+            <div id="terms" style={{ scrollMarginTop: "100px" }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#8b5cf6", fontWeight: 700, fontSize: "0.82rem", marginBottom: "4px" }}>
+                <Award size={14} /> TRANSPARENCY
+              </div>
+              <h3 style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.75rem" }}>
+                Terms of Service &amp; Fair Scheduling
+              </h3>
+              <p style={{ color: "var(--text-secondary)", lineHeight: 1.8, fontSize: "0.95rem" }}>
+                Appointments booked through NewCare feature real-time slot synchronization, clear cancellation policies, and touchless digital QR pass verification. Fees are displayed upfront without hidden administrative markups.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

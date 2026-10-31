@@ -46,6 +46,7 @@ export default function Navbar() {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/doctors", label: "All Doctors" },
+    { href: "/dashboard", label: "Role Dashboards" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ];

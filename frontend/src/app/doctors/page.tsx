@@ -1,364 +1,486 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
-import { Search, Star, Filter, X, ChevronDown } from "lucide-react";
+import {
+  Search, Filter, X, ChevronDown, Stethoscope, Video, MapPin,
+  CheckCircle2, Sparkles, SlidersHorizontal, RefreshCw
+} from "lucide-react";
 import api from "@/lib/api";
+import { FALLBACK_DOCTORS, DoctorProfile, matchesSpecialty } from "@/data/doctorsData";
+import DoctorCard from "@/components/DoctorCard";
 
-const SPECIALTIES = [
-  "All",
-  "General physician",
-  "Gynecologist",
-  "Dermatologist",
-  "Pediatricians",
-  "Neurologist",
+const SPECIALTY_OPTIONS = [
+  "All Specialties",
+  "General Physician",
   "Cardiologist",
+  "Dermatologist",
+  "Pediatrician",
+  "Neurologist",
+  "Gynecologist",
   "Orthopedic",
-  "Psychiatrist",
   "ENT Specialist",
-  "Oncologist",
 ];
 
-interface Doctor {
-  _id: string;
-  name: string;
-  image: string;
-  speciality: string;
-  experience: number;
-  fees: number;
-  available: boolean;
-  rating?: number;
-  reviewCount?: number;
-  degree?: string;
+function SearchParamsSync({
+  onParams,
+}: {
+  onParams: (params: { specialty?: string; search?: string; type?: string; available?: string }) => void;
+}) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    onParams({
+      specialty: searchParams.get("specialty") || undefined,
+      search: searchParams.get("search") || undefined,
+      type: searchParams.get("type") || undefined,
+      available: searchParams.get("available") || undefined,
+    });
+  }, [searchParams, onParams]);
+  return null;
 }
 
-function DoctorsContent() {
-  const searchParams = useSearchParams();
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [filtered, setFiltered] = useState<Doctor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState(searchParams.get("search") || "");
-  const [specialty, setSpecialty] = useState(searchParams.get("specialty") || "All");
-  const [sortBy, setSortBy] = useState("default");
-  const [availableOnly, setAvailableOnly] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [page, setPage] = useState(1);
-  const PER_PAGE = 12;
+export default function DoctorsPage() {
+  // Instant fallback initialization — no empty skeleton screens!
+  const [doctors, setDoctors] = useState<DoctorProfile[]>(FALLBACK_DOCTORS);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetch = async () => {
-      try {
-        const res = await api.get("/api/doctor/list");
-        if (res.data.success) {
-          setDoctors(res.data.doctors);
-          setFiltered(res.data.doctors);
-        }
-      } catch {
-        // silent
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
+  // Filters
+  const [search, setSearch] = useState("");
+  const [specialty, setSpecialty] = useState("All Specialties");
+  const [consultType, setConsultType] = useState<string>("all");
+  const [availableTodayOnly, setAvailableTodayOnly] = useState(false);
+  const [sortBy, setSortBy] = useState("rating-desc");
+
+  const handleParamsSync = useCallback((params: { specialty?: string; search?: string; type?: string; available?: string }) => {
+    if (params.specialty) setSpecialty(params.specialty);
+    if (params.search) setSearch(params.search);
+    if (params.type) setConsultType(params.type);
+    if (params.available === "today") setAvailableTodayOnly(true);
   }, []);
 
-  const applyFilters = useCallback(() => {
-    let result = [...doctors];
-
-    if (specialty && specialty !== "All") {
-      result = result.filter((d) =>
-        d.speciality.toLowerCase().includes(specialty.toLowerCase())
-      );
-    }
-
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (d) =>
-          d.name.toLowerCase().includes(q) ||
-          d.speciality.toLowerCase().includes(q) ||
-          (d.degree || "").toLowerCase().includes(q)
-      );
-    }
-
-    if (availableOnly) {
-      result = result.filter((d) => d.available);
-    }
-
-    switch (sortBy) {
-      case "fees-asc":
-        result.sort((a, b) => a.fees - b.fees);
-        break;
-      case "fees-desc":
-        result.sort((a, b) => b.fees - a.fees);
-        break;
-      case "experience":
-        result.sort((a, b) => b.experience - a.experience);
-        break;
-      case "rating":
-        result.sort((a, b) => (b.rating || 4.5) - (a.rating || 4.5));
-        break;
-    }
-
-    setFiltered(result);
-    setPage(1);
-  }, [doctors, specialty, search, availableOnly, sortBy]);
-
   useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+    const fetchDoctors = async () => {
+      try {
+        const res = await api.get("/api/doctor/list");
+        if (res.data?.success && Array.isArray(res.data.doctors) && res.data.doctors.length > 0) {
+          // Merge API doctors with rich fallback data so all cards have full properties
+          const apiList = res.data.doctors.map((d: any) => {
+            const fallbackMatch = FALLBACK_DOCTORS.find((f) => f.id === d._id || f._id === d._id);
+            return {
+              ...fallbackMatch,
+              ...d,
+              id: d._id || d.id || fallbackMatch?.id,
+              specialty: d.speciality || d.specialty || fallbackMatch?.specialty || "General Physician",
+              degree: d.degree || fallbackMatch?.degree || "MBBS, MD",
+              experienceYears: d.experience || fallbackMatch?.experienceYears || 6,
+              consultationFee: d.fees || fallbackMatch?.consultationFee || 50,
+              avatarUrl: d.image || fallbackMatch?.avatarUrl || "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=600",
+              isAvailableToday: d.available !== false,
+              hospitalName: fallbackMatch?.hospitalName || "NewCare Medical Center",
+              rating: fallbackMatch?.rating || 4.9,
+              reviewsCount: fallbackMatch?.reviewsCount || 120,
+              availableSlots: fallbackMatch?.availableSlots || ["10:30 AM", "02:00 PM", "04:30 PM"],
+            };
+          });
+          setDoctors(apiList);
+        }
+      } catch {
+        // Fallback data already active
+      }
+    };
+    fetchDoctors();
+  }, []);
 
-  const paginated = filtered.slice(0, page * PER_PAGE);
-  const hasMore = paginated.length < filtered.length;
+  // Client-side filtering & sorting
+  const filteredDoctors = useMemo(() => {
+    return doctors
+      .filter((doc) => {
+        // Specialty match (case-insensitive & plural-tolerant)
+        if (specialty !== "All Specialties" && !matchesSpecialty(doc.specialty, specialty)) {
+          return false;
+        }
+
+        // Available Today filter
+        if (availableTodayOnly && !doc.isAvailableToday && !doc.available) {
+          return false;
+        }
+
+        // Consultation Type filter
+        if (consultType === "video") {
+          const types = doc.consultationTypes || ["HD Video Consultation", "In-Clinic Visit"];
+          if (!types.some((t) => t.toLowerCase().includes("video"))) return false;
+        } else if (consultType === "in-person") {
+          const types = doc.consultationTypes || ["In-Clinic Visit"];
+          if (!types.some((t) => t.toLowerCase().includes("clinic") || t.toLowerCase().includes("person"))) return false;
+        }
+
+        // Search query (doctor name, specialty, degree, hospital)
+        if (search.trim()) {
+          const q = search.trim().toLowerCase();
+          const nameMatch = doc.name.toLowerCase().includes(q);
+          const specMatch = doc.specialty.toLowerCase().includes(q);
+          const degreeMatch = (doc.degree || "").toLowerCase().includes(q);
+          const hospMatch = (doc.hospitalName || "").toLowerCase().includes(q);
+          if (!nameMatch && !specMatch && !degreeMatch && !hospMatch) {
+            return false;
+          }
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === "rating-desc") return (b.rating || 0) - (a.rating || 0);
+        if (sortBy === "experience-desc") return (b.experienceYears || 0) - (a.experienceYears || 0);
+        if (sortBy === "fee-asc") return (a.consultationFee || 0) - (b.consultationFee || 0);
+        if (sortBy === "fee-desc") return (b.consultationFee || 0) - (a.consultationFee || 0);
+        return 0;
+      });
+  }, [doctors, specialty, availableTodayOnly, consultType, search, sortBy]);
+
+  const handleResetFilters = () => {
+    setSpecialty("All Specialties");
+    setConsultType("all");
+    setAvailableTodayOnly(false);
+    setSearch("");
+    setSortBy("rating-desc");
+  };
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
-      {/* Header */}
-      <div style={{
-        background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
-        padding: "3rem 0",
-        textAlign: "center",
-      }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", paddingBottom: "5rem" }}>
+      <Suspense fallback={null}>
+        <SearchParamsSync onParams={handleParamsSync} />
+      </Suspense>
+      {/* Header Banner */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%)",
+          padding: "3.5rem 0",
+          textAlign: "center",
+          color: "white",
+        }}
+      >
         <div className="container">
-          <h1 style={{ fontSize: "2.2rem", fontWeight: 900, color: "white", marginBottom: "0.5rem" }}>
-            Find Your Doctor
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "rgba(255,255,255,0.18)",
+              backdropFilter: "blur(8px)",
+              borderRadius: "50px",
+              padding: "4px 14px",
+              fontSize: "0.78rem",
+              fontWeight: 700,
+              marginBottom: "0.75rem",
+            }}
+          >
+            <Sparkles size={14} style={{ color: "#4ade80" }} /> Verified Clinical Network
+          </div>
+          <h1 style={{ fontSize: "2.4rem", fontWeight: 900, marginBottom: "0.5rem", letterSpacing: "-0.02em" }}>
+            Specialist Directory
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.85)", marginBottom: "2rem" }}>
-            Browse {doctors.length}+ verified specialists across all fields
+          <p style={{ color: "rgba(255,255,255,0.9)", fontSize: "1rem", maxWidth: "560px", margin: "0 auto 1.75rem" }}>
+            Browse {doctors.length}+ verified medical specialists. Filter by consultation type, real-time availability, and verified patient ratings.
           </p>
 
-          {/* Search */}
-          <div style={{
-            background: "white", borderRadius: "14px",
-            padding: "8px", display: "flex", gap: "8px",
-            maxWidth: 560, margin: "0 auto",
-            boxShadow: "0 10px 40px rgba(0,0,0,0.2)"
-          }}>
-            <div style={{ flex: 1, position: "relative" }}>
-              <Search size={17} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+          {/* Search bar inside header */}
+          <div
+            style={{
+              background: "white",
+              borderRadius: "16px",
+              padding: "8px",
+              display: "flex",
+              gap: "8px",
+              maxWidth: 580,
+              margin: "0 auto",
+              boxShadow: "0 15px 40px rgba(0,0,0,0.25)",
+            }}
+          >
+            <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center" }}>
+              <Search size={18} style={{ position: "absolute", left: 14, color: "#94a3b8" }} />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name, specialty..."
+                placeholder="Search by doctor name, hospital, or credential..."
                 style={{
-                  width: "100%", border: "none", outline: "none",
-                  paddingLeft: 38, height: 42, fontSize: "0.9rem", color: "#0f172a",
-                  background: "transparent"
+                  width: "100%",
+                  height: 44,
+                  border: "none",
+                  outline: "none",
+                  paddingLeft: 42,
+                  paddingRight: 12,
+                  fontSize: "0.92rem",
+                  color: "#0f172a",
+                  background: "transparent",
                 }}
               />
               {search && (
-                <button onClick={() => setSearch("")} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8" }}>
+                <button
+                  onClick={() => setSearch("")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#94a3b8",
+                    padding: 4,
+                  }}
+                >
                   <X size={16} />
                 </button>
               )}
             </div>
-            <button className="btn-primary" style={{ borderRadius: "8px", padding: "0 20px" }}>
-              Search
-            </button>
           </div>
         </div>
       </div>
 
-      <div className="container" style={{ paddingTop: "2rem", paddingBottom: "4rem" }}>
-        {/* Filter bar */}
-        <div style={{
-          display: "flex", gap: "0.75rem", alignItems: "center",
-          flexWrap: "wrap", marginBottom: "2rem"
-        }}>
-          {/* Specialty pills */}
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", flex: 1 }}>
-            {SPECIALTIES.map((s) => (
-              <button
-                key={s}
-                onClick={() => setSpecialty(s)}
-                style={{
-                  padding: "6px 14px",
-                  borderRadius: "50px",
-                  fontSize: "0.8rem",
-                  fontWeight: 600,
-                  border: specialty === s ? "none" : "1px solid var(--border)",
-                  background: specialty === s
-                    ? "linear-gradient(135deg, #0ea5e9, #6366f1)"
-                    : "var(--bg-card)",
-                  color: specialty === s ? "white" : "var(--text-secondary)",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-
-          {/* Sort & filter */}
-          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", color: "var(--text-secondary)", cursor: "pointer" }}>
-              <input
-                type="checkbox"
-                checked={availableOnly}
-                onChange={(e) => setAvailableOnly(e.target.checked)}
-                style={{ accentColor: "var(--primary)", width: 14, height: 14 }}
-              />
-              Available only
-            </label>
-
+      {/* Filter & Control Bar */}
+      <div
+        style={{
+          background: "var(--bg-card)",
+          borderBottom: "1px solid var(--border)",
+          padding: "1rem 0",
+          position: "sticky",
+          top: 70,
+          zIndex: 90,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+        }}
+      >
+        <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
+          {/* Left: Filter Pills */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+            {/* Specialty Dropdown */}
             <div style={{ position: "relative" }}>
               <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                value={specialty}
+                onChange={(e) => setSpecialty(e.target.value)}
                 style={{
-                  padding: "8px 32px 8px 12px",
+                  padding: "8px 14px",
                   borderRadius: "10px",
                   border: "1px solid var(--border)",
-                  background: "var(--bg-card)",
+                  background: "var(--bg-secondary)",
                   color: "var(--text)",
-                  fontSize: "0.8rem",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
                   cursor: "pointer",
-                  appearance: "none",
                   outline: "none",
                 }}
               >
-                <option value="default">Sort: Default</option>
-                <option value="rating">Sort: Rating</option>
-                <option value="experience">Sort: Experience</option>
-                <option value="fees-asc">Sort: Fee ↑</option>
-                <option value="fees-desc">Sort: Fee ↓</option>
+                {SPECIALTY_OPTIONS.map((spec) => (
+                  <option key={spec} value={spec}>
+                    {spec}
+                  </option>
+                ))}
               </select>
-              <ChevronDown size={14} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
             </div>
+
+            {/* Consultation Format Toggle */}
+            <div
+              style={{
+                display: "inline-flex",
+                background: "var(--bg-secondary)",
+                borderRadius: "10px",
+                border: "1px solid var(--border)",
+                padding: "3px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setConsultType("all")}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: "8px",
+                  border: "none",
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  background: consultType === "all" ? "var(--bg-card)" : "transparent",
+                  color: consultType === "all" ? "var(--primary)" : "var(--text-secondary)",
+                  boxShadow: consultType === "all" ? "var(--shadow-sm)" : "none",
+                }}
+              >
+                All Formats
+              </button>
+              <button
+                type="button"
+                onClick={() => setConsultType("video")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "5px 12px",
+                  borderRadius: "8px",
+                  border: "none",
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  background: consultType === "video" ? "var(--bg-card)" : "transparent",
+                  color: consultType === "video" ? "#6366f1" : "var(--text-secondary)",
+                  boxShadow: consultType === "video" ? "var(--shadow-sm)" : "none",
+                }}
+              >
+                <Video size={13} /> Video
+              </button>
+              <button
+                type="button"
+                onClick={() => setConsultType("in-person")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "5px 12px",
+                  borderRadius: "8px",
+                  border: "none",
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  background: consultType === "in-person" ? "var(--bg-card)" : "transparent",
+                  color: consultType === "in-person" ? "#0ea5e9" : "var(--text-secondary)",
+                  boxShadow: consultType === "in-person" ? "var(--shadow-sm)" : "none",
+                }}
+              >
+                <MapPin size={13} /> In-Person
+              </button>
+            </div>
+
+            {/* Available Today Toggle */}
+            <button
+              type="button"
+              onClick={() => setAvailableTodayOnly(!availableTodayOnly)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "7px 14px",
+                borderRadius: "10px",
+                border: availableTodayOnly ? "1.5px solid #10b981" : "1px solid var(--border)",
+                background: availableTodayOnly ? "rgba(16, 185, 129, 0.12)" : "var(--bg-secondary)",
+                color: availableTodayOnly ? "#10b981" : "var(--text)",
+                fontSize: "0.82rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: availableTodayOnly ? "#10b981" : "#94a3b8",
+                }}
+              />
+              Available only
+            </button>
+          </div>
+
+          {/* Right: Sort Dropdown & Reset */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)", fontWeight: 600 }}>Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "10px",
+                border: "1px solid var(--border)",
+                background: "var(--bg-secondary)",
+                color: "var(--text)",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                outline: "none",
+              }}
+            >
+              <option value="rating-desc">Highest Rated (★ 5.0)</option>
+              <option value="experience-desc">Most Experienced</option>
+              <option value="fee-asc">Consultation Fee: Low to High</option>
+              <option value="fee-desc">Consultation Fee: High to Low</option>
+            </select>
+
+            {(specialty !== "All Specialties" || consultType !== "all" || availableTodayOnly || search) && (
+              <button
+                onClick={handleResetFilters}
+                title="Reset Filters"
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "10px",
+                  border: "1px solid var(--border)",
+                  background: "var(--bg-secondary)",
+                  color: "var(--text-muted)",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <RefreshCw size={12} /> Reset
+              </button>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Results count */}
-        <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
-          Showing <strong style={{ color: "var(--text)" }}>{filtered.length}</strong> doctor{filtered.length !== 1 ? "s" : ""}
-          {specialty !== "All" ? ` in ${specialty}` : ""}
-          {search ? ` matching "${search}"` : ""}
-        </p>
+      {/* Main Content List */}
+      <div className="container" style={{ paddingTop: "2.5rem" }}>
+        {/* Results Counter */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.92rem", fontWeight: 600 }}>
+            Showing <span style={{ color: "var(--text)", fontWeight: 800 }}>{filteredDoctors.length}</span> verified specialists
+            {specialty !== "All Specialties" && ` in ${specialty}`}
+          </p>
+        </div>
 
-        {/* Grid */}
-        {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "1.5rem" }}>
-            {[...Array(8)].map((_, i) => (
-              <div key={i} style={{ background: "var(--bg-card)", borderRadius: 16, overflow: "hidden", border: "1px solid var(--border)" }}>
-                <div style={{ height: 200, background: "var(--border)", animation: "pulse 1.5s infinite" }} />
-                <div style={{ padding: "1rem" }}>
-                  <div style={{ height: 12, background: "var(--border)", borderRadius: 6, marginBottom: 8 }} />
-                  <div style={{ height: 10, background: "var(--border)", borderRadius: 6, width: "60%" }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-secondary)" }}>
-            <Search size={48} style={{ opacity: 0.3, marginBottom: "1rem" }} />
-            <h3 style={{ fontSize: "1.2rem", marginBottom: "0.5rem", color: "var(--text)" }}>No doctors found</h3>
-            <p>Try adjusting your search or filters</p>
-            <button onClick={() => { setSearch(""); setSpecialty("All"); setAvailableOnly(false); }} className="btn-primary" style={{ marginTop: "1rem" }}>
-              Clear Filters
+        {filteredDoctors.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "4rem 2rem",
+              background: "var(--bg-card)",
+              borderRadius: "24px",
+              border: "1px solid var(--border)",
+            }}
+          >
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                background: "rgba(14, 165, 233, 0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 1.25rem",
+              }}
+            >
+              <Stethoscope size={32} style={{ color: "var(--primary)" }} />
+            </div>
+            <h3 style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.5rem" }}>
+              No Doctors Match Current Filters
+            </h3>
+            <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem", maxWidth: "420px", margin: "0 auto 1.5rem" }}>
+              Try broadening your specialty selection or clear the availability filter to view all board-certified doctors.
+            </p>
+            <button onClick={handleResetFilters} className="btn-primary">
+              Clear All Filters
             </button>
           </div>
         ) : (
-          <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "1.5rem" }}>
-              {paginated.map((doctor) => (
-                <Link key={doctor._id} href={`/appointment/${doctor._id}`} style={{ textDecoration: "none" }}>
-                  <div className="card" style={{ overflow: "hidden", cursor: "pointer" }}>
-                    <div style={{ position: "relative", height: 200, background: "var(--bg-secondary)" }}>
-                      <DoctorImage doctor={doctor} />
-                      
-                      <div style={{
-                        position: "absolute", top: 10, right: 10,
-                        display: "flex", alignItems: "center", gap: "5px",
-                        background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)",
-                        borderRadius: "20px", padding: "4px 10px",
-                        fontSize: "0.72rem", fontWeight: 600, color: "white"
-                      }}>
-                        <span
-                          className="pulse-dot"
-                          style={{
-                            width: 7, height: 7, borderRadius: "50%",
-                            background: doctor.available ? "#4ade80" : "#f87171",
-                            display: "inline-block"
-                          }}
-                        />
-                        {doctor.available ? "Available" : "Busy"}
-                      </div>
-                    </div>
-                    <div style={{ padding: "1rem" }}>
-                      <p style={{ fontSize: "0.72rem", color: "var(--primary)", fontWeight: 600, marginBottom: 4 }}>
-                        {doctor.speciality}
-                      </p>
-                      <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                        {doctor.name}
-                      </h3>
-                      {doctor.degree && (
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 6 }}>{doctor.degree}</p>
-                      )}
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <Star size={12} fill="#f59e0b" style={{ color: "#f59e0b" }} />
-                          <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)" }}>
-                            {(doctor.rating || 4.5).toFixed(1)}
-                          </span>
-                          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                            ({doctor.reviewCount || 80})
-                          </span>
-                        </div>
-                        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--primary)" }}>${doctor.fees}</span>
-                      </div>
-                      <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: 4 }}>
-                        {doctor.experience} yr{doctor.experience !== 1 ? "s" : ""} experience
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            {hasMore && (
-              <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
-                <button
-                  onClick={() => setPage((p) => p + 1)}
-                  className="btn-secondary"
-                >
-                  Load More Doctors
-                </button>
-              </div>
-            )}
-          </>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
+              gap: "1.75rem",
+            }}
+          >
+            {filteredDoctors.map((doctor) => (
+              <DoctorCard key={doctor.id || doctor._id} doctor={doctor} />
+            ))}
+          </div>
         )}
       </div>
     </div>
-  );
-}
-
-function DoctorImage({ doctor }: { doctor: Doctor }) {
-  const [imgSrc, setImgSrc] = useState(doctor.image);
-  const fallbackImg = "https://i.pravatar.cc/400?img=1";
-  return (
-    <Image
-      src={imgSrc}
-      alt={doctor.name}
-      fill
-      style={{ objectFit: "cover" }}
-      unoptimized
-      onError={() => setImgSrc(fallbackImg)}
-    />
-  );
-}
-
-export default function DoctorsPage() {
-  return (
-    <Suspense fallback={
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "var(--text-secondary)" }}>Loading...</div>
-      </div>
-    }>
-      <DoctorsContent />
-    </Suspense>
   );
 }

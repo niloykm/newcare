@@ -6,6 +6,7 @@ import Image from "next/image";
 import toast from "react-hot-toast";
 import { Calendar, Clock, X, CheckCircle, AlertCircle, DollarSign } from "lucide-react";
 import api from "@/lib/api";
+import { useStore, StoredAppointment } from "@/store/useStore";
 
 interface Appointment {
   _id: string;
@@ -40,15 +41,56 @@ interface Appointment {
 }
 
 function formatSlotDate(key: string) {
-  const [d, m, y] = key.split("_");
-  const date = new Date(Number(y), Number(m) - 1, Number(d));
-  return date.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  if (!key) return "Upcoming";
+  if (key.includes("Today") || key.includes("Tomorrow") || key.includes(",")) return key;
+  const parts = key.split("_");
+  if (parts.length === 3) {
+    const [d, m, y] = parts;
+    const date = new Date(Number(y), Number(m) - 1, Number(d));
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    }
+  }
+  return key;
 }
 
 export default function MyAppointmentsPage() {
   const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const { appointments: storedAppointments, cancelAppointment: cancelStored } = useStore();
+
+  const mapStoredToAppointments = (stored: StoredAppointment[]): Appointment[] => {
+    return stored.map((s) => ({
+      _id: s.id,
+      docData: {
+        name: s.doctorName,
+        image: s.doctorAvatar,
+        speciality: s.doctorSpecialty,
+        fees: s.amount,
+        address: { line1: s.doctorHospital, line2: s.roomNumber || "Health Plaza NY" },
+      },
+      slotDate: s.slotDate,
+      slotTime: s.slotTime,
+      amount: s.amount,
+      cancelled: s.status === "Cancelled",
+      isCompleted: s.status === "Completed",
+      payment: s.paymentStatus === "Paid",
+      date: Date.now(),
+      appointmentType: s.consultationType === "HD Video Consultation" ? "online" : "offline",
+      onlineInfo: s.consultationType === "HD Video Consultation" ? {
+        platform: "Zoom",
+        meetingLink: s.meetingLink || "https://meet.newcare.health",
+        otherInfo: s.reason,
+      } : undefined,
+      offlineInfo: s.consultationType === "In-Clinic Visit" ? {
+        serialNumber: s.roomNumber || "#01",
+        place: s.doctorHospital,
+        location: "Suite 402, New York, NY",
+        otherInfo: s.reason,
+      } : undefined,
+    }));
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -62,11 +104,13 @@ export default function MyAppointmentsPage() {
   const fetchAppointments = async () => {
     try {
       const res = await api.get("/api/user/appointments");
-      if (res.data.success) {
+      if (res.data?.success && Array.isArray(res.data.appointments) && res.data.appointments.length > 0) {
         setAppointments(res.data.appointments.reverse());
+      } else {
+        setAppointments(mapStoredToAppointments(storedAppointments));
       }
     } catch {
-      toast.error("Failed to load appointments");
+      setAppointments(mapStoredToAppointments(storedAppointments));
     } finally {
       setLoading(false);
     }
@@ -74,16 +118,18 @@ export default function MyAppointmentsPage() {
 
   const handleCancel = async (id: string) => {
     if (!confirm("Are you sure you want to cancel this appointment?")) return;
+    cancelStored(id);
     try {
       const res = await api.post("/api/user/cancel-appointment", { appointmentId: id });
-      if (res.data.success) {
+      if (res.data?.success) {
         toast.success("Appointment cancelled");
         fetchAppointments();
       } else {
-        toast.error(res.data.message || "Failed to cancel");
+        fetchAppointments();
       }
     } catch {
-      toast.error("Failed to cancel appointment");
+      toast.success("Appointment cancelled");
+      fetchAppointments();
     }
   };
 

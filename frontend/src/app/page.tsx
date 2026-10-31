@@ -1,41 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
-  Search, Star, ArrowRight, Shield, Clock, Award, Users,
-  Stethoscope, Brain, Heart, Baby, Bone, Eye, Ear, Activity
+  Search, ArrowRight, ShieldCheck, Clock, Award, Users,
+  Stethoscope, Brain, Heart, Baby, Bone, Ear, Activity, Sparkles,
+  CheckCircle2, Video, Calendar, UserCheck, ShieldAlert
 } from "lucide-react";
 import api from "@/lib/api";
+import { FALLBACK_DOCTORS, DoctorProfile, normalizeSpecialty } from "@/data/doctorsData";
+import DoctorCard from "@/components/DoctorCard";
+import QuickFinder from "@/components/QuickFinder";
+import LiveAppointmentPreview from "@/components/LiveAppointmentPreview";
 
 const specialties = [
-  { name: "General physician", icon: Stethoscope, color: "#0ea5e9", bg: "rgba(14,165,233,0.1)" },
-  { name: "Gynecologist", icon: Heart, color: "#ec4899", bg: "rgba(236,72,153,0.1)" },
-  { name: "Dermatologist", icon: Activity, color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
-  { name: "Pediatricians", icon: Baby, color: "#10b981", bg: "rgba(16,185,129,0.1)" },
-  { name: "Neurologist", icon: Brain, color: "#8b5cf6", bg: "rgba(139,92,246,0.1)" },
-  { name: "Cardiologist", icon: Heart, color: "#ef4444", bg: "rgba(239,68,68,0.1)" },
-  { name: "Orthopedic", icon: Bone, color: "#f97316", bg: "rgba(249,115,22,0.1)" },
-  { name: "ENT Specialist", icon: Ear, color: "#06b6d4", bg: "rgba(6,182,212,0.1)" },
+  { name: "General Physician", query: "General Physician", icon: Stethoscope, color: "#0ea5e9", bg: "rgba(14,165,233,0.1)", count: "40+ Doctors" },
+  { name: "Cardiologist", query: "Cardiologist", icon: Heart, color: "#ef4444", bg: "rgba(239,68,68,0.1)", count: "28+ Doctors" },
+  { name: "Dermatologist", query: "Dermatologist", icon: Activity, color: "#f59e0b", bg: "rgba(245,158,11,0.1)", count: "35+ Doctors" },
+  { name: "Pediatrician", query: "Pediatrician", icon: Baby, color: "#10b981", bg: "rgba(16,185,129,0.1)", count: "24+ Doctors" },
+  { name: "Neurologist", query: "Neurologist", icon: Brain, color: "#8b5cf6", bg: "rgba(139,92,246,0.1)", count: "19+ Doctors" },
+  { name: "Gynecologist", query: "Gynecologist", icon: Heart, color: "#ec4899", bg: "rgba(236,72,153,0.1)", count: "22+ Doctors" },
+  { name: "Orthopedic", query: "Orthopedic", icon: Bone, color: "#f97316", bg: "rgba(249,115,22,0.1)", count: "18+ Doctors" },
+  { name: "ENT Specialist", query: "ENT Specialist", icon: Ear, color: "#06b6d4", bg: "rgba(6,182,212,0.1)", count: "16+ Doctors" },
 ];
 
-interface Doctor {
-  _id: string;
-  name: string;
-  image: string;
-  speciality: string;
-  experience: number;
-  fees: number;
-  available: boolean;
-  rating?: number;
-  reviewCount?: number;
-}
-
 export default function Home() {
-  const [search, setSearch] = useState("");
-  const [featuredDoctors, setFeaturedDoctors] = useState<Doctor[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Start with rich fallback doctors immediately — 0 empty skeletons!
+  const [featuredDoctors, setFeaturedDoctors] = useState<DoctorProfile[]>(FALLBACK_DOCTORS.slice(0, 6));
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -46,449 +37,616 @@ export default function Home() {
     const fetchDoctors = async () => {
       try {
         const res = await api.get("/api/doctor/list");
-        if (res.data.success) {
-          const all: Doctor[] = res.data.doctors;
-          // Shuffle and pick 6 for featured
-          const shuffled = [...all].sort(() => Math.random() - 0.5);
-          setFeaturedDoctors(shuffled.slice(0, 6));
+        if (res.data?.success && Array.isArray(res.data.doctors) && res.data.doctors.length > 0) {
+          const apiDoctors = res.data.doctors;
+          setFeaturedDoctors(apiDoctors.slice(0, 6));
         }
       } catch {
-        // silently fail
-      } finally {
-        setLoading(false);
+        // Fallback data is already loaded instantaneously
       }
     };
     fetchDoctors();
   }, []);
 
   const stats = [
-    { icon: Users, value: "200+", label: "Expert Doctors" },
-    { icon: Award, value: "50K+", label: "Happy Patients" },
-    { icon: Clock, value: "24/7", label: "Online Support" },
-    { icon: Shield, value: "100%", label: "Verified Doctors" },
+    { icon: Users, value: "200+", label: "Verified Specialists" },
+    { icon: Award, value: "50,000+", label: "Consultations Completed" },
+    { icon: Clock, value: "< 60 Sec", label: "Instant Slot Booking" },
+    { icon: ShieldCheck, value: "100%", label: "Board Certified Clinicians" },
   ];
 
   return (
     <div>
-      {/* ── Hero Section ── */}
-      <section style={{
-        background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #8b5cf6 100%)",
-        padding: "5rem 0 5rem",
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        {/* Background decoration */}
-        <div style={{
-          position: "absolute", inset: 0,
-          backgroundImage: "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 40%)",
-        }} />
-
-        <div className="container" style={{
+      {/* ── Authentic Zocdoc / One Medical Clinical Hero Section ── */}
+      <section
+        style={{
+          background: "linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%)",
+          padding: "4.5rem 0 5.5rem",
           position: "relative",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "3rem",
-          flexWrap: "wrap"
-        }}>
-          <div style={{ flex: "1 1 500px", color: "white", zIndex: 2 }}>
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: "8px",
-              background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)",
-              borderRadius: "50px", padding: "6px 16px",
-              fontSize: "0.85rem", fontWeight: 600,
-              marginBottom: "1.5rem",
-            }}>
-              <span style={{ width: 8, height: 8, background: "#4ade80", borderRadius: "50%" }} />
-              Trusted by 50,000+ patients worldwide
-            </div>
-            <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.25rem" }}>
-              Book Your Doctor<br />
-              <span style={{ opacity: 0.85 }}>Appointment in</span>{" "}
-              <span style={{
-                background: "rgba(255,255,255,0.25)", borderRadius: "8px",
-                padding: "2px 12px", fontStyle: "italic"
-              }}>60 seconds</span>
-            </h1>
-            <p style={{ fontSize: "1.1rem", opacity: 0.9, lineHeight: 1.7, marginBottom: "1rem" }}>
-              Connect with verified, expert doctors across 10+ specialties. Convenient online booking, real patient reviews, and flexible scheduling.
-            </p>
+          overflow: "hidden",
+        }}
+      >
+        {/* Subtle grid pattern background */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: "radial-gradient(circle at 25% 40%, rgba(255,255,255,0.12) 0%, transparent 45%), radial-gradient(circle at 75% 20%, rgba(255,255,255,0.08) 0%, transparent 40%)",
+            pointerEvents: "none",
+          }}
+        />
 
-            {/* Group profiles decoration */}
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "1.5rem 0", flexWrap: "wrap" }}>
-              <div style={{ position: "relative", width: 110, height: 38 }}>
-                <Image
-                  src="https://res.cloudinary.com/dg5gwims9/image/upload/v1783617193/newcare_assets/group_profiles.png"
-                  alt="Group profiles"
-                  fill
-                  style={{ objectFit: "contain" }}
-                  unoptimized
-                />
-              </div>
-              <p style={{ fontSize: "0.88rem", opacity: 0.9, lineHeight: 1.4 }}>
-                Simply browse through our extensive list of trusted doctors,
-                <br className="hidden-mobile" />
-                schedule your appointment hassle-free.
-              </p>
-            </div>
-
-            {/* Search bar */}
-            <div style={{
-              background: "white",
-              borderRadius: "16px",
-              padding: "8px",
-              display: "flex",
-              gap: "8px",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-              maxWidth: 520,
-            }}>
-              <div style={{ flex: 1, position: "relative" }}>
-                <Search size={18} style={{
-                  position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
-                  color: "#94a3b8"
-                }} />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search doctors, specialties..."
-                  style={{
-                    width: "100%", border: "none", outline: "none",
-                    paddingLeft: 40, paddingRight: 12, height: 44,
-                    fontSize: "0.9rem", color: "#0f172a",
-                    background: "transparent",
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && search) {
-                      window.location.href = `/doctors?search=${encodeURIComponent(search)}`;
-                    }
-                  }}
-                />
-              </div>
-              <Link
-                href={search ? `/doctors?search=${encodeURIComponent(search)}` : "/doctors"}
-                className="btn-primary"
-                style={{ textDecoration: "none", borderRadius: "10px", padding: "0 20px" }}
+        <div className="container" style={{ position: "relative", zIndex: 2 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1.2fr 0.9fr",
+              gap: "3rem",
+              alignItems: "center",
+            }}
+            className="hero-grid"
+          >
+            {/* Left Column: Authentic Clinical Messaging & Interactive Quick-Finder */}
+            <div style={{ color: "white" }}>
+              {/* Trust Badge */}
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "rgba(255,255,255,0.16)",
+                  backdropFilter: "blur(12px)",
+                  borderRadius: "50px",
+                  padding: "6px 16px",
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  marginBottom: "1.25rem",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                }}
               >
-                Search
-              </Link>
-            </div>
-          </div>
+                <ShieldCheck size={16} style={{ color: "#4ade80" }} />
+                <span>Verified Clinical Network • Instant Video & In-Clinic Booking</span>
+              </div>
 
-          {/* Hero Image */}
-          <div className="hidden-mobile" style={{
-            flex: "1 1 400px",
-            position: "relative",
-            height: "480px",
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            zIndex: 1,
-            marginTop: "2rem",
-            marginBottom: "-5rem"
-          }}>
-            <Image
-              src="https://res.cloudinary.com/dg5gwims9/image/upload/v1783617195/newcare_assets/header_img.png"
-              alt="NewCare Hero"
-              width={420}
-              height={480}
-              style={{ objectFit: "contain", maxHeight: "100%", width: "auto" }}
-              priority
-              unoptimized
-            />
+              {/* Bold Headline */}
+              <h1
+                style={{
+                  fontSize: "clamp(2.2rem, 4.5vw, 3.6rem)",
+                  fontWeight: 900,
+                  lineHeight: 1.15,
+                  marginBottom: "1.2rem",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Quality Healthcare,<br />
+                <span style={{ color: "#ffffff", opacity: 0.9 }}>Scheduled in Seconds.</span>
+              </h1>
+
+              <p
+                style={{
+                  fontSize: "1.08rem",
+                  opacity: 0.92,
+                  lineHeight: 1.65,
+                  marginBottom: "2rem",
+                  maxWidth: "540px",
+                }}
+              >
+                Find top-rated, board-certified doctors who accept your needs. Book high-definition telehealth consultations or in-person clinic visits with zero waiting queues.
+              </p>
+
+              {/* Interactive Quick-Finder Bar */}
+              <QuickFinder />
+
+              {/* Clinical proof points */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1.5rem",
+                  marginTop: "1.75rem",
+                  flexWrap: "wrap",
+                  fontSize: "0.82rem",
+                  color: "rgba(255,255,255,0.85)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <CheckCircle2 size={15} style={{ color: "#4ade80" }} />
+                  <span>BMDC & Board Certified</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <CheckCircle2 size={15} style={{ color: "#4ade80" }} />
+                  <span>Real-time Calendar Sync</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <CheckCircle2 size={15} style={{ color: "#4ade80" }} />
+                  <span>Digital Pass & QR Check-in</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Interactive Live Appointment Preview Card */}
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <LiveAppointmentPreview />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Stats ── */}
-      <section style={{ marginTop: "-3rem", marginBottom: "5rem", position: "relative", zIndex: 10 }}>
+      {/* ── Key Metrics Section ── */}
+      <section style={{ marginTop: "-2.5rem", marginBottom: "4.5rem", position: "relative", zIndex: 10 }}>
         <div className="container">
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-            gap: "1rem",
-            background: "var(--bg-card)",
-            borderRadius: "20px",
-            padding: "2rem",
-            boxShadow: "var(--shadow-lg)",
-            border: "1px solid var(--border)",
-          }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "1.25rem",
+              background: "var(--bg-card)",
+              borderRadius: "24px",
+              padding: "1.75rem 2rem",
+              boxShadow: "0 20px 40px -15px rgba(0,0,0,0.1)",
+              border: "1px solid var(--border)",
+            }}
+          >
             {stats.map(({ icon: Icon, value, label }) => (
-              <div key={label} style={{ textAlign: "center" }}>
-                <div style={{
-                  width: 48, height: 48,
-                  background: "rgba(14,165,233,0.1)",
-                  borderRadius: "12px",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  margin: "0 auto 0.75rem"
-                }}>
+              <div key={label} style={{ textAlign: "center", padding: "0.5rem" }}>
+                <div
+                  style={{
+                    width: 46,
+                    height: 46,
+                    background: "rgba(14,165,233,0.1)",
+                    borderRadius: "14px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 0.6rem",
+                  }}
+                >
                   <Icon size={22} style={{ color: "var(--primary)" }} />
                 </div>
-                <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--text)" }}>{value}</div>
-                <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: 500 }}>{label}</div>
+                <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "var(--text)", letterSpacing: "-0.02em" }}>
+                  {value}
+                </div>
+                <div style={{ fontSize: "0.82rem", color: "var(--text-secondary)", fontWeight: 600 }}>
+                  {label}
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Specialties ── */}
-      <section style={{ paddingBottom: "5rem" }}>
+      {/* ── Unified Specialty Explorer with Normalized Query Links ── */}
+      <section style={{ paddingBottom: "4.5rem" }}>
         <div className="container">
-          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-            <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.75rem" }}>
-              Browse by <span className="gradient-text">Specialty</span>
-            </h2>
-            <p style={{ color: "var(--text-secondary)", maxWidth: 500, margin: "0 auto" }}>
-              Choose from 10+ medical specialties and find the right expert for your health needs.
-            </p>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2.5rem", flexWrap: "wrap", gap: "1rem" }}>
+            <div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--primary)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "4px" }}>
+                <Sparkles size={14} /> EXPLORE MEDICAL CARE
+              </div>
+              <h2 style={{ fontSize: "2.1rem", fontWeight: 900, color: "var(--text)", letterSpacing: "-0.02em" }}>
+                Find Doctors by <span className="gradient-text">Specialty</span>
+              </h2>
+            </div>
+            <Link
+              href="/doctors"
+              style={{
+                textDecoration: "none",
+                fontSize: "0.9rem",
+                fontWeight: 700,
+                color: "var(--primary)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+              }}
+            >
+              Browse All Specialties <ArrowRight size={16} />
+            </Link>
           </div>
 
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-            gap: "1rem",
-          }}>
-            {specialties.map(({ name, icon: Icon, color, bg }) => (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+              gap: "1.2rem",
+            }}
+          >
+            {specialties.map(({ name, query, icon: Icon, color, bg, count }) => (
               <Link
                 key={name}
-                href={`/doctors?specialty=${encodeURIComponent(name)}`}
+                href={`/doctors?specialty=${encodeURIComponent(query)}`}
                 style={{
                   textDecoration: "none",
                   background: "var(--bg-card)",
                   border: "1px solid var(--border)",
-                  borderRadius: "16px",
+                  borderRadius: "20px",
                   padding: "1.5rem 1rem",
                   textAlign: "center",
-                  transition: "all 0.2s ease",
-                  display: "block",
+                  transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
                 }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-4px)";
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = "var(--shadow-lg)";
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = color;
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.transform = "";
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = "";
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--border)";
-                }}
+                className="group hover:-translate-y-1 hover:shadow-lg"
               >
-                <div style={{
-                  width: 56, height: 56,
-                  background: bg,
-                  borderRadius: "14px",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  margin: "0 auto 0.75rem"
-                }}>
-                  <Icon size={26} style={{ color }} />
+                <div
+                  style={{
+                    width: 58,
+                    height: 58,
+                    background: bg,
+                    borderRadius: "16px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "0.85rem",
+                    transition: "transform 0.2s ease",
+                  }}
+                  className="group-hover:scale-110"
+                >
+                  <Icon size={28} style={{ color }} />
                 </div>
-                <p style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)", lineHeight: 1.3 }}>{name}</p>
+                <p style={{ fontSize: "0.92rem", fontWeight: 800, color: "var(--text)", lineHeight: 1.25, marginBottom: "3px" }}>
+                  {name}
+                </p>
+                <span style={{ fontSize: "0.74rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                  {count}
+                </span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Featured Doctors ── */}
-      <section style={{
-        paddingTop: "5rem", paddingBottom: "5rem",
-        background: "var(--bg-secondary)",
-        borderTop: "1px solid var(--border)",
-        borderBottom: "1px solid var(--border)",
-      }}>
+      {/* ── Top Verified Doctors Grid (Instant 0-ms Cold-Start Display) ── */}
+      <section
+        style={{
+          padding: "5rem 0",
+          background: "var(--bg-secondary)",
+          borderTop: "1px solid var(--border)",
+          borderBottom: "1px solid var(--border)",
+        }}
+      >
         <div className="container">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.5rem", flexWrap: "wrap", gap: "1rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-end",
+              marginBottom: "2.5rem",
+              flexWrap: "wrap",
+              gap: "1rem",
+            }}
+          >
             <div>
-              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.5rem" }}>
-                Top <span className="gradient-text">Doctors</span>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#10b981", fontWeight: 700, fontSize: "0.82rem", marginBottom: "4px" }}>
+                <ShieldCheck size={14} /> 100% BOARD VERIFIED CLINICAL FACULTY
+              </div>
+              <h2 style={{ fontSize: "2.1rem", fontWeight: 900, color: "var(--text)", letterSpacing: "-0.02em" }}>
+                Top Rated <span className="gradient-text">Doctors</span>
               </h2>
-              <p style={{ color: "var(--text-secondary)" }}>Handpicked experts with proven track records</p>
+              <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+                Book instantly with leading specialists. Real availability updated live.
+              </p>
             </div>
-            <Link href="/doctors" className="btn-secondary" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "6px" }}>
-              View All Doctors <ArrowRight size={16} />
+            <Link
+              href="/doctors"
+              className="btn-secondary"
+              style={{
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 20px",
+                borderRadius: "12px",
+                fontWeight: 700,
+              }}
+            >
+              View All 12+ Specialists <ArrowRight size={16} />
             </Link>
           </div>
 
-          {loading ? (
-            <div style={{
+          {/* Fully Populated Doctor Cards — 0 Empty Skeletons */}
+          <div
+            style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-              gap: "1.5rem"
-            }}>
-              {[...Array(6)].map((_, i) => (
-                <div key={i} style={{
-                  background: "var(--bg-card)", borderRadius: 16,
-                  overflow: "hidden", border: "1px solid var(--border)", height: 300
-                }}>
-                  <div style={{ height: 200, background: "var(--border)" }} />
-                  <div style={{ padding: "1rem" }}>
-                    <div style={{ height: 12, background: "var(--border)", borderRadius: 6, marginBottom: 8 }} />
-                    <div style={{ height: 10, background: "var(--border)", borderRadius: 6, width: "60%" }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-              gap: "1.5rem"
-            }}>
-              {featuredDoctors.map((doctor) => (
-                <DoctorCard key={doctor._id} doctor={doctor} />
-              ))}
-            </div>
-          )}
+              gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
+              gap: "1.75rem",
+            }}
+          >
+            {featuredDoctors.map((doctor) => (
+              <DoctorCard key={doctor.id || doctor._id} doctor={doctor} />
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── How It Works ── */}
-      <section style={{ padding: "5rem 0" }}>
+      {/* ── Role-Based SaaS Showcase Section (Resume Feature Highlight) ── */}
+      <section style={{ padding: "5rem 0", background: "var(--bg)" }}>
         <div className="container">
-          <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
-            <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.75rem" }}>
-              How <span className="gradient-text">NewCare</span> Works
+          <div style={{ textAlign: "center", maxWidth: "680px", margin: "0 auto 3.5rem" }}>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                background: "rgba(99, 102, 241, 0.1)",
+                color: "#6366f1",
+                padding: "4px 14px",
+                borderRadius: "50px",
+                fontSize: "0.78rem",
+                fontWeight: 800,
+                textTransform: "uppercase",
+                marginBottom: "0.75rem",
+              }}
+            >
+              <Award size={13} /> Engineered For Recruiter Demonstrations
+            </div>
+            <h2 style={{ fontSize: "2.2rem", fontWeight: 900, color: "var(--text)", letterSpacing: "-0.02em", marginBottom: "0.75rem" }}>
+              Role-Based SaaS <span className="gradient-text">Dashboards</span>
             </h2>
-            <p style={{ color: "var(--text-secondary)", maxWidth: 480, margin: "0 auto" }}>
-              Book your appointment in just 3 simple steps
+            <p style={{ color: "var(--text-secondary)", fontSize: "1rem", lineHeight: 1.7 }}>
+              Experience the three synchronized operational portals with stateful appointments, queue management, and RBAC analytics.
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "2rem" }}>
-            {[
-              { step: "01", title: "Search a Doctor", desc: "Browse by specialty, name, or location to find the perfect doctor for your needs." },
-              { step: "02", title: "Book Appointment", desc: "Choose a convenient time slot from the doctor's real-time availability calendar." },
-              { step: "03", title: "Get Consultation", desc: "Visit the doctor in-person or opt for a virtual consultation from home." },
-            ].map(({ step, title, desc }) => (
-              <div key={step} style={{
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.75rem" }}>
+            {/* Patient Portal Card */}
+            <div
+              style={{
                 background: "var(--bg-card)",
                 border: "1px solid var(--border)",
-                borderRadius: "20px",
+                borderRadius: "22px",
                 padding: "2rem",
+                display: "flex",
+                flexDirection: "column",
                 position: "relative",
-                overflow: "hidden",
-              }}>
-                <div style={{
-                  position: "absolute", top: -10, right: -10,
-                  fontSize: "5rem", fontWeight: 900, color: "var(--border)",
-                  lineHeight: 1, userSelect: "none"
-                }}>{step}</div>
-                <div style={{
-                  width: 48, height: 48,
-                  background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
+              }}
+              className="hover:shadow-xl transition-all"
+            >
+              <div style={{ width: 50, height: 50, borderRadius: "14px", background: "rgba(14, 165, 233, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                <Users size={24} style={{ color: "#0ea5e9" }} />
+              </div>
+              <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.5rem" }}>
+                👤 Patient Portal
+              </h3>
+              <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem", lineHeight: 1.6, marginBottom: "1.5rem", flex: 1 }}>
+                Browse verified specialists, complete 3-step Zustand bookings, view appointment slips, and manage upcoming virtual visits with instant QR passes.
+              </p>
+              <Link
+                href="/dashboard/patient"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  padding: "10px 16px",
                   borderRadius: "12px",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  marginBottom: "1.25rem",
-                  color: "white", fontWeight: 700, fontSize: "1.1rem"
-                }}>{step}</div>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.75rem", color: "var(--text)" }}>{title}</h3>
-                <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: 1.7 }}>{desc}</p>
+                  background: "rgba(14, 165, 233, 0.1)",
+                  color: "#0ea5e9",
+                  fontWeight: 700,
+                  fontSize: "0.88rem",
+                  textDecoration: "none",
+                }}
+              >
+                Launch Patient View <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            {/* Doctor Portal Card */}
+            <div
+              style={{
+                background: "var(--bg-card)",
+                border: "1px solid var(--border)",
+                borderRadius: "22px",
+                padding: "2rem",
+                display: "flex",
+                flexDirection: "column",
+                position: "relative",
+              }}
+              className="hover:shadow-xl transition-all"
+            >
+              <div style={{ width: 50, height: 50, borderRadius: "14px", background: "rgba(16, 185, 129, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                <Stethoscope size={24} style={{ color: "#10b981" }} />
+              </div>
+              <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.5rem" }}>
+                🩺 Doctor Clinical Desk
+              </h3>
+              <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem", lineHeight: 1.6, marginBottom: "1.5rem", flex: 1 }}>
+                Live patient queue for today, slot status controls (check-in, complete, reschedule), clinical consultation notes, and active availability toggles.
+              </p>
+              <Link
+                href="/dashboard/doctor"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  padding: "10px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(16, 185, 129, 0.1)",
+                  color: "#10b981",
+                  fontWeight: 700,
+                  fontSize: "0.88rem",
+                  textDecoration: "none",
+                }}
+              >
+                Launch Doctor Desk <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            {/* Admin Portal Card */}
+            <div
+              style={{
+                background: "var(--bg-card)",
+                border: "1px solid var(--border)",
+                borderRadius: "22px",
+                padding: "2rem",
+                display: "flex",
+                flexDirection: "column",
+                position: "relative",
+              }}
+              className="hover:shadow-xl transition-all"
+            >
+              <div style={{ width: 50, height: 50, borderRadius: "14px", background: "rgba(139, 92, 246, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                <ShieldAlert size={24} style={{ color: "#8b5cf6" }} />
+              </div>
+              <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.5rem" }}>
+                🛡️ Clinic Admin Portal
+              </h3>
+              <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem", lineHeight: 1.6, marginBottom: "1.5rem", flex: 1 }}>
+                Real-time clinic financial metrics, monthly appointment volume analytics, verified practitioner management, and RBAC user credential monitors.
+              </p>
+              <Link
+                href="/dashboard/admin"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  padding: "10px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(139, 92, 246, 0.1)",
+                  color: "#8b5cf6",
+                  fontWeight: 700,
+                  fontSize: "0.88rem",
+                  textDecoration: "none",
+                }}
+              >
+                Launch Admin Portal <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── How NewCare Works (Fixed: Clean Single Step Badge, No Duplicates) ── */}
+      <section style={{ padding: "5rem 0", background: "var(--bg-secondary)", borderTop: "1px solid var(--border)" }}>
+        <div className="container">
+          <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
+            <h2 style={{ fontSize: "2.1rem", fontWeight: 900, color: "var(--text)", marginBottom: "0.75rem" }}>
+              How <span className="gradient-text">NewCare</span> Works
+            </h2>
+            <p style={{ color: "var(--text-secondary)", maxWidth: 500, margin: "0 auto", fontSize: "0.95rem" }}>
+              Experience frictionless scheduling in three verified clinical steps
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "2rem" }}>
+            {[
+              {
+                step: "01",
+                title: "1. Select Specialist & Time",
+                desc: "Filter board-certified doctors by specialty, review verified patient ratings, and choose a live 30-minute slot.",
+              },
+              {
+                step: "02",
+                title: "2. Confirm Symptoms & Format",
+                desc: "Choose between an in-person clinic visit or HD telehealth video link. Enter reason for visit and relevant symptom tags.",
+              },
+              {
+                step: "03",
+                title: "3. Digital Pass & Instant Care",
+                desc: "Receive your unique Booking ID, calendar sync invite, and fast-track QR code for touchless clinic check-in.",
+              },
+            ].map(({ step, title, desc }) => (
+              <div
+                key={step}
+                style={{
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "22px",
+                  padding: "2.2rem 1.75rem",
+                  position: "relative",
+                  boxShadow: "var(--shadow-sm)",
+                }}
+              >
+                {/* Single clean step badge — no duplicate node */}
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
+                    borderRadius: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "1.25rem",
+                    color: "white",
+                    fontWeight: 800,
+                    fontSize: "1rem",
+                    boxShadow: "0 6px 16px rgba(14, 165, 233, 0.3)",
+                  }}
+                >
+                  {step}
+                </div>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, marginBottom: "0.75rem", color: "var(--text)" }}>
+                  {title}
+                </h3>
+                <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem", lineHeight: 1.7 }}>
+                  {desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section style={{
-        padding: "5rem 0",
-        background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
-        textAlign: "center",
-      }}>
+      {/* ── Clinical CTA ── */}
+      <section
+        style={{
+          padding: "5rem 0",
+          background: "linear-gradient(135deg, #0284c7 0%, #4f46e5 100%)",
+          textAlign: "center",
+          color: "white",
+        }}
+      >
         <div className="container">
-          <h2 style={{ fontSize: "2.2rem", fontWeight: 900, color: "white", marginBottom: "1rem" }}>
-            Ready to take control of your health?
+          <h2 style={{ fontSize: "2.3rem", fontWeight: 900, marginBottom: "1rem", letterSpacing: "-0.02em" }}>
+            Ready to schedule your appointment?
           </h2>
-          <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "1.05rem", marginBottom: "2rem" }}>
-            Join thousands of patients already using NewCare
+          <p style={{ color: "rgba(255,255,255,0.9)", fontSize: "1.05rem", marginBottom: "2rem", maxWidth: "520px", margin: "0 auto 2rem" }}>
+            Join thousands of patients booking verified medical visits with NewCare every day.
           </p>
-          <Link
-            href={isLoggedIn ? "/doctors" : "/login"}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: "8px",
-              background: "white", color: "#0ea5e9",
-              padding: "14px 32px", borderRadius: "12px",
-              fontWeight: 700, fontSize: "1rem",
-              textDecoration: "none",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-              transition: "transform 0.2s ease",
-            }}
-          >
-            Book Your First Appointment <ArrowRight size={18} />
-          </Link>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+            <Link
+              href="/doctors"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                background: "white",
+                color: "#0284c7",
+                padding: "14px 30px",
+                borderRadius: "14px",
+                fontWeight: 800,
+                fontSize: "0.95rem",
+                textDecoration: "none",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+              }}
+            >
+              Find Available Doctors <ArrowRight size={18} />
+            </Link>
+            <Link
+              href="/dashboard"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                background: "rgba(255,255,255,0.15)",
+                backdropFilter: "blur(8px)",
+                color: "white",
+                border: "1px solid rgba(255,255,255,0.3)",
+                padding: "14px 26px",
+                borderRadius: "14px",
+                fontWeight: 700,
+                fontSize: "0.95rem",
+                textDecoration: "none",
+              }}
+            >
+              Explore Role Dashboards
+            </Link>
+          </div>
         </div>
       </section>
     </div>
-  );
-}
-
-function DoctorCard({ doctor }: { doctor: Doctor }) {
-  const [imgSrc, setImgSrc] = useState(doctor.image);
-  const fallbackImg = "https://i.pravatar.cc/400?img=1";
-  
-  return (
-    <Link
-      href={`/appointment/${doctor._id}`}
-      style={{ textDecoration: "none" }}
-    >
-      <div className="card" style={{ overflow: "hidden", cursor: "pointer" }}>
-        <div style={{ position: "relative", height: 200, background: "var(--bg-secondary)" }}>
-          <Image
-            src={imgSrc}
-            alt={doctor.name}
-            fill
-            style={{ objectFit: "cover" }}
-            unoptimized
-            onError={() => setImgSrc(fallbackImg)}
-          />
-          {/* Online indicator */}
-          <div style={{
-            position: "absolute", top: 10, right: 10,
-            display: "flex", alignItems: "center", gap: "5px",
-            background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)",
-            borderRadius: "20px", padding: "4px 10px",
-            fontSize: "0.72rem", fontWeight: 600, color: "white"
-          }}>
-            <span
-              className="pulse-dot"
-              style={{
-                width: 7, height: 7, borderRadius: "50%",
-                background: doctor.available ? "#4ade80" : "#f87171",
-                display: "inline-block"
-              }}
-            />
-            {doctor.available ? "Available" : "Busy"}
-          </div>
-        </div>
-
-        <div style={{ padding: "1rem" }}>
-          <p style={{ fontSize: "0.75rem", color: "var(--primary)", fontWeight: 600, marginBottom: "4px" }}>
-            {doctor.speciality}
-          </p>
-          <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", marginBottom: "6px" }}>
-            {doctor.name}
-          </h3>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-              <Star size={13} fill="#f59e0b" style={{ color: "#f59e0b" }} />
-              <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)" }}>
-                {doctor.rating?.toFixed(1) || "4.8"}
-              </span>
-              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                ({doctor.reviewCount || 124})
-              </span>
-            </div>
-            <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--primary)" }}>
-              ${doctor.fees}
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "6px" }}>
-            <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
-              {doctor.experience} yr{doctor.experience !== 1 ? "s" : ""} experience
-            </span>
-          </div>
-        </div>
-      </div>
-    </Link>
   );
 }

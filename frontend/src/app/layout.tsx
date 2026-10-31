@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import DemoRoleSwitcher from "@/components/DemoRoleSwitcher";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,6 +39,7 @@ export default function RootLayout({
           <Navbar />
           <main style={{ position: "relative", zIndex: 1 }}>{children}</main>
           <Footer />
+          <DemoRoleSwitcher />
         </ThemeProvider>
       </body>
     </html>

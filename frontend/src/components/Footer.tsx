@@ -39,10 +39,16 @@ export default function Footer() {
           {/* Quick Links */}
           <div>
             <h4 style={{ fontWeight: 700, marginBottom: "1rem", fontSize: "0.9rem", color: "var(--text)" }}>Quick Links</h4>
-            {["Home", "All Doctors", "About Us", "Contact"].map((item) => (
+            {[
+              { label: "Home", href: "/" },
+              { label: "All Doctors", href: "/doctors" },
+              { label: "Role Dashboards", href: "/dashboard" },
+              { label: "About Us", href: "/about" },
+              { label: "Contact", href: "/contact" },
+            ].map(({ label, href }) => (
               <Link
-                key={item}
-                href={item === "Home" ? "/" : item === "About Us" ? "/about" : `/${item.toLowerCase().replace(/ /g, "-")}`}
+                key={label}
+                href={href}
                 style={{
                   display: "block",
                   color: "var(--text-secondary)",
@@ -51,10 +57,10 @@ export default function Footer() {
                   marginBottom: "0.6rem",
                   transition: "color 0.2s ease",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--primary)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.color = "var(--primary)")}
+                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.color = "var(--text-secondary)")}
               >
-                {item}
+                {label}
               </Link>
             ))}
           </div>
@@ -62,7 +68,7 @@ export default function Footer() {
           {/* Specialties */}
           <div>
             <h4 style={{ fontWeight: 700, marginBottom: "1rem", fontSize: "0.9rem", color: "var(--text)" }}>Specialties</h4>
-            {["General Physician", "Cardiologist", "Neurologist", "Dermatologist", "Pediatrician"].map((spec) => (
+            {["General Physician", "Cardiologist", "Neurologist", "Dermatologist", "Pediatrician", "Gynecologist"].map((spec) => (
               <Link
                 key={spec}
                 href={`/doctors?specialty=${encodeURIComponent(spec)}`}
@@ -74,8 +80,8 @@ export default function Footer() {
                   marginBottom: "0.6rem",
                   transition: "color 0.2s ease",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--primary)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.color = "var(--primary)")}
+                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.color = "var(--text-secondary)")}
               >
                 {spec}
               </Link>
@@ -111,13 +117,17 @@ export default function Footer() {
             © {new Date().getFullYear()} NewCare. All rights reserved.
           </p>
           <div style={{ display: "flex", gap: "1.5rem" }}>
-            {["Privacy Policy", "Terms of Service", "Cookie Policy"].map((item) => (
+            {[
+              { label: "Privacy Policy", href: "/about#privacy" },
+              { label: "Terms of Service", href: "/about#terms" },
+              { label: "Clinical Standards", href: "/about#standards" },
+            ].map(({ label, href }) => (
               <Link
-                key={item}
-                href="#"
+                key={label}
+                href={href}
                 style={{ color: "var(--text-muted)", fontSize: "0.8rem", textDecoration: "none" }}
               >
-                {item}
+                {label}
               </Link>
             ))}
           </div>
