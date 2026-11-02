@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
   Calendar, Clock, MapPin, Video, QrCode, Download,
   CheckCircle2, XCircle, ArrowRight, ShieldCheck, FileText,
-  AlertCircle, DollarSign, Plus, Eye
+  AlertCircle, DollarSign, Plus, Eye, User
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useStore, StoredAppointment } from "@/store/useStore";
@@ -14,6 +14,25 @@ import { useStore, StoredAppointment } from "@/store/useStore";
 export default function PatientDashboardView() {
   const { appointments, cancelAppointment, updateAppointmentStatus } = useStore();
   const [selectedPass, setSelectedPass] = useState<StoredAppointment | null>(null);
+  const [patientUser, setPatientUser] = useState<{ name?: string; email?: string; image?: string } | null>(null);
+
+  useEffect(() => {
+    const checkUser = () => {
+      const stored = localStorage.getItem("userData");
+      if (stored) {
+        try {
+          setPatientUser(JSON.parse(stored));
+        } catch {
+          setPatientUser(null);
+        }
+      } else {
+        setPatientUser(null);
+      }
+    };
+    checkUser();
+    window.addEventListener("authChange", checkUser);
+    return () => window.removeEventListener("authChange", checkUser);
+  }, []);
 
   // Compute patient-specific appointments
   const upcomingAppointments = appointments.filter((a) => a.status === "Confirmed");
@@ -74,29 +93,76 @@ Access / Location: ${appt.roomNumber || appt.meetingLink || "Health Plaza NY"}
           boxShadow: "0 15px 35px rgba(2, 132, 199, 0.25)",
         }}
       >
-        <div>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              background: "rgba(255,255,255,0.18)",
-              backdropFilter: "blur(6px)",
-              padding: "4px 12px",
-              borderRadius: "50px",
-              fontSize: "0.76rem",
-              fontWeight: 800,
-              marginBottom: "0.5rem",
-            }}
-          >
-            👤 PATIENT VIEW • ID #NC-PT-9021
+        <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", flexWrap: "wrap" }}>
+          {patientUser?.image ? (
+            <div
+              style={{
+                position: "relative",
+                width: 68,
+                height: 68,
+                borderRadius: "50%",
+                overflow: "hidden",
+                border: "3px solid rgba(255, 255, 255, 0.8)",
+                boxShadow: "0 6px 16px rgba(0,0,0,0.25)",
+                flexShrink: 0,
+              }}
+            >
+              <Image
+                src={patientUser.image}
+                alt={patientUser.name || "Patient photo"}
+                fill
+                sizes="68px"
+                style={{ objectFit: "cover" }}
+                unoptimized
+              />
+            </div>
+          ) : patientUser?.name ? (
+            <div
+              style={{
+                width: 68,
+                height: 68,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.22)",
+                backdropFilter: "blur(10px)",
+                border: "2px solid rgba(255, 255, 255, 0.6)",
+                color: "white",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "1.75rem",
+                fontWeight: 900,
+                boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+                flexShrink: 0,
+              }}
+            >
+              {patientUser.name.trim().charAt(0).toUpperCase()}
+            </div>
+          ) : null}
+
+          <div>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                background: "rgba(255,255,255,0.18)",
+                backdropFilter: "blur(6px)",
+                padding: "4px 12px",
+                borderRadius: "50px",
+                fontSize: "0.76rem",
+                fontWeight: 800,
+                marginBottom: "0.5rem",
+              }}
+            >
+              👤 PATIENT VIEW • ID #NC-PT-9021
+            </div>
+            <h2 style={{ fontSize: "1.9rem", fontWeight: 900, marginBottom: "4px", letterSpacing: "-0.02em" }}>
+              Welcome back, {patientUser?.name || "Alexander Hayes"}
+            </h2>
+            <p style={{ opacity: 0.9, fontSize: "0.92rem" }}>
+              Track your healthcare schedule, download digital passes, and manage specialist appointments.
+            </p>
           </div>
-          <h2 style={{ fontSize: "1.9rem", fontWeight: 900, marginBottom: "4px", letterSpacing: "-0.02em" }}>
-            Welcome back, Alexander Hayes
-          </h2>
-          <p style={{ opacity: 0.9, fontSize: "0.92rem" }}>
-            Track your healthcare schedule, download digital passes, and manage specialist appointments.
-          </p>
         </div>
 
         <Link

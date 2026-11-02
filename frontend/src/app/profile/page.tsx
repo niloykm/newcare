@@ -44,6 +44,12 @@ export default function ProfilePage() {
           }
         }
         setUserData(u);
+        localStorage.setItem("userData", JSON.stringify({
+          name: u.name,
+          email: u.email,
+          image: u.image || "",
+        }));
+        window.dispatchEvent(new Event("authChange"));
       } else {
         toast.error(res.data.message || "Failed to load profile data");
       }
@@ -90,6 +96,14 @@ export default function ProfilePage() {
         setIsEdit(false);
         setSelectedFile(null);
         setPreviewUrl(null);
+        // Update localStorage userData cache with updated info
+        const updatedUser = {
+          name: userData.name,
+          email: userData.email,
+          image: res.data.image || userData.image || "",
+        };
+        localStorage.setItem("userData", JSON.stringify(updatedUser));
+        window.dispatchEvent(new Event("authChange"));
         fetchProfile();
       } else {
         toast.error(res.data.message || "Failed to update profile");
