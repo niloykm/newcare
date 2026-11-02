@@ -28,6 +28,16 @@ export class UserController {
     return this.userService.login(body);
   }
 
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: any) {
+    return this.userService.forgotPassword(body);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: any) {
+    return this.userService.resetPassword(body);
+  }
+
   @Post('google-auth')
   async googleAuth(@Body() body: any) {
     return this.userService.googleAuth(body);

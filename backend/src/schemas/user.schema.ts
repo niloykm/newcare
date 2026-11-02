@@ -28,6 +28,12 @@ export class User extends Document {
 
   @Prop({ default: '+880000000000' })
   phone: string;
+
+  @Prop({ default: null })
+  resetPasswordToken: string;
+
+  @Prop({ default: null })
+  resetPasswordExpires: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -85,6 +85,72 @@ export class UserService {
     throw new BadRequestException({ success: false, message: 'Invalid credentials' });
   }
 
+  async forgotPassword(body: any) {
+    const { email } = body;
+    if (!email) {
+      throw new BadRequestException({ success: false, message: 'Please provide an email address' });
+    }
+
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      // Return success without revealing user existence for security
+      return {
+        success: true,
+        message: 'If an account exists with this email, password reset instructions have been sent.',
+      };
+    }
+
+    // Generate 6-digit OTP code or secure reset token
+    const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiry
+
+    user.set('resetPasswordToken', resetToken);
+    user.set('resetPasswordExpires', expires);
+    await user.save();
+
+    console.log(`🔑 [PASSWORD RESET] Token for ${email}: ${resetToken}`);
+
+    return {
+      success: true,
+      message: 'Password reset code generated. Please check your email or enter your code.',
+      resetToken, // Returned so UI can autofill or display in development/demo mode
+    };
+  }
+
+  async resetPassword(body: any) {
+    const { email, token, newPassword } = body;
+    if (!email || !token || !newPassword) {
+      throw new BadRequestException({ success: false, message: 'Email, code, and new password are required' });
+    }
+
+    if (newPassword.length < 8) {
+      throw new BadRequestException({ success: false, message: 'Password must be at least 8 characters long' });
+    }
+
+    const user = await this.userModel.findOne({
+      email,
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      throw new BadRequestException({ success: false, message: 'Invalid or expired reset code' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    user.set('resetPasswordToken', null);
+    user.set('resetPasswordExpires', null);
+    await user.save();
+
+    return {
+      success: true,
+      message: 'Password has been reset successfully! You can now sign in with your new password.',
+    };
+  }
+
   async getProfile(userId: string) {
     const userData = await this.userModel.findById(userId).select('-password');
     if (!userData) {

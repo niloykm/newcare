@@ -2,7 +2,7 @@
 
 import { useStore, RoleType } from "@/store/useStore";
 import { useRouter, usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { User, Stethoscope, ShieldAlert, Sparkles, RefreshCw, ChevronUp, ChevronDown, Check } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -10,7 +10,23 @@ export default function DemoRoleSwitcher() {
   const router = useRouter();
   const pathname = usePathname() || "";
   const { currentRole, setCurrentRole } = useStore();
-  const [minimized, setMinimized] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const containerRef = useRef<HTMLElement>(null);
+
+  // Close on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setExpanded(false);
+      }
+    }
+    if (expanded) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [expanded]);
 
   const handleRoleChange = (role: RoleType, targetPath: string) => {
     setCurrentRole(role);
@@ -19,6 +35,7 @@ export default function DemoRoleSwitcher() {
       duration: 2500,
     });
     router.push(targetPath);
+    setExpanded(false);
   };
 
   const handleResetData = () => {
@@ -61,15 +78,15 @@ export default function DemoRoleSwitcher() {
 
   return (
     <aside
+      ref={containerRef}
       aria-label="Interactive Demo Switcher"
       style={{
         position: "fixed",
-        bottom: minimized ? 12 : 20,
-        left: "50%",
-        transform: "translateX(-50%)",
+        bottom: 20,
+        right: 20,
         zIndex: 9999,
         transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-        maxWidth: "94vw",
+        maxWidth: "calc(100vw - 32px)",
       }}
     >
       <div
@@ -77,9 +94,9 @@ export default function DemoRoleSwitcher() {
           background: "rgba(15, 23, 42, 0.94)",
           backdropFilter: "blur(16px)",
           border: "1px solid rgba(255, 255, 255, 0.15)",
-          borderRadius: minimized ? "50px" : "24px",
-          padding: minimized ? "8px 16px" : "10px 14px",
-          boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(14, 165, 233, 0.2)",
+          borderRadius: expanded ? "24px" : "50px",
+          padding: expanded ? "10px 14px" : "6px 8px 6px 14px",
+          boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(14, 165, 233, 0.25)",
           color: "white",
           display: "flex",
           alignItems: "center",
@@ -87,48 +104,59 @@ export default function DemoRoleSwitcher() {
           flexWrap: "wrap",
         }}
       >
-        {/* Header Tag / Toggle */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        {/* Compact Toggle Button */}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          title={expanded ? "Minimize Demo Switcher" : "Open Demo Switcher"}
+          aria-expanded={expanded}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            color: "white",
+          }}
+        >
           <div
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
               background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
-              padding: "4px 10px",
+              padding: "6px 12px",
               borderRadius: "50px",
-              fontSize: "0.74rem",
+              fontSize: "0.76rem",
               fontWeight: 800,
               letterSpacing: "0.03em",
               textTransform: "uppercase",
               boxShadow: "0 0 12px rgba(14, 165, 233, 0.6)",
             }}
           >
-            <Sparkles size={12} className="animate-spin" />
+            <Sparkles size={13} className="animate-spin" />
             <span>Interactive Demo</span>
           </div>
 
-          <button
-            onClick={() => setMinimized(!minimized)}
-            title={minimized ? "Expand Demo Switcher" : "Minimize Switcher"}
+          <div
             style={{
               background: "rgba(255,255,255,0.08)",
-              border: "none",
-              color: "#94a3b8",
-              cursor: "pointer",
               borderRadius: "50%",
-              width: 24,
-              height: 24,
+              width: 26,
+              height: 26,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              color: "#94a3b8",
             }}
           >
-            {minimized ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-        </div>
+            {expanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          </div>
+        </button>
 
-        {!minimized && (
+        {/* Expanded Options */}
+        {expanded && (
           <>
             <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.15)" }} />
 
