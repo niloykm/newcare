@@ -184,90 +184,50 @@ function LoginForm() {
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "var(--bg)",
-      padding: "2rem",
-      position: "relative",
-    }}>
-      {/* Background decoration */}
-      <div style={{
-        position: "fixed", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none"
-      }}>
-        <div style={{
-          position: "absolute", top: "-20%", right: "-10%", width: 600, height: 600,
-          background: "radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%)",
-          borderRadius: "50%", pointerEvents: "none"
-        }} />
-        <div style={{
-          position: "absolute", bottom: "-20%", left: "-10%", width: 500, height: 500,
-          background: "radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)",
-          borderRadius: "50%", pointerEvents: "none"
-        }} />
-      </div>
-
-      <div style={{ width: "100%", maxWidth: 440, position: "relative", zIndex: 10 }}>
-        {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <Link href="/" style={{ display: "inline-flex", alignItems: "center", textDecoration: "none", marginBottom: "1rem" }}>
+    <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-4 sm:p-6">
+      <div className="w-full max-w-sm sm:max-w-md">
+        {/* Logo & Clinical Title */}
+        <div className="text-center mb-6">
+          <Link href="/" className="inline-flex items-center justify-center mb-3">
             <Image
               src="https://res.cloudinary.com/dg5gwims9/image/upload/v1783617203/newcare_assets/newCare.png"
               alt="NewCare Logo"
-              width={150}
-              height={38}
-              style={{ objectFit: "contain", height: "38px", width: "auto" }}
+              width={140}
+              height={36}
+              style={{ objectFit: "contain", height: "36px", width: "auto" }}
               unoptimized
             />
           </Link>
-          <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.4rem" }}>
-            {mode === "login" ? "Welcome back" : mode === "register" ? "Create account" : "Reset password"}
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+            {mode === "login" ? "Account Sign In" : mode === "register" ? "Create Patient Account" : "Reset Password"}
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-            {mode === "login" ? "Sign in to your account" : mode === "register" ? "Join thousands of patients today" : "Enter your email to receive a recovery code"}
+          <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+            {mode === "login"
+              ? "Access your appointments, health passes, and clinical records"
+              : mode === "register"
+              ? "Join the NewCare synchronized clinical network"
+              : "Enter your registered email to receive a recovery code"}
           </p>
         </div>
 
         {/* Card */}
-        <div style={{
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
-          borderRadius: "24px",
-          padding: "2rem",
-          boxShadow: "var(--shadow-lg)",
-        }}>
+        <div className="card p-6 sm:p-8">
           {mode !== "forgot" ? (
             <>
               {/* Mode toggle */}
-              <div style={{
-                display: "flex",
-                background: "var(--bg-secondary)",
-                borderRadius: "12px",
-                padding: "4px",
-                marginBottom: "1.75rem",
-              }}>
+              <div className="flex bg-neutral-100 dark:bg-neutral-800 p-1 rounded-lg mb-6 border border-neutral-200 dark:border-neutral-700">
                 {(["login", "register"] as Mode[]).map((m) => (
                   <button
                     key={m}
                     type="button"
                     onClick={() => setMode(m)}
-                    style={{
-                      flex: 1,
-                      padding: "8px",
-                      borderRadius: "10px",
-                      border: "none",
-                      background: mode === m ? "var(--primary)" : "transparent",
-                      color: mode === m ? "white" : "var(--text-secondary)",
-                      fontWeight: 600,
-                      fontSize: "0.875rem",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      textTransform: "capitalize",
-                    }}
+                    className={`flex-1 py-1.5 px-3 text-xs font-semibold rounded-md transition-colors ${
+                      mode === m
+                        ? "bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-xs"
+                        : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+                    }`}
                   >
-                    {m === "login" ? "Sign In" : "Sign Up"}
+                    {m === "login" ? "Sign In" : "Register"}
                   </button>
                 ))}
               </div>
@@ -363,17 +323,16 @@ function LoginForm() {
                 <button
                   type="submit"
                   disabled={loading || googleLoading}
-                  className="btn-primary"
-                  style={{ justifyContent: "center", width: "100%", padding: "14px", fontSize: "0.95rem", marginTop: "0.5rem", opacity: (loading || googleLoading) ? 0.7 : 1 }}
+                  className="btn-primary w-full py-2.5 text-xs sm:text-sm font-semibold rounded-lg mt-2"
                 >
-                  {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
+                  {loading ? "Processing..." : mode === "login" ? "Sign In" : "Create Account"}
                 </button>
               </form>
 
-              <div style={{ display: "flex", alignItems: "center", margin: "1.25rem 0", gap: "10px" }}>
-                <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 500 }}>or continue with</span>
-                <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+              <div className="flex items-center my-4 gap-3">
+                <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-800" />
+                <span className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">or continue with</span>
+                <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-800" />
               </div>
 
               {/* Google OAuth2 Button */}
@@ -382,24 +341,7 @@ function LoginForm() {
                 id="google-signin-btn"
                 onClick={handleGoogleOAuth}
                 disabled={loading || googleLoading}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "12px",
-                  width: "100%",
-                  padding: "12px 16px",
-                  borderRadius: "10px",
-                  border: "1px solid var(--border)",
-                  background: "var(--bg-secondary)",
-                  color: "var(--text)",
-                  fontSize: "0.9rem",
-                  fontWeight: 600,
-                  cursor: (loading || googleLoading) ? "not-allowed" : "pointer",
-                  transition: "all 0.2s ease",
-                  opacity: (loading || googleLoading) ? 0.7 : 1,
-                  marginBottom: "1rem",
-                }}
+                className="w-full h-10 px-4 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/60 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-2.5 transition-colors mb-4"
               >
                 <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
                   <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -407,17 +349,17 @@ function LoginForm() {
                   <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                   <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                 </svg>
-                {googleLoading ? "Redirecting to Google..." : "Continue with Google"}
+                <span>{googleLoading ? "Redirecting to Google..." : "Continue with Google"}</span>
               </button>
 
-              <div style={{ textAlign: "center", marginTop: "1.25rem", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+              <div className="text-center text-xs text-neutral-500 dark:text-neutral-400">
                 {mode === "login" ? "Don't have an account? " : "Already have an account? "}
                 <button
                   type="button"
                   onClick={() => setMode(mode === "login" ? "register" : "login")}
-                  style={{ background: "none", border: "none", color: "var(--primary)", fontWeight: 700, cursor: "pointer", fontSize: "0.85rem" }}
+                  className="font-semibold text-neutral-900 dark:text-neutral-100 hover:underline"
                 >
-                  {mode === "login" ? "Sign up" : "Sign in"}
+                  {mode === "login" ? "Register" : "Sign in"}
                 </button>
               </div>
             </>

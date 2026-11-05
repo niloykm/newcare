@@ -65,10 +65,10 @@ function Sidebar({ activeTab, onTab, collapsed }: { activeTab: string; onTab: (t
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {collapsed ? (
             <div style={{
-              width: 34, height: 34, borderRadius: "10px",
-              background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+              width: 32, height: 32, borderRadius: "8px",
+              background: "#0284c7",
               display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0, color: "white", fontWeight: "bold"
+              flexShrink: 0, color: "white", fontWeight: "bold", fontSize: "0.8rem"
             }}>
               NC
             </div>
@@ -1548,10 +1548,10 @@ export default function AdminDashboard() {
               {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
             </button>
             <div style={{
-              width: 36, height: 36, borderRadius: "10px",
-              background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+              width: 32, height: 32, borderRadius: "8px",
+              background: "#0284c7",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "white", fontWeight: 700, fontSize: "0.875rem"
+              color: "white", fontWeight: 700, fontSize: "0.85rem"
             }}>A</div>
           </div>
         </header>

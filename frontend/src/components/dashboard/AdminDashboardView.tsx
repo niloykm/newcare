@@ -3,32 +3,31 @@
 import { useState } from "react";
 import Image from "next/image";
 import {
-  ShieldAlert, DollarSign, TrendingUp, Users, Calendar, CheckCircle2,
-  XCircle, Stethoscope, Search, ShieldCheck, Edit, ArrowUpRight,
-  Filter, Lock, UserCheck, Key, Clock
+  ShieldAlert, DollarSign, Users, Calendar, TrendingUp,
+  ShieldCheck, Activity, Search, Edit, Check, Lock, CheckCircle2,
+  Clock
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { useStore, StoredAppointment, AppointmentStatus } from "@/store/useStore";
+import { useStore, AppointmentStatus } from "@/store/useStore";
 
 export default function AdminDashboardView() {
   const {
     doctors,
     appointments,
     updateAppointmentStatus,
-    updateDoctorFee,
     toggleDoctorVerification,
     toggleDoctorAvailability,
+    updateDoctorFee,
   } = useStore();
 
-  const [appointmentFilter, setAppointmentFilter] = useState<string>("All");
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [editingFeeDocId, setEditingFeeDocId] = useState<string | null>(null);
   const [feeInput, setFeeInput] = useState<number>(50);
+  const [appointmentFilter, setAppointmentFilter] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Financial & Operational Metrics
   const totalRevenue = appointments
     .filter((a) => a.status !== "Cancelled")
-    .reduce((sum, a) => sum + (a.amount || 0), 24850);
+    .reduce((sum, a) => sum + (a.amount || 0), 0) + 12450;
 
   const totalConfirmed = appointments.filter((a) => a.status === "Confirmed").length;
   const totalCompleted = appointments.filter((a) => a.status === "Completed").length;
@@ -39,17 +38,17 @@ export default function AdminDashboardView() {
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
+      const matchPatient = a.patientName.toLowerCase().includes(q);
       const matchDoc = a.doctorName.toLowerCase().includes(q);
-      const matchPat = a.patientName.toLowerCase().includes(q);
       const matchId = a.bookingId.toLowerCase().includes(q);
-      if (!matchDoc && !matchPat && !matchId) return false;
+      if (!matchPatient && !matchDoc && !matchId) return false;
     }
     return true;
   });
 
   const handleSaveFee = (docId: string) => {
     updateDoctorFee(docId, Number(feeInput) || 50);
-    toast.success(`Consultation fee updated to $${feeInput}!`);
+    toast.success(`Consultation fee updated to $${feeInput}`);
     setEditingFeeDocId(null);
   };
 
@@ -62,296 +61,203 @@ export default function AdminDashboardView() {
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "2.2rem" }}>
+    <div className="flex flex-col gap-6 text-neutral-900 dark:text-neutral-100">
       {/* Admin Portal Header */}
-      <div
-        style={{
-          background: "linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%)",
-          borderRadius: "24px",
-          padding: "2rem 2.5rem",
-          color: "white",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "1.5rem",
-          boxShadow: "0 15px 35px rgba(67, 56, 202, 0.25)",
-        }}
-      >
+      <div className="card p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              background: "rgba(255,255,255,0.18)",
-              backdropFilter: "blur(6px)",
-              padding: "4px 12px",
-              borderRadius: "50px",
-              fontSize: "0.76rem",
-              fontWeight: 800,
-              marginBottom: "0.5rem",
-            }}
-          >
-            🛡️ ROLE-BASED ADMIN PORTAL • RBAC ENGINE
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 mb-1">
+            <span>Clinic Operational Governance</span>
+            <span className="text-neutral-400">•</span>
+            <span className="font-mono text-[11px]">RBAC Console</span>
           </div>
-          <h2 style={{ fontSize: "1.9rem", fontWeight: 900, marginBottom: "4px", letterSpacing: "-0.02em" }}>
-            Clinic Operations &amp; Financial Governance
-          </h2>
-          <p style={{ opacity: 0.9, fontSize: "0.92rem" }}>
-            Monitor real-time clinic revenue, audit verified practitioner credentials, and oversee appointment volume.
+          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+            Clinic Operations &amp; Financial Ledger
+          </h1>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            Real-time settled revenue, practitioner credentialing, and RBAC boundary monitoring
           </p>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span
-            style={{
-              background: "rgba(16, 185, 129, 0.25)",
-              color: "#6ee7b7",
-              border: "1px solid rgba(110, 231, 183, 0.4)",
-              borderRadius: "50px",
-              padding: "6px 14px",
-              fontSize: "0.78rem",
-              fontWeight: 800,
-            }}
-          >
-            ● All Systems Operational
+        <div className="flex items-center gap-2">
+          <span className="badge-clinical badge-verified text-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 inline-block" />
+            Core Services Healthy
           </span>
         </div>
       </div>
 
       {/* Financial & Volume Analytics KPI Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "1.2rem" }}>
-        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "20px", padding: "1.4rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-            <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)", fontWeight: 700 }}>Total Clinic Revenue</span>
-            <span style={{ fontSize: "0.72rem", color: "#10b981", fontWeight: 800, background: "rgba(16, 185, 129, 0.1)", padding: "2px 6px", borderRadius: "4px" }}>
-              +18.4%
-            </span>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="card p-3.5 sm:p-4">
+          <div className="flex items-center justify-between text-xs font-medium text-neutral-500 dark:text-neutral-400">
+            <span>Settled Revenue</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">+18.4%</span>
           </div>
-          <p style={{ fontSize: "2rem", fontWeight: 900, color: "var(--text)" }}>
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 tabular-nums mt-0.5">
             ${totalRevenue.toLocaleString()}
           </p>
-          <span style={{ fontSize: "0.74rem", color: "var(--text-muted)", fontWeight: 500 }}>
-            Real-time settled consultations
+          <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+            Consolidated ledger
           </span>
         </div>
 
-        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "20px", padding: "1.4rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-            <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)", fontWeight: 700 }}>Monthly Volume</span>
-            <span style={{ fontSize: "0.72rem", color: "#0ea5e9", fontWeight: 800, background: "rgba(14, 165, 233, 0.1)", padding: "2px 6px", borderRadius: "4px" }}>
-              148 Appts
-            </span>
+        <div className="card p-3.5 sm:p-4">
+          <div className="flex items-center justify-between text-xs font-medium text-neutral-500 dark:text-neutral-400">
+            <span>Monthly Volume</span>
+            <span className="text-sky-600 dark:text-sky-400 font-semibold tabular-nums">148 Total</span>
           </div>
-          <p style={{ fontSize: "2rem", fontWeight: 900, color: "var(--primary)" }}>
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 tabular-nums mt-0.5">
             {appointments.length + 142}
           </p>
-          <span style={{ fontSize: "0.74rem", color: "var(--text-muted)", fontWeight: 500 }}>
-            {totalConfirmed} upcoming • {totalCompleted} completed
+          <span className="text-[11px] text-neutral-500 dark:text-neutral-400 tabular-nums">
+            {totalConfirmed} active • {totalCompleted} completed
           </span>
         </div>
 
-        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "20px", padding: "1.4rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-            <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)", fontWeight: 700 }}>Verified Faculty</span>
-            <span style={{ fontSize: "0.72rem", color: "#8b5cf6", fontWeight: 800, background: "rgba(139, 92, 246, 0.1)", padding: "2px 6px", borderRadius: "4px" }}>
-              100% Board
-            </span>
+        <div className="card p-3.5 sm:p-4">
+          <div className="flex items-center justify-between text-xs font-medium text-neutral-500 dark:text-neutral-400">
+            <span>Active Faculty</span>
+            <span className="badge-clinical badge-verified text-[10px]">100% Board</span>
           </div>
-          <p style={{ fontSize: "2rem", fontWeight: 900, color: "#8b5cf6" }}>
-            {doctors.length} Doctors
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 tabular-nums mt-0.5">
+            {doctors.length}
           </p>
-          <span style={{ fontSize: "0.74rem", color: "var(--text-muted)", fontWeight: 500 }}>
-            Across 8 medical specialties
+          <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+            Across 8 clinical departments
           </span>
         </div>
 
-        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "20px", padding: "1.4rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-            <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)", fontWeight: 700 }}>Queue Latency</span>
-            <span style={{ fontSize: "0.72rem", color: "#10b981", fontWeight: 800, background: "rgba(16, 185, 129, 0.1)", padding: "2px 6px", borderRadius: "4px" }}>
-              Optimal
-            </span>
+        <div className="card p-3.5 sm:p-4">
+          <div className="flex items-center justify-between text-xs font-medium text-neutral-500 dark:text-neutral-400">
+            <span>Queue Latency</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Sub-second</span>
           </div>
-          <p style={{ fontSize: "2rem", fontWeight: 900, color: "#10b981" }}>
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 tabular-nums mt-0.5">
             &lt; 1.2s
           </p>
-          <span style={{ fontSize: "0.74rem", color: "var(--text-muted)", fontWeight: 500 }}>
-            Instant touchless QR check-in
+          <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+            Kiosk QR validation rate
           </span>
         </div>
       </div>
 
       {/* Manage Verified Doctors Table */}
-      <div
-        style={{
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
-          borderRadius: "24px",
-          padding: "1.75rem",
-          boxShadow: "var(--shadow-sm)",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
+      <div className="card p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
-            <h3 style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--text)" }}>
-              Manage Verified Doctors &amp; Pricing Controls
-            </h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>
-              Toggle clinical verification, update consultation fees, and control daily doctor availability.
+            <h2 className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+              Practitioner Registry &amp; Consultation Fee Governance
+            </h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Verify clinical credentials, adjust consultation fees, and regulate daily availability.
             </p>
           </div>
-          <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", fontWeight: 600 }}>
-            {doctors.length} Doctors Registered
+          <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 tabular-nums self-start sm:self-auto">
+            {doctors.length} Registered Clinicians
           </span>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-secondary)", fontSize: "0.78rem", textTransform: "uppercase" }}>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>Practitioner</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>Specialty & Credentials</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>Consultation Fee</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>Verification</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700, textAlign: "right" }}>Availability Control</th>
+              <tr className="border-b border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 text-[11px] uppercase tracking-wider font-semibold">
+                <th className="py-2.5 px-3">Practitioner</th>
+                <th className="py-2.5 px-3">Specialty &amp; Credentials</th>
+                <th className="py-2.5 px-3">Fee</th>
+                <th className="py-2.5 px-3">Verification</th>
+                <th className="py-2.5 px-3 text-right">Availability</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/80">
               {doctors.map((doc) => (
-                <tr key={doc.id} style={{ borderBottom: "1px solid var(--border)" }} className="hover:bg-slate-50 dark:hover:bg-slate-900/40">
-                  <td style={{ padding: "14px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ position: "relative", width: 42, height: 42, borderRadius: "12px", overflow: "hidden", flexShrink: 0 }}>
-                        <Image src={doc.avatarUrl || doc.image} alt={doc.name} fill style={{ objectFit: "cover" }} unoptimized />
+                <tr key={doc.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                  <td className="py-3 px-3">
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-9 h-9 rounded-md overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 shrink-0">
+                        <Image src={doc.avatarUrl || doc.image} alt={doc.name} fill className="object-cover" unoptimized />
                       </div>
-                      <div>
-                        <p style={{ fontWeight: 800, color: "var(--text)" }}>{doc.name}</p>
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{doc.hospitalName}</p>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-neutral-900 dark:text-neutral-100 truncate">{doc.name}</p>
+                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">{doc.hospitalName}</p>
                       </div>
                     </div>
                   </td>
 
-                  <td style={{ padding: "14px" }}>
-                    <span
-                      style={{
-                        background: "rgba(14, 165, 233, 0.12)",
-                        color: "var(--primary)",
-                        fontWeight: 700,
-                        fontSize: "0.76rem",
-                        padding: "2px 8px",
-                        borderRadius: "6px",
-                        display: "inline-block",
-                        marginBottom: "2px",
-                      }}
-                    >
+                  <td className="py-3 px-3">
+                    <span className="badge-clinical badge-neutral text-xs mb-0.5 inline-block">
                       {doc.specialty}
                     </span>
-                    <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>{doc.degree}</p>
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400">{doc.degree}</p>
                   </td>
 
-                  {/* Fee Update */}
-                  <td style={{ padding: "14px" }}>
+                  <td className="py-3 px-3">
                     {editingFeeDocId === doc.id ? (
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span>$</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-neutral-500">$</span>
                         <input
                           type="number"
                           value={feeInput}
                           onChange={(e) => setFeeInput(Number(e.target.value))}
-                          style={{
-                            width: "70px",
-                            padding: "4px 8px",
-                            borderRadius: "6px",
-                            border: "1px solid var(--primary)",
-                            fontSize: "0.85rem",
-                          }}
+                          className="w-16 h-8 px-2 text-xs border border-neutral-300 dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 tabular-nums"
                         />
                         <button
+                          type="button"
                           onClick={() => handleSaveFee(doc.id)}
-                          style={{
-                            background: "var(--primary)",
-                            color: "white",
-                            border: "none",
-                            padding: "4px 8px",
-                            borderRadius: "6px",
-                            fontSize: "0.75rem",
-                            cursor: "pointer",
-                            fontWeight: 700,
-                          }}
+                          className="btn-primary text-xs px-2 py-1"
                         >
                           Save
                         </button>
                       </div>
                     ) : (
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span style={{ fontWeight: 800, color: "var(--text)" }}>${doc.consultationFee}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">
+                          ${doc.consultationFee}
+                        </span>
                         <button
+                          type="button"
                           onClick={() => {
                             setEditingFeeDocId(doc.id);
                             setFeeInput(doc.consultationFee);
                           }}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "var(--text-muted)",
-                            cursor: "pointer",
-                            padding: 2,
-                          }}
-                          title="Edit Fee"
+                          className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 p-0.5"
+                          title="Edit fee"
                         >
-                          <Edit size={13} />
+                          <Edit className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     )}
                   </td>
 
-                  {/* Verification Toggle */}
-                  <td style={{ padding: "14px" }}>
+                  <td className="py-3 px-3">
                     <button
+                      type="button"
                       onClick={() => {
                         toggleDoctorVerification(doc.id);
-                        toast.success(`${doc.name} verification status toggled!`);
+                        toast.success(`${doc.name} verification status toggled`);
                       }}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px",
-                        padding: "4px 10px",
-                        borderRadius: "50px",
-                        fontSize: "0.74rem",
-                        fontWeight: 700,
-                        border: "none",
-                        cursor: "pointer",
-                        background: doc.verified ? "rgba(16, 185, 129, 0.12)" : "rgba(239, 68, 68, 0.12)",
-                        color: doc.verified ? "#10b981" : "#ef4444",
-                      }}
+                      className={`badge-clinical text-xs cursor-pointer border ${
+                        doc.verified ? "badge-verified" : "bg-neutral-100 text-neutral-500 border-neutral-200"
+                      }`}
                     >
-                      <ShieldCheck size={12} />
-                      {doc.verified ? "✓ BMDC Verified" : "Unverified"}
+                      <ShieldCheck className="w-3 h-3" />
+                      <span>{doc.verified ? "BMDC Verified" : "Unverified"}</span>
                     </button>
                   </td>
 
-                  {/* Availability Toggle */}
-                  <td style={{ padding: "14px", textAlign: "right" }}>
+                  <td className="py-3 px-3 text-right">
                     <button
+                      type="button"
                       onClick={() => {
                         toggleDoctorAvailability(doc.id);
-                        toast.success(`${doc.name} availability toggled!`);
+                        toast.success(`${doc.name} availability updated`);
                       }}
-                      style={{
-                        padding: "5px 12px",
-                        borderRadius: "8px",
-                        border: doc.isAvailableToday ? "1px solid #10b981" : "1px solid var(--border)",
-                        background: doc.isAvailableToday ? "rgba(16, 185, 129, 0.1)" : "var(--bg-secondary)",
-                        color: doc.isAvailableToday ? "#10b981" : "var(--text-muted)",
-                        fontSize: "0.78rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
+                      className={`px-2.5 py-1 text-xs font-semibold rounded-md border transition-colors ${
+                        doc.isAvailableToday
+                          ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
+                          : "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500"
+                      }`}
                     >
-                      {doc.isAvailableToday ? "🟢 Queue Open" : "⚪ Offline"}
+                      {doc.isAvailableToday ? "Queue Active" : "Offline"}
                     </button>
                   </td>
                 </tr>
@@ -362,63 +268,33 @@ export default function AdminDashboardView() {
       </div>
 
       {/* All Appointments Master Ledger */}
-      <div
-        style={{
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
-          borderRadius: "24px",
-          padding: "1.75rem",
-          boxShadow: "var(--shadow-sm)",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
+      <div className="card p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
-            <h3 style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--text)" }}>
-              Clinic Appointments Master Ledger
-            </h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>
-              Filter by status, search by patient/doctor name, and manually override appointment states.
+            <h2 className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+              Clinical Appointments Master Ledger
+            </h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Filter by status, search by patient/doctor name, or override appointment states.
             </p>
           </div>
 
-          {/* Search & Filter */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-              <Search size={14} style={{ position: "absolute", left: 10, color: "#94a3b8" }} />
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative flex items-center">
+              <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search ledger..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  height: 36,
-                  paddingLeft: 30,
-                  paddingRight: 10,
-                  fontSize: "0.82rem",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  background: "var(--bg-secondary)",
-                  color: "var(--text)",
-                  outline: "none",
-                }}
+                className="h-8 pl-8 pr-2.5 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 focus:outline-none"
               />
             </div>
 
             <select
               value={appointmentFilter}
               onChange={(e) => setAppointmentFilter(e.target.value)}
-              style={{
-                height: 36,
-                padding: "0 10px",
-                borderRadius: "8px",
-                border: "1px solid var(--border)",
-                background: "var(--bg-secondary)",
-                color: "var(--text)",
-                fontSize: "0.82rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                outline: "none",
-              }}
+              className="h-8 px-2.5 text-xs font-medium bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 cursor-pointer"
             >
               <option value="All">All Statuses ({appointments.length})</option>
               <option value="Confirmed">Confirmed ({totalConfirmed})</option>
@@ -428,84 +304,64 @@ export default function AdminDashboardView() {
           </div>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.86rem" }}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-secondary)", fontSize: "0.78rem", textTransform: "uppercase" }}>
-                <th style={{ padding: "10px 12px", fontWeight: 700 }}>Booking ID</th>
-                <th style={{ padding: "10px 12px", fontWeight: 700 }}>Patient</th>
-                <th style={{ padding: "10px 12px", fontWeight: 700 }}>Doctor</th>
-                <th style={{ padding: "10px 12px", fontWeight: 700 }}>Slot Date & Time</th>
-                <th style={{ padding: "10px 12px", fontWeight: 700 }}>Format</th>
-                <th style={{ padding: "10px 12px", fontWeight: 700 }}>Fee</th>
-                <th style={{ padding: "10px 12px", fontWeight: 700 }}>Status</th>
-                <th style={{ padding: "10px 12px", fontWeight: 700, textAlign: "right" }}>Override</th>
+              <tr className="border-b border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 text-[11px] uppercase tracking-wider font-semibold">
+                <th className="py-2.5 px-3">Token</th>
+                <th className="py-2.5 px-3">Patient</th>
+                <th className="py-2.5 px-3">Clinician</th>
+                <th className="py-2.5 px-3">Slot Date &amp; Time</th>
+                <th className="py-2.5 px-3">Format</th>
+                <th className="py-2.5 px-3">Fee</th>
+                <th className="py-2.5 px-3">Status</th>
+                <th className="py-2.5 px-3 text-right">State Override</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/80">
               {filteredAppointments.map((appt) => (
-                <tr key={appt.id} style={{ borderBottom: "1px solid var(--border)" }} className="hover:bg-slate-50 dark:hover:bg-slate-900/40">
-                  <td style={{ padding: "12px", fontWeight: 800, color: "var(--primary)" }}>
+                <tr key={appt.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                  <td className="py-3 px-3 font-mono font-semibold text-neutral-900 dark:text-neutral-100">
                     {appt.bookingId}
                   </td>
-                  <td style={{ padding: "12px" }}>
-                    <p style={{ fontWeight: 700, color: "var(--text)" }}>{appt.patientName}</p>
-                    <p style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{appt.patientEmail}</p>
+                  <td className="py-3 px-3">
+                    <p className="font-semibold text-neutral-900 dark:text-neutral-100">{appt.patientName}</p>
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400">{appt.patientEmail}</p>
                   </td>
-                  <td style={{ padding: "12px" }}>
-                    <p style={{ fontWeight: 700, color: "var(--text)" }}>{appt.doctorName}</p>
-                    <p style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{appt.doctorSpecialty}</p>
+                  <td className="py-3 px-3">
+                    <p className="font-semibold text-neutral-900 dark:text-neutral-100">{appt.doctorName}</p>
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400">{appt.doctorSpecialty}</p>
                   </td>
-                  <td style={{ padding: "12px", color: "var(--text)", fontWeight: 600 }}>
+                  <td className="py-3 px-3 text-neutral-800 dark:text-neutral-200 font-medium tabular-nums">
                     {appt.slotDate} at {appt.slotTime}
                   </td>
-                  <td style={{ padding: "12px", fontSize: "0.78rem" }}>
+                  <td className="py-3 px-3 text-neutral-600 dark:text-neutral-400">
                     {appt.consultationType}
                   </td>
-                  <td style={{ padding: "12px", fontWeight: 800, color: "var(--text)" }}>
+                  <td className="py-3 px-3 font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">
                     ${appt.amount}
                   </td>
-                  <td style={{ padding: "12px" }}>
+                  <td className="py-3 px-3">
                     <span
-                      style={{
-                        padding: "3px 8px",
-                        borderRadius: "50px",
-                        fontSize: "0.72rem",
-                        fontWeight: 800,
-                        background:
-                          appt.status === "Confirmed"
-                            ? "rgba(14, 165, 233, 0.12)"
-                            : appt.status === "Completed"
-                            ? "rgba(16, 185, 129, 0.12)"
-                            : "rgba(239, 68, 68, 0.12)",
-                        color:
-                          appt.status === "Confirmed"
-                            ? "#0284c7"
-                            : appt.status === "Completed"
-                            ? "#10b981"
-                            : "#ef4444",
-                      }}
+                      className={`badge-clinical text-xs ${
+                        appt.status === "Confirmed"
+                          ? "bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800"
+                          : appt.status === "Completed"
+                          ? "badge-verified"
+                          : "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
+                      }`}
                     >
                       {appt.status}
                     </span>
                   </td>
-                  <td style={{ padding: "12px", textAlign: "right" }}>
+                  <td className="py-3 px-3 text-right">
                     <select
                       value={appt.status}
                       onChange={(e) => {
                         updateAppointmentStatus(appt.id, e.target.value as AppointmentStatus);
-                        toast.success(`Booking ${appt.bookingId} status updated to ${e.target.value}!`);
+                        toast.success(`Booking ${appt.bookingId} set to ${e.target.value}`);
                       }}
-                      style={{
-                        padding: "4px 8px",
-                        borderRadius: "6px",
-                        border: "1px solid var(--border)",
-                        background: "var(--bg-secondary)",
-                        color: "var(--text)",
-                        fontSize: "0.76rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
+                      className="h-7 px-2 text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md text-neutral-800 dark:text-neutral-200 cursor-pointer"
                     >
                       <option value="Confirmed">Confirmed</option>
                       <option value="Completed">Completed</option>
@@ -520,77 +376,54 @@ export default function AdminDashboardView() {
       </div>
 
       {/* Role-Based Access Control (RBAC) Monitor */}
-      <div
-        style={{
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
-          borderRadius: "24px",
-          padding: "1.75rem",
-          boxShadow: "var(--shadow-sm)",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+      <div className="card p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
-            <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--text)" }}>
+            <h2 className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
               Role-Based Access Control (RBAC) Active Sessions
-            </h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>
-              Real-time audit of authenticated role permissions across Patient, Doctor, and Administrative boundaries.
+            </h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Live audit of authenticated session roles across Patient, Doctor, and Administrative boundaries.
             </p>
           </div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#10b981", fontSize: "0.78rem", fontWeight: 700 }}>
-            <Lock size={14} /> Encrypted RBAC Tokens Active
-          </div>
+          <span className="badge-clinical badge-neutral text-xs font-mono self-start sm:self-auto">
+            <Lock className="w-3 h-3 text-neutral-500 mr-1" />
+            Tokens Validated
+          </span>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.86rem" }}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-secondary)", fontSize: "0.78rem", textTransform: "uppercase" }}>
-                <th style={{ padding: "10px 12px", fontWeight: 700 }}>User / Principal</th>
-                <th style={{ padding: "10px 12px", fontWeight: 700 }}>Role</th>
-                <th style={{ padding: "10px 12px", fontWeight: 700 }}>Permission Scope</th>
-                <th style={{ padding: "10px 12px", fontWeight: 700 }}>Session Status</th>
-                <th style={{ padding: "10px 12px", fontWeight: 700, textAlign: "right" }}>Last Activity</th>
+              <tr className="border-b border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 text-[11px] uppercase tracking-wider font-semibold">
+                <th className="py-2.5 px-3">Principal</th>
+                <th className="py-2.5 px-3">Role</th>
+                <th className="py-2.5 px-3">Permission Scope</th>
+                <th className="py-2.5 px-3">Status</th>
+                <th className="py-2.5 px-3 text-right">Last Heartbeat</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/80">
               {rbacUsers.map((user, idx) => (
-                <tr key={idx} style={{ borderBottom: "1px solid var(--border)" }}>
-                  <td style={{ padding: "12px", fontWeight: 800, color: "var(--text)" }}>
+                <tr key={idx} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                  <td className="py-3 px-3 font-semibold text-neutral-900 dark:text-neutral-100">
                     {user.name}
                   </td>
-                  <td style={{ padding: "12px" }}>
-                    <span
-                      style={{
-                        padding: "3px 8px",
-                        borderRadius: "6px",
-                        fontSize: "0.74rem",
-                        fontWeight: 700,
-                        background: user.role.includes("Admin")
-                          ? "rgba(99, 102, 241, 0.12)"
-                          : user.role.includes("Doctor") || user.role.includes("Cardiologist") || user.role.includes("Faculty")
-                          ? "rgba(16, 185, 129, 0.12)"
-                          : "rgba(14, 165, 233, 0.12)",
-                        color: user.role.includes("Admin")
-                          ? "#6366f1"
-                          : user.role.includes("Doctor") || user.role.includes("Cardiologist") || user.role.includes("Faculty")
-                          ? "#10b981"
-                          : "#0284c7",
-                      }}
-                    >
+                  <td className="py-3 px-3">
+                    <span className="badge-clinical badge-neutral text-xs">
                       {user.role}
                     </span>
                   </td>
-                  <td style={{ padding: "12px", color: "var(--text-secondary)", fontSize: "0.8rem" }}>
+                  <td className="py-3 px-3 text-neutral-600 dark:text-neutral-400 font-mono text-[11px]">
                     {user.access}
                   </td>
-                  <td style={{ padding: "12px" }}>
-                    <span style={{ color: "#10b981", fontWeight: 700, fontSize: "0.78rem" }}>
-                      ● {user.status}
+                  <td className="py-3 px-3">
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold inline-flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
+                      {user.status}
                     </span>
                   </td>
-                  <td style={{ padding: "12px", textAlign: "right", color: "var(--text-muted)", fontSize: "0.78rem" }}>
+                  <td className="py-3 px-3 text-right text-neutral-500 dark:text-neutral-400">
                     {user.lastActive}
                   </td>
                 </tr>

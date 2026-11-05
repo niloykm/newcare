@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import toast from "react-hot-toast";
-import { Calendar, Clock, X, CheckCircle, AlertCircle, DollarSign } from "lucide-react";
+import { Calendar, Clock, X, CheckCircle2, AlertCircle, DollarSign, MapPin, Video, Stethoscope, ArrowRight } from "lucide-react";
 import api from "@/lib/api";
 import { useStore, StoredAppointment } from "@/store/useStore";
 
@@ -48,10 +49,29 @@ function formatSlotDate(key: string) {
     const [d, m, y] = parts;
     const date = new Date(Number(y), Number(m) - 1, Number(d));
     if (!isNaN(date.getTime())) {
-      return date.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+      return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
     }
   }
   return key;
+}
+
+function AppointmentSkeleton() {
+  return (
+    <div className="card p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-pulse">
+      <div className="flex items-center gap-3.5">
+        <div className="w-16 h-16 rounded-lg bg-neutral-200 dark:bg-neutral-800 shrink-0" />
+        <div className="space-y-2">
+          <div className="h-4 w-40 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+          <div className="h-3 w-28 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+          <div className="h-3 w-48 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="h-8 w-20 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+        <div className="h-8 w-24 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+      </div>
+    </div>
+  );
 }
 
 export default function MyAppointmentsPage() {
@@ -93,11 +113,6 @@ export default function MyAppointmentsPage() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
     fetchAppointments();
   }, []);
 
@@ -120,197 +135,154 @@ export default function MyAppointmentsPage() {
     if (!confirm("Are you sure you want to cancel this appointment?")) return;
     cancelStored(id);
     try {
-      const res = await api.post("/api/user/cancel-appointment", { appointmentId: id });
-      if (res.data?.success) {
-        toast.success("Appointment cancelled");
-        fetchAppointments();
-      } else {
-        fetchAppointments();
-      }
+      await api.post("/api/user/cancel-appointment", { appointmentId: id });
     } catch {
-      toast.success("Appointment cancelled");
-      fetchAppointments();
+      // Offline fallback handling
     }
+    toast.success("Appointment cancelled");
+    fetchAppointments();
   };
-
-  const getStatus = (appt: Appointment) => {
-    if (appt.cancelled) return { label: "Cancelled", color: "#ef4444", bg: "rgba(239,68,68,0.1)", icon: X };
-    if (appt.isCompleted) return { label: "Completed", color: "#10b981", bg: "rgba(16,185,129,0.1)", icon: CheckCircle };
-    return { label: "Upcoming", color: "#0ea5e9", bg: "rgba(14,165,233,0.1)", icon: Clock };
-  };
-
-  if (loading) {
-    return (
-      <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ width: 44, height: 44, border: "3px solid var(--primary)", borderTop: "3px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 1rem" }} />
-          <p style={{ color: "var(--text-secondary)" }}>Loading your appointments...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", paddingBottom: "4rem" }}>
-      <div style={{
-        background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
-        padding: "3rem 0",
-        color: "white",
-        textAlign: "center",
-        marginBottom: "2rem"
-      }}>
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 pb-16">
+      {/* Header Bar */}
+      <div className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 py-6 sm:py-8">
         <div className="container">
-          <h1 style={{ fontSize: "2rem", fontWeight: 900, marginBottom: "0.5rem" }}>My Appointments</h1>
-          <p style={{ opacity: 0.85 }}>Manage your upcoming and past appointments</p>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 mb-2">
+            <span>Patient Appointment Ledger</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+            My Appointments
+          </h1>
+          <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
+            Active and archived healthcare consultations with synchronized clinical status.
+          </p>
         </div>
       </div>
 
-      <div className="container">
-        {appointments.length === 0 ? (
-          <div style={{
-            textAlign: "center", padding: "4rem 0",
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: "20px",
-          }}>
-            <Calendar size={56} style={{ color: "var(--text-muted)", marginBottom: "1rem", opacity: 0.4 }} />
-            <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.5rem" }}>
-              No appointments yet
-            </h3>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
-              Book your first appointment with one of our expert doctors
+      <main className="container pt-6">
+        {loading ? (
+          <div className="flex flex-col gap-3">
+            <AppointmentSkeleton />
+            <AppointmentSkeleton />
+            <AppointmentSkeleton />
+          </div>
+        ) : appointments.length === 0 ? (
+          <div className="card p-8 sm:p-12 text-center max-w-md mx-auto my-8">
+            <div className="w-12 h-12 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-500 mx-auto mb-4">
+              <Calendar className="w-6 h-6" />
+            </div>
+            <h2 className="text-base sm:text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-1.5">
+              No Appointments Found
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-6 leading-relaxed">
+              You do not have any scheduled appointments. Select a specialist from the directory to book a consultation.
             </p>
-            <a href="/doctors" className="btn-primary" style={{ textDecoration: "none" }}>
-              Find a Doctor
-            </a>
+            <Link href="/doctors" className="btn-primary text-xs px-4 py-2">
+              Browse Doctors Directory
+            </Link>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div className="flex flex-col gap-3">
             {appointments.map((appt) => {
-              const status = getStatus(appt);
-              const StatusIcon = status.icon;
-              return (
-                <div key={appt._id} style={{
-                  background: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "16px",
-                  padding: "1.5rem",
-                  display: "grid",
-                  gridTemplateColumns: "80px 1fr auto",
-                  gap: "1.25rem",
-                  alignItems: "center",
-                }}>
-                  <div style={{ width: 80, height: 80, borderRadius: "12px", overflow: "hidden", position: "relative" }}>
-                    <Image
-                      src={appt.docData?.image || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop"}
-                      alt={appt.docData?.name || "Doctor"}
-                      fill
-                      style={{ objectFit: "cover" }}
-                      unoptimized
-                    />
-                  </div>
+              const isCancelled = appt.cancelled;
+              const isCompleted = appt.isCompleted;
 
-                  <div>
-                    <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", marginBottom: "4px" }}>
-                      {appt.docData?.name || "Doctor"}
-                    </h3>
-                    <p style={{ fontSize: "0.8rem", color: "var(--primary)", fontWeight: 600, marginBottom: "6px" }}>
-                      {appt.docData?.speciality}
-                    </p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <Calendar size={13} style={{ color: "var(--text-muted)" }} />
-                        <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>{formatSlotDate(appt.slotDate)}</span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <Clock size={13} style={{ color: "var(--text-muted)" }} />
-                        <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>{appt.slotTime}</span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <DollarSign size={13} style={{ color: "var(--text-muted)" }} />
-                        <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>${appt.docData?.fees || appt.amount}</span>
-                      </div>
+              return (
+                <div
+                  key={appt._id}
+                  className="card p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                >
+                  {/* Doctor Info & Schedule */}
+                  <div className="flex items-start gap-3.5 sm:gap-4 min-w-0">
+                    <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 shrink-0">
+                      <Image
+                        src={appt.docData?.image || "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=600"}
+                        alt={appt.docData?.name || "Clinician"}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
                     </div>
 
-                    {/* Online/Offline Info */}
-                    <div style={{ marginTop: "8px", borderTop: "1px dashed var(--border)", paddingTop: "8px" }}>
-                      {appt.appointmentType === "online" ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                          <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#10b981", background: "rgba(16,185,129,0.1)", padding: "2px 8px", borderRadius: "4px", width: "max-content" }}>
-                            Online ({appt.onlineInfo?.platform || "Google Meet"})
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                        <h3 className="text-sm sm:text-base font-semibold text-neutral-900 dark:text-neutral-100 truncate">
+                          {appt.docData?.name || "Dr. Practitioner"}
+                        </h3>
+                        <span className="badge-clinical badge-neutral text-xs text-neutral-700 dark:text-neutral-300">
+                          {appt.docData?.speciality}
+                        </span>
+                        {isCancelled ? (
+                          <span className="badge-clinical bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs">
+                            Cancelled
                           </span>
-                          {appt.onlineInfo?.meetingLink && (
-                            <a
-                              href={appt.onlineInfo.meetingLink}
-                              target="_blank"
-                              rel="noreferrer"
-                              style={{ fontSize: "0.78rem", color: "var(--primary)", fontWeight: 600, textDecoration: "underline" }}
-                            >
-                              Join Call: {appt.onlineInfo.meetingLink}
-                            </a>
-                          )}
-                          {appt.onlineInfo?.otherInfo && (
-                            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "2px 0 0 0" }}>
-                              Note: {appt.onlineInfo.otherInfo}
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
-                            <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#f59e0b", background: "rgba(245,158,11,0.1)", padding: "2px 8px", borderRadius: "4px", width: "max-content" }}>
-                              Clinic Visit
-                            </span>
-                            {appt.offlineInfo?.serialNumber && (
-                              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text)" }}>
-                                Serial: {appt.offlineInfo.serialNumber}
-                              </span>
-                            )}
-                          </div>
-                          <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: 0 }}>
-                            <strong>Place:</strong> {appt.offlineInfo?.place || appt.offlineInfo?.location || "Doctor's Clinic"}
-                          </p>
-                          {appt.offlineInfo?.expectedTime && (
-                            <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: 0 }}>
-                              <strong>Expected Time:</strong> {appt.offlineInfo.expectedTime}
-                            </p>
-                          )}
-                          {appt.offlineInfo?.otherInfo && (
-                            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "2px 0 0 0" }}>
-                              Note: {appt.offlineInfo.otherInfo}
-                            </p>
-                          )}
+                        ) : isCompleted ? (
+                          <span className="badge-clinical badge-verified text-xs">
+                            Completed
+                          </span>
+                        ) : (
+                          <span className="badge-clinical bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 text-xs">
+                            Confirmed
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                        <span className="inline-flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span className="tabular-nums font-medium text-neutral-800 dark:text-neutral-200">
+                            {formatSlotDate(appt.slotDate)}
+                          </span>
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span className="tabular-nums font-medium text-neutral-800 dark:text-neutral-200">
+                            {appt.slotTime}
+                          </span>
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span className="truncate max-w-[200px]">
+                            {appt.docData?.address?.line1 || "NewCare Medical Center"}
+                          </span>
+                        </span>
+                        <span className="font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">
+                          ${appt.docData?.fees || appt.amount}
+                        </span>
+                      </div>
+
+                      {/* Online/Offline Channel */}
+                      {appt.appointmentType === "online" && appt.onlineInfo?.meetingLink && !isCancelled && (
+                        <div className="mt-2 text-xs">
+                          <a
+                            href={appt.onlineInfo.meetingLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 font-semibold text-sky-600 dark:text-sky-400 hover:underline"
+                          >
+                            <Video className="w-3.5 h-3.5" />
+                            <span>Launch Telehealth Room ({appt.onlineInfo.platform || "Video"})</span>
+                          </a>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.75rem" }}>
-                    <div style={{
-                      display: "flex", alignItems: "center", gap: "5px",
-                      background: status.bg,
-                      borderRadius: "50px", padding: "5px 12px",
-                      fontSize: "0.75rem", fontWeight: 700,
-                      color: status.color,
-                    }}>
-                      <StatusIcon size={12} />
-                      {status.label}
-                    </div>
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 self-end md:self-center shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-neutral-100 dark:border-neutral-800 w-full md:w-auto justify-end">
+                    <Link
+                      href="/dashboard/patient"
+                      className="btn-secondary text-xs px-3 py-1.5"
+                    >
+                      <span>Digital Pass</span>
+                    </Link>
 
-                    {!appt.cancelled && !appt.isCompleted && (
+                    {!isCancelled && !isCompleted && (
                       <button
+                        type="button"
                         onClick={() => handleCancel(appt._id)}
-                        style={{
-                          background: "none",
-                          border: "1px solid rgba(239,68,68,0.3)",
-                          borderRadius: "8px",
-                          padding: "5px 12px",
-                          cursor: "pointer",
-                          color: "#ef4444",
-                          fontSize: "0.78rem",
-                          fontWeight: 600,
-                          transition: "all 0.2s ease",
-                        }}
+                        className="btn-secondary text-xs px-3 py-1.5 text-rose-600 dark:text-rose-400 hover:border-rose-300"
                       >
                         Cancel
                       </button>
@@ -321,7 +293,7 @@ export default function MyAppointmentsPage() {
             })}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

@@ -3,41 +3,36 @@
 import { useState } from "react";
 import Image from "next/image";
 import {
-  Stethoscope, Calendar, Clock, Video, MapPin, CheckCircle2,
-  XCircle, FileText, User, ShieldCheck, AlertCircle, RefreshCw,
-  Edit3, Check, Star, Users
+  Calendar, Clock, CheckCircle2, XCircle, FileText,
+  User, Video, MapPin, RefreshCw, AlertCircle, ChevronRight,
+  TrendingUp, Award, Activity, Phone, Mail
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useStore, StoredAppointment } from "@/store/useStore";
+import { FALLBACK_DOCTORS } from "@/data/doctorsData";
 
 export default function DoctorDashboardView() {
   const {
     doctors,
-    activeDoctorId,
-    setActiveDoctorId,
-    toggleDoctorAvailability,
     appointments,
     updateAppointmentStatus,
     addConsultationNote,
+    toggleDoctorAvailability,
     rescheduleAppointment,
     cancelAppointment,
   } = useStore();
 
-  const currentDoctor = doctors.find((d) => d.id === activeDoctorId) || doctors[0];
-
-  // Active notes modal
+  const [activeDoctorId, setActiveDoctorId] = useState<string>("doc-1");
   const [activeNoteAppt, setActiveNoteAppt] = useState<StoredAppointment | null>(null);
   const [clinicalNotes, setClinicalNotes] = useState("");
-
-  // Reschedule modal
   const [rescheduleAppt, setRescheduleAppt] = useState<StoredAppointment | null>(null);
-  const [newSlotTime, setNewSlotTime] = useState("05:30 PM");
+  const [newSlotTime, setNewSlotTime] = useState("05:00 PM");
 
-  // Filter appointments for this doctor (or all for demo queue)
-  const doctorAppointments = appointments.filter(
-    (a) => a.doctorId === currentDoctor.id || a.doctorName === currentDoctor.name
-  );
-  const queueAppointments = doctorAppointments.length > 0 ? doctorAppointments : appointments;
+  const currentDoctor = doctors.find((d) => d.id === activeDoctorId) || doctors[0];
+
+  const queueAppointments = appointments.filter((a) => {
+    return a.doctorId === currentDoctor.id || a.doctorName === currentDoctor.name;
+  });
 
   const todayConfirmed = queueAppointments.filter((a) => a.status === "Confirmed");
   const todayCompleted = queueAppointments.filter((a) => a.status === "Completed");
@@ -45,7 +40,8 @@ export default function DoctorDashboardView() {
   const handleSaveNotes = () => {
     if (!activeNoteAppt) return;
     addConsultationNote(activeNoteAppt.id, clinicalNotes);
-    toast.success("Consultation notes recorded and consultation marked completed!");
+    updateAppointmentStatus(activeNoteAppt.id, "Completed");
+    toast.success("Consultation notes logged and appointment completed");
     setActiveNoteAppt(null);
     setClinicalNotes("");
   };
@@ -53,445 +49,267 @@ export default function DoctorDashboardView() {
   const handleConfirmReschedule = () => {
     if (!rescheduleAppt) return;
     rescheduleAppointment(rescheduleAppt.id, rescheduleAppt.slotDate, newSlotTime);
-    toast.success(`Slot rescheduled to ${newSlotTime}!`);
+    toast.success(`Slot rescheduled to ${newSlotTime}`);
     setRescheduleAppt(null);
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+    <div className="flex flex-col gap-6 text-neutral-900 dark:text-neutral-100">
       {/* Doctor Desk Header */}
-      <div
-        style={{
-          background: "linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #0284c7 100%)",
-          borderRadius: "24px",
-          padding: "2rem 2.5rem",
-          color: "white",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "1.5rem",
-          boxShadow: "0 15px 35px rgba(13, 148, 136, 0.25)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-          <div
-            style={{
-              position: "relative",
-              width: 76,
-              height: 76,
-              borderRadius: "20px",
-              overflow: "hidden",
-              boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
-              border: "2px solid rgba(255,255,255,0.4)",
-              flexShrink: 0,
-            }}
-          >
+      <div className="card p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 shrink-0">
             <Image
               src={currentDoctor.avatarUrl || currentDoctor.image || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=600"}
               alt={currentDoctor.name}
               fill
-              style={{ objectFit: "cover" }}
+              className="object-cover"
               unoptimized
             />
           </div>
 
           <div>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                background: "rgba(255,255,255,0.18)",
-                backdropFilter: "blur(6px)",
-                padding: "3px 12px",
-                borderRadius: "50px",
-                fontSize: "0.74rem",
-                fontWeight: 800,
-                marginBottom: "4px",
-              }}
-            >
-              🩺 CLINICAL DESK • {currentDoctor.license}
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 mb-1">
+              <span>Physician Clinical Desk</span>
+              <span className="text-neutral-400">•</span>
+              <span className="font-mono text-[11px]">{currentDoctor.license}</span>
             </div>
-            <h2 style={{ fontSize: "1.85rem", fontWeight: 900, marginBottom: "3px", letterSpacing: "-0.02em" }}>
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
               {currentDoctor.name}
-            </h2>
-            <p style={{ opacity: 0.9, fontSize: "0.88rem" }}>
+            </h1>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {currentDoctor.degree} • {currentDoctor.hospitalName}
             </p>
           </div>
         </div>
 
         {/* Doctor Switcher & Availability Controls */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-          {/* Doctor Profile Selector */}
+        <div className="flex items-center gap-2.5 flex-wrap self-stretch md:self-auto">
           <select
             value={currentDoctor.id}
             onChange={(e) => setActiveDoctorId(e.target.value)}
-            style={{
-              padding: "10px 14px",
-              borderRadius: "12px",
-              border: "1px solid rgba(255,255,255,0.3)",
-              background: "rgba(0,0,0,0.25)",
-              color: "white",
-              fontSize: "0.85rem",
-              fontWeight: 700,
-              cursor: "pointer",
-              outline: "none",
-            }}
+            className="h-10 px-3 text-xs sm:text-sm font-semibold bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100 focus:outline-none cursor-pointer"
           >
             {doctors.map((d) => (
-              <option key={d.id} value={d.id} style={{ color: "#0f172a" }}>
+              <option key={d.id} value={d.id} className="bg-white dark:bg-neutral-900">
                 Dr. {d.name.replace("Dr. ", "")} ({d.specialty})
               </option>
             ))}
           </select>
 
-          {/* Availability Toggle */}
           <button
+            type="button"
             onClick={() => {
               toggleDoctorAvailability(currentDoctor.id);
               toast.success(
                 currentDoctor.isAvailableToday
-                  ? "Status set to Offline / Busy"
-                  : "Status set to Available Today (Queue Open)!"
+                  ? "Schedule status: Busy / In-Consult"
+                  : "Schedule status: Open for Same-Day Consults"
               );
             }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "10px 18px",
-              borderRadius: "12px",
-              border: "none",
-              background: currentDoctor.isAvailableToday ? "#ffffff" : "rgba(255,255,255,0.2)",
-              color: currentDoctor.isAvailableToday ? "#0f766e" : "#ffffff",
-              fontSize: "0.85rem",
-              fontWeight: 800,
-              cursor: "pointer",
-              boxShadow: "0 6px 16px rgba(0,0,0,0.15)",
-              transition: "all 0.2s ease",
-            }}
+            className={`inline-flex items-center gap-2 h-10 px-3.5 text-xs font-semibold rounded-lg border transition-colors ${
+              currentDoctor.isAvailableToday
+                ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
+                : "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400"
+            }`}
           >
             <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: currentDoctor.isAvailableToday ? "#10b981" : "#fca5a5",
-              }}
+              className={`w-2 h-2 rounded-full ${
+                currentDoctor.isAvailableToday ? "bg-emerald-600 dark:bg-emerald-400" : "bg-neutral-400"
+              }`}
             />
-            {currentDoctor.isAvailableToday ? "🟢 Live Queue Active" : "⚪ Offline"}
+            <span>{currentDoctor.isAvailableToday ? "Queue Active" : "Offline"}</span>
           </button>
         </div>
       </div>
 
       {/* Doctor Stats Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
-        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "18px", padding: "1.25rem" }}>
-          <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)", fontWeight: 600 }}>Waiting in Queue</span>
-          <p style={{ fontSize: "1.8rem", fontWeight: 900, color: "var(--primary)", marginTop: "4px" }}>
-            {todayConfirmed.length} Patients
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="card p-3.5 sm:p-4">
+          <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Queue Waiting</span>
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 tabular-nums mt-0.5">
+            {todayConfirmed.length}
           </p>
-          <span style={{ fontSize: "0.72rem", color: "#10b981", fontWeight: 700 }}>● Next Slot: {todayConfirmed[0]?.slotTime || "4:30 PM"}</span>
-        </div>
-
-        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "18px", padding: "1.25rem" }}>
-          <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)", fontWeight: 600 }}>Completed Today</span>
-          <p style={{ fontSize: "1.8rem", fontWeight: 900, color: "#10b981", marginTop: "4px" }}>
-            {todayCompleted.length} Consultations
-          </p>
-          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 600 }}>Clinical Notes Recorded</span>
-        </div>
-
-        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "18px", padding: "1.25rem" }}>
-          <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)", fontWeight: 600 }}>Monthly Volume</span>
-          <p style={{ fontSize: "1.8rem", fontWeight: 900, color: "var(--text)", marginTop: "4px" }}>
-            142 Visits
-          </p>
-          <span style={{ fontSize: "0.72rem", color: "#0ea5e9", fontWeight: 700 }}>+12% vs last month</span>
-        </div>
-
-        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "18px", padding: "1.25rem" }}>
-          <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)", fontWeight: 600 }}>Clinical Rating</span>
-          <p style={{ fontSize: "1.8rem", fontWeight: 900, color: "#f59e0b", marginTop: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
-            ★ {currentDoctor.rating?.toFixed(1) || "4.9"}
-          </p>
-          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 600 }}>Based on {currentDoctor.reviewsCount || 168} verified patients</span>
-        </div>
-      </div>
-
-      {/* Live Patient Queue Table */}
-      <div
-        style={{
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
-          borderRadius: "24px",
-          padding: "1.75rem",
-          boxShadow: "var(--shadow-sm)",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
-          <div>
-            <h3 style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--text)" }}>
-              Today&apos;s Patient Queue &amp; Clinical Schedule
-            </h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>
-              Review patient symptoms, accept check-ins, record clinical consultation notes, or reschedule appointments.
-            </p>
-          </div>
-          <span
-            style={{
-              background: "rgba(16, 185, 129, 0.1)",
-              color: "#10b981",
-              padding: "4px 12px",
-              borderRadius: "50px",
-              fontSize: "0.76rem",
-              fontWeight: 800,
-            }}
-          >
-            ● Synchronized Zustand State
+          <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+            Next: {todayConfirmed[0]?.slotTime || "Open"}
           </span>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.88rem" }}>
+        <div className="card p-3.5 sm:p-4">
+          <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Completed Today</span>
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 tabular-nums mt-0.5">
+            {todayCompleted.length}
+          </p>
+          <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+            Notes Logged
+          </span>
+        </div>
+
+        <div className="card p-3.5 sm:p-4">
+          <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Monthly Consultations</span>
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 tabular-nums mt-0.5">
+            142
+          </p>
+          <span className="text-[11px] font-medium text-sky-600 dark:text-sky-400 tabular-nums">
+            +12% vs prior month
+          </span>
+        </div>
+
+        <div className="card p-3.5 sm:p-4">
+          <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Patient Rating</span>
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 tabular-nums mt-0.5">
+            ★ {currentDoctor.rating?.toFixed(1) || "4.9"}
+          </p>
+          <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 tabular-nums">
+            {currentDoctor.reviewsCount || 168} verified evaluations
+          </span>
+        </div>
+      </div>
+
+      {/* Patient Queue Ledger */}
+      <div className="card p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+              Live Patient Consultation Queue
+            </h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Review intake concerns, accept check-ins, record clinical observation notes, or adjust schedule slots.
+            </p>
+          </div>
+          <span className="badge-clinical badge-neutral text-xs font-mono self-start sm:self-auto">
+            Queue Sync: Active
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-secondary)", fontSize: "0.78rem", textTransform: "uppercase" }}>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>Patient</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>Schedule & Format</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>Reason & Symptoms</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>Status</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700, textAlign: "right" }}>Clinical Actions</th>
+              <tr className="border-b border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 text-[11px] uppercase tracking-wider font-semibold">
+                <th className="py-2.5 px-3">Patient</th>
+                <th className="py-2.5 px-3">Slot & Modality</th>
+                <th className="py-2.5 px-3">Intake Reason</th>
+                <th className="py-2.5 px-3">Status</th>
+                <th className="py-2.5 px-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {queueAppointments.map((appt) => {
-                const isConfirmed = appt.status === "Confirmed";
-                const isCompleted = appt.status === "Completed";
-                const isCancelled = appt.status === "Cancelled";
+            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/80">
+              {queueAppointments.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-neutral-500 dark:text-neutral-400">
+                    No active patients in queue for Dr. {currentDoctor.name}.
+                  </td>
+                </tr>
+              ) : (
+                queueAppointments.map((appt) => {
+                  const isConfirmed = appt.status === "Confirmed";
+                  const isCompleted = appt.status === "Completed";
+                  const isCancelled = appt.status === "Cancelled";
 
-                return (
-                  <tr
-                    key={appt.id}
-                    style={{
-                      borderBottom: "1px solid var(--border)",
-                      transition: "background 0.15s ease",
-                    }}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-900/40"
-                  >
-                    {/* Patient Name & Details */}
-                    <td style={{ padding: "16px 14px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <div
-                          style={{
-                            width: 38,
-                            height: 38,
-                            borderRadius: "50%",
-                            background: "rgba(14, 165, 233, 0.1)",
-                            color: "var(--primary)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontWeight: 800,
-                            fontSize: "0.85rem",
-                            flexShrink: 0,
-                          }}
-                        >
-                          {appt.patientName.charAt(0)}
+                  return (
+                    <tr key={appt.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                      <td className="py-3 px-3">
+                        <div className="font-semibold text-neutral-900 dark:text-neutral-100">
+                          {appt.patientName}
                         </div>
-                        <div>
-                          <p style={{ fontWeight: 800, color: "var(--text)", lineHeight: 1.2 }}>
-                            {appt.patientName}
-                          </p>
-                          <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                            Age: {appt.patientAge} • ID: {appt.bookingId}
-                          </p>
+                        <div className="text-[11px] text-neutral-500 dark:text-neutral-400 tabular-nums">
+                          Age: {appt.patientAge} • {appt.patientPhone}
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Schedule & Format */}
-                    <td style={{ padding: "16px 14px" }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                        <span style={{ fontWeight: 800, color: "var(--text)" }}>
+                      <td className="py-3 px-3">
+                        <div className="font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">
                           {appt.slotTime}
-                        </span>
-                        <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                          {appt.slotDate}
-                        </span>
+                        </div>
+                        <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                          {appt.consultationType === "HD Video Consultation" ? "Telehealth Video" : "In-Clinic"}
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-3 max-w-xs">
+                        <div className="truncate text-neutral-800 dark:text-neutral-200" title={appt.reason}>
+                          {appt.reason}
+                        </div>
+                        {appt.symptoms && appt.symptoms.length > 0 && (
+                          <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+                            Tags: {appt.symptoms.join(", ")}
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-3">
                         <span
-                          style={{
-                            fontSize: "0.72rem",
-                            fontWeight: 700,
-                            color: appt.consultationType === "HD Video Consultation" ? "#6366f1" : "#0ea5e9",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "3px",
-                            marginTop: "2px",
-                          }}
+                          className={`badge-clinical text-xs ${
+                            isCompleted
+                              ? "badge-verified"
+                              : isCancelled
+                              ? "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
+                              : "bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800"
+                          }`}
                         >
-                          {appt.consultationType === "HD Video Consultation" ? <Video size={11} /> : <MapPin size={11} />}
-                          {appt.consultationType}
+                          {appt.status}
                         </span>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Symptoms */}
-                    <td style={{ padding: "16px 14px", maxWidth: "260px" }}>
-                      <p style={{ fontSize: "0.82rem", color: "var(--text)", fontWeight: 600, marginBottom: "4px" }}>
-                        {appt.reason}
-                      </p>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                        {appt.symptoms?.map((s) => (
-                          <span
-                            key={s}
-                            style={{
-                              background: "var(--bg-secondary)",
-                              color: "var(--text-secondary)",
-                              fontSize: "0.7rem",
-                              fontWeight: 600,
-                              padding: "2px 6px",
-                              borderRadius: "4px",
-                              border: "1px solid var(--border)",
-                            }}
-                          >
-                            {s}
-                          </span>
-                        ))}
-                      </div>
-                      {appt.notes && (
-                        <p style={{ fontSize: "0.75rem", color: "#10b981", fontWeight: 700, marginTop: "4px" }}>
-                          ✓ Note: &ldquo;{appt.notes}&rdquo;
-                        </p>
-                      )}
-                    </td>
+                      <td className="py-3 px-3 text-right">
+                        <div className="inline-flex items-center gap-1.5 justify-end">
+                          {isConfirmed && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveNoteAppt(appt);
+                                  setClinicalNotes(appt.notes || "");
+                                }}
+                                className="btn-primary text-xs px-2.5 py-1"
+                              >
+                                <span>Record Notes</span>
+                              </button>
 
-                    {/* Status */}
-                    <td style={{ padding: "16px 14px" }}>
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          padding: "4px 10px",
-                          borderRadius: "50px",
-                          fontSize: "0.76rem",
-                          fontWeight: 800,
-                          background: isConfirmed
-                            ? "rgba(14, 165, 233, 0.12)"
-                            : isCompleted
-                            ? "rgba(16, 185, 129, 0.12)"
-                            : "rgba(239, 68, 68, 0.12)",
-                          color: isConfirmed
-                            ? "#0284c7"
-                            : isCompleted
-                            ? "#10b981"
-                            : "#ef4444",
-                        }}
-                      >
-                        {isConfirmed && "● Confirmed"}
-                        {isCompleted && "✓ Completed"}
-                        {isCancelled && "✕ Cancelled"}
-                      </span>
-                    </td>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setRescheduleAppt(appt);
+                                  setNewSlotTime(appt.slotTime);
+                                }}
+                                className="btn-secondary text-xs px-2 py-1"
+                              >
+                                Reschedule
+                              </button>
 
-                    {/* Actions */}
-                    <td style={{ padding: "16px 14px", textAlign: "right" }}>
-                      <div style={{ display: "inline-flex", gap: "6px", alignItems: "center" }}>
-                        {isConfirmed && (
-                          <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`Cancel consultation slot for ${appt.patientName}?`)) {
+                                    cancelAppointment(appt.id);
+                                    toast.success("Appointment slot cancelled");
+                                  }
+                                }}
+                                className="text-rose-600 dark:text-rose-400 hover:underline px-1.5 py-1 text-xs"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          )}
+
+                          {isCompleted && (
                             <button
+                              type="button"
                               onClick={() => {
                                 setActiveNoteAppt(appt);
                                 setClinicalNotes(appt.notes || "");
                               }}
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "4px",
-                                padding: "6px 10px",
-                                borderRadius: "8px",
-                                background: "rgba(16, 185, 129, 0.1)",
-                                color: "#10b981",
-                                border: "1px solid rgba(16, 185, 129, 0.3)",
-                                fontSize: "0.78rem",
-                                fontWeight: 700,
-                                cursor: "pointer",
-                              }}
+                              className="text-sky-600 dark:text-sky-400 hover:underline px-2 py-1 text-xs font-semibold"
                             >
-                              <Edit3 size={12} /> Complete &amp; Note
+                              Edit Notes
                             </button>
-
-                            <button
-                              onClick={() => {
-                                setRescheduleAppt(appt);
-                                setNewSlotTime(appt.slotTime);
-                              }}
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "4px",
-                                padding: "6px 10px",
-                                borderRadius: "8px",
-                                background: "var(--bg-secondary)",
-                                color: "var(--text)",
-                                border: "1px solid var(--border)",
-                                fontSize: "0.78rem",
-                                fontWeight: 600,
-                                cursor: "pointer",
-                              }}
-                            >
-                              <RefreshCw size={11} /> Reschedule
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                if (confirm(`Cancel slot for ${appt.patientName}?`)) {
-                                  cancelAppointment(appt.id);
-                                  toast.success("Appointment cancelled");
-                                }
-                              }}
-                              style={{
-                                background: "none",
-                                border: "none",
-                                color: "#ef4444",
-                                cursor: "pointer",
-                                padding: "4px 8px",
-                                fontSize: "0.78rem",
-                                fontWeight: 600,
-                              }}
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        )}
-
-                        {isCompleted && (
-                          <button
-                            onClick={() => {
-                              setActiveNoteAppt(appt);
-                              setClinicalNotes(appt.notes || "");
-                            }}
-                            style={{
-                              padding: "4px 8px",
-                              borderRadius: "6px",
-                              background: "none",
-                              border: "none",
-                              color: "var(--primary)",
-                              fontSize: "0.78rem",
-                              fontWeight: 600,
-                              cursor: "pointer",
-                            }}
-                          >
-                            Edit Notes
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -500,84 +318,59 @@ export default function DoctorDashboardView() {
       {/* Consultation Notes Modal */}
       {activeNoteAppt && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.65)",
-            backdropFilter: "blur(6px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 99999,
-            padding: "1rem",
-          }}
+          className="fixed inset-0 bg-neutral-950/70 backdrop-blur-xs flex items-center justify-center z-50 p-4"
           onClick={() => setActiveNoteAppt(null)}
         >
           <div
-            style={{
-              background: "var(--bg-card)",
-              borderRadius: "24px",
-              padding: "2rem",
-              maxWidth: 520,
-              width: "100%",
-              boxShadow: "var(--shadow-xl)",
-              border: "1px solid var(--border)",
-            }}
+            className="card bg-white dark:bg-neutral-900 p-5 sm:p-6 max-w-lg w-full shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+            <div className="flex justify-between items-start mb-4 pb-3 border-b border-neutral-200 dark:border-neutral-800">
               <div>
-                <h3 style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--text)" }}>
+                <h3 className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
                   Clinical Consultation Notes
                 </h3>
-                <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                   Patient: {activeNoteAppt.patientName} (Age: {activeNoteAppt.patientAge})
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setActiveNoteAppt(null)}
-                style={{
-                  background: "var(--bg-secondary)",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: 30,
-                  height: 30,
-                  cursor: "pointer",
-                  color: "var(--text)",
-                }}
+                className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 p-1"
               >
                 ✕
               </button>
             </div>
 
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text)", marginBottom: "6px", display: "block" }}>
-                Clinical Observations & Prescription / Next Steps:
+            <div className="mb-4">
+              <label htmlFor="clinical-obs" className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                Clinical Observations &amp; Prescription Instructions:
               </label>
               <textarea
+                id="clinical-obs"
                 value={clinicalNotes}
                 onChange={(e) => setClinicalNotes(e.target.value)}
-                placeholder="e.g. Patient vitals stable. BP 124/82 mmHg. Prescribed lifestyle modification and scheduled 3-month follow-up..."
+                placeholder="Vitals, diagnostic notes, prescribed therapies, follow-up timeline..."
                 rows={5}
-                className="input"
-                style={{ resize: "vertical", lineHeight: 1.5 }}
+                className="input resize-y"
               />
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+            <div className="flex justify-end gap-2">
               <button
+                type="button"
                 onClick={() => setActiveNoteAppt(null)}
-                className="btn-secondary"
-                style={{ padding: "8px 16px" }}
+                className="btn-secondary text-xs px-3.5 py-2 font-semibold"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleSaveNotes}
-                className="btn-primary"
-                style={{ padding: "8px 20px" }}
+                className="btn-primary text-xs px-4 py-2 font-semibold"
               >
-                Save Notes & Complete
+                Save Observations & Complete
               </button>
             </div>
           </div>
@@ -587,49 +380,31 @@ export default function DoctorDashboardView() {
       {/* Reschedule Slot Modal */}
       {rescheduleAppt && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.65)",
-            backdropFilter: "blur(6px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 99999,
-            padding: "1rem",
-          }}
+          className="fixed inset-0 bg-neutral-950/70 backdrop-blur-xs flex items-center justify-center z-50 p-4"
           onClick={() => setRescheduleAppt(null)}
         >
           <div
-            style={{
-              background: "var(--bg-card)",
-              borderRadius: "24px",
-              padding: "2rem",
-              maxWidth: 440,
-              width: "100%",
-              boxShadow: "var(--shadow-xl)",
-              border: "1px solid var(--border)",
-            }}
+            className="card bg-white dark:bg-neutral-900 p-5 sm:p-6 max-w-sm w-full shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--text)", marginBottom: "6px" }}>
+            <h3 className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-1">
               Reschedule Slot
             </h3>
-            <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", marginBottom: "1.25rem" }}>
-              Pick a new available time for {rescheduleAppt.patientName}.
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
+              Patient: {rescheduleAppt.patientName} ({rescheduleAppt.slotDate})
             </p>
 
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text)", marginBottom: "6px", display: "block" }}>
-                Select New Time Slot:
+            <div className="mb-5">
+              <label htmlFor="new-slot-select" className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                Select Alternate Time Slot:
               </label>
               <select
+                id="new-slot-select"
                 value={newSlotTime}
                 onChange={(e) => setNewSlotTime(e.target.value)}
-                className="input"
-                style={{ cursor: "pointer" }}
+                className="input cursor-pointer"
               >
-                {["10:00 AM", "11:30 AM", "02:00 PM", "03:30 PM", "05:00 PM", "05:30 PM", "06:15 PM"].map((t) => (
+                {["09:30 AM", "11:00 AM", "02:00 PM", "03:30 PM", "05:00 PM", "06:15 PM"].map((t) => (
                   <option key={t} value={t}>
                     {t}
                   </option>
@@ -637,20 +412,20 @@ export default function DoctorDashboardView() {
               </select>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+            <div className="flex justify-end gap-2">
               <button
+                type="button"
                 onClick={() => setRescheduleAppt(null)}
-                className="btn-secondary"
-                style={{ padding: "8px 16px" }}
+                className="btn-secondary text-xs px-3 py-1.5 font-semibold"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleConfirmReschedule}
-                className="btn-primary"
-                style={{ padding: "8px 20px" }}
+                className="btn-primary text-xs px-3.5 py-1.5 font-semibold"
               >
-                Confirm Reschedule
+                Lock New Slot
               </button>
             </div>
           </div>

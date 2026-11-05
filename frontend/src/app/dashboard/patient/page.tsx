@@ -6,59 +6,32 @@ import PatientDashboardView from "@/components/dashboard/PatientDashboardView";
 
 export default function PatientDashboardPage() {
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", padding: "2rem 0 6rem" }}>
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 py-6 sm:py-8 pb-16">
       <div className="container">
         {/* Quick breadcrumb & role jumping */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "10px" }}>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-neutral-200 dark:border-neutral-800 text-xs">
           <Link
             href="/dashboard"
-            style={{
-              textDecoration: "none",
-              color: "var(--text-secondary)",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "0.85rem",
-              fontWeight: 600,
-            }}
+            className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 inline-flex items-center gap-1.5 font-medium transition-colors"
           >
-            <ArrowLeft size={15} /> All Role Portals
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>All Operations Portals</span>
           </Link>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div className="flex items-center gap-2">
             <Link
               href="/dashboard/doctor"
-              style={{
-                textDecoration: "none",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-                padding: "6px 12px",
-                borderRadius: "8px",
-                background: "rgba(16, 185, 129, 0.1)",
-                color: "#10b981",
-                fontSize: "0.78rem",
-                fontWeight: 700,
-              }}
+              className="btn-secondary text-xs px-2.5 py-1.5"
             >
-              <Stethoscope size={13} /> Switch to Doctor Desk
+              <Stethoscope className="w-3.5 h-3.5" />
+              <span>Doctor Desk</span>
             </Link>
             <Link
               href="/dashboard/admin"
-              style={{
-                textDecoration: "none",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-                padding: "6px 12px",
-                borderRadius: "8px",
-                background: "rgba(139, 92, 246, 0.1)",
-                color: "#8b5cf6",
-                fontSize: "0.78rem",
-                fontWeight: 700,
-              }}
+              className="btn-secondary text-xs px-2.5 py-1.5"
             >
-              <ShieldAlert size={13} /> Switch to Admin Portal
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>Admin Console</span>
             </Link>
           </div>
         </div>

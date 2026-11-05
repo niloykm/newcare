@@ -1,194 +1,117 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { Shield, Users, Heart, Award, ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { ShieldCheck, Award, Heart, Users, CheckCircle2, ArrowRight } from "lucide-react";
 
 export default function AboutPage() {
   const stats = [
-    { label: "Founded", value: "2022" },
-    { label: "Verified Doctors", value: "200+" },
-    { label: "Happy Patients", value: "50,000+" },
-    { label: "Consultations", value: "100,000+" },
+    { label: "Verified Specialists", value: "240+" },
+    { label: "Patient Consultations", value: "50,000+" },
+    { label: "Clinical Departments", value: "14+" },
+    { label: "Patient Satisfaction", value: "99.2%" },
   ];
 
   const values = [
     {
-      icon: Heart,
-      title: "Patient-First Care",
-      desc: "We design every feature, interaction, and process with the patient's well-being and convenience at the absolute center.",
-      color: "#0ea5e9",
-      bg: "rgba(14,165,233,0.1)",
+      icon: ShieldCheck,
+      title: "Board-Verified Credentials",
+      desc: "Every physician in our registry is verified directly against official BMDC and state medical licensing boards prior to accepting patients.",
     },
     {
-      icon: Shield,
-      title: "Absolute Trust",
-      desc: "All doctors on our platform undergo a rigorous verification process, ensuring you only receive advice from qualified professionals.",
-      color: "#10b981",
-      bg: "rgba(16,185,129,0.1)",
+      icon: Heart,
+      title: "Patient-Centered Access",
+      desc: "Zero deceptive tiers or wait queues. Clear, transparent fees displayed upfront with instant digital pass issuance.",
     },
     {
       icon: Award,
-      title: "Clinical Excellence",
-      desc: "We partner with leading clinics and hospitals to deliver state-of-the-art diagnostic and healthcare consultation capabilities.",
-      color: "#8b5cf6",
-      bg: "rgba(139,92,246,0.1)",
+      title: "Clinical Rigor & Quality",
+      desc: "Specialists adhere to evidence-based practice guidelines, continuous peer review, and synchronized clinical consultation notes.",
     },
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
-      {/* Hero Header */}
-      <div style={{
-        background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
-        padding: "5rem 0",
-        textAlign: "center",
-        color: "white"
-      }}>
-        <div className="container">
-          <h1 style={{ fontSize: "2.5rem", fontWeight: 900, marginBottom: "1rem" }}>
-            About <span style={{ opacity: 0.9 }}>NewCare</span>
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 pb-16">
+      {/* Clinical Header */}
+      <div className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 py-10 sm:py-14">
+        <div className="container max-w-4xl text-center">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 mb-3">
+            <span>About NewCare Healthcare</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
+            Clinical Precision & Seamless Healthcare Access
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.9)", maxWidth: 600, margin: "0 auto", fontSize: "1.1rem", lineHeight: 1.6 }}>
-            We are on a mission to make quality healthcare accessible, transparent, and completely hassle-free for everyone, everywhere.
+          <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto leading-relaxed">
+            NewCare is an infrastructure platform connecting patients with credentialed specialists for in-clinic consultations and encrypted telehealth sessions.
           </p>
         </div>
       </div>
 
-      {/* Main Intro */}
-      <div className="container" style={{ paddingTop: "4rem", paddingBottom: "4rem" }}>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: "3rem",
-          alignItems: "center"
-        }}>
-          <div>
-            <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--text)", marginBottom: "1.5rem" }}>
-              Redefining Healthcare <span className="gradient-text">Accessibility</span>
+      {/* Main Narrative */}
+      <div className="container max-w-4xl pt-10 pb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mb-12">
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+              Modernizing Clinical Scheduling
             </h2>
-            <p style={{ color: "var(--text-secondary)", lineHeight: 1.8, marginBottom: "1.2rem" }}>
-              NewCare was founded with a simple yet powerful idea: finding and booking a doctor should not be a stressful chore. We bridge the gap between patients and elite healthcare providers, offering real-time scheduling, verified patient reviews, and digital health record tracking.
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+              Medical appointments should be straightforward, transparent, and accurate. NewCare bridges the divide between patients and elite clinicians through synchronized real-time availability, fast-track check-in tokens, and digital clinical records.
             </p>
-            <p style={{ color: "var(--text-secondary)", lineHeight: 1.8, marginBottom: "2rem" }}>
-              Whether you need a routine check-up, a specialist consultation, or emergency guidance, NewCare connects you to verified practitioners in under a minute.
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+              Whether you need routine preventative care, acute urgent consultation, or specialized surgical second opinions, NewCare confirms your slot in seconds.
             </p>
-            <Link href="/doctors" className="btn-primary" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}>
-              Find a Specialist Now <ArrowRight size={16} />
-            </Link>
+            <div className="pt-2">
+              <Link href="/doctors" className="btn-primary text-xs sm:text-sm px-4 py-2 font-semibold">
+                <span>Browse Accredited Specialists</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Link>
+            </div>
           </div>
-          <div style={{ position: "relative", height: 380, borderRadius: 20, overflow: "hidden", boxShadow: "var(--shadow-xl)" }}>
+
+          <div className="relative h-64 sm:h-72 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900">
             <Image
               src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=800&fit=crop"
-              alt="Healthcare professionals working"
+              alt="Medical professionals discussing care"
               fill
-              style={{ objectFit: "cover" }}
+              className="object-cover"
               unoptimized
             />
           </div>
         </div>
-      </div>
 
-      {/* Stats Section */}
-      <div style={{ background: "var(--bg-secondary)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "4rem 0" }}>
-        <div className="container">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "2rem", textAlign: "center" }}>
-            {stats.map(({ label, value }) => (
-              <div key={label}>
-                <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "var(--primary)", marginBottom: "0.5rem" }}>{value}</div>
-                <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: 600 }}>{label}</div>
+        {/* Clinical Metrics */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-12">
+          {stats.map(({ label, value }) => (
+            <div key={label} className="card p-4 text-center">
+              <div className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 tabular-nums">
+                {value}
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Core Values */}
-      <div className="container" style={{ paddingTop: "5rem", paddingBottom: "5rem" }}>
-        <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.75rem" }}>
-            Our Core <span className="gradient-text">Values</span>
-          </h2>
-          <p style={{ color: "var(--text-secondary)", maxWidth: 500, margin: "0 auto" }}>
-            These principles guide everything we do as we build the future of medical connectivity.
-          </p>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "2rem" }}>
-          {values.map(({ icon: Icon, title, desc, color, bg }) => (
-            <div key={title} style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              borderRadius: "20px",
-              padding: "2rem",
-              transition: "transform 0.2s ease, box-shadow 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-5px)";
-              e.currentTarget.style.boxShadow = "var(--shadow-lg)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "";
-              e.currentTarget.style.boxShadow = "";
-            }}>
-              <div style={{
-                width: 50, height: 50,
-                background: bg,
-                borderRadius: "12px",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                marginBottom: "1.5rem"
-              }}>
-                <Icon size={22} style={{ color }} />
+              <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mt-1">
+                {label}
               </div>
-              <h3 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.75rem" }}>{title}</h3>
-              <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: 1.7 }}>{desc}</p>
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Clinical Governance, Privacy & Standards */}
-      <div style={{ background: "var(--bg-secondary)", borderTop: "1px solid var(--border)", padding: "4.5rem 0" }}>
-        <div className="container">
-          <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexDirection: "column", gap: "3rem" }}>
-            {/* Standards */}
-            <div id="standards" style={{ scrollMarginTop: "100px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--primary)", fontWeight: 700, fontSize: "0.82rem", marginBottom: "4px" }}>
-                <Shield size={14} /> CLINICAL EXCELLENCE
+        {/* Core Clinical Values */}
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-4">
+            Our Core Operational Principles
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {values.map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="card p-5 space-y-2">
+                <div className="w-8 h-8 rounded-md bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-800 dark:text-neutral-200">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                  {title}
+                </h3>
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  {desc}
+                </p>
               </div>
-              <h3 style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.75rem" }}>
-                Board Verification &amp; Credentialing Standards
-              </h3>
-              <p style={{ color: "var(--text-secondary)", lineHeight: 1.8, fontSize: "0.95rem" }}>
-                Every healthcare practitioner listed on the NewCare platform undergoes comprehensive primary-source credential verification. We validate medical board certifications (BMDC, USMLE, GMC equivalent), active clinical licensing, malpractice history, and hospital affiliations prior to onboarding.
-              </p>
-            </div>
-
-            {/* Privacy */}
-            <div id="privacy" style={{ scrollMarginTop: "100px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#10b981", fontWeight: 700, fontSize: "0.82rem", marginBottom: "4px" }}>
-                <Shield size={14} /> SECURITY &amp; CONFIDENTIALITY
-              </div>
-              <h3 style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.75rem" }}>
-                Patient Data &amp; Privacy Policy
-              </h3>
-              <p style={{ color: "var(--text-secondary)", lineHeight: 1.8, fontSize: "0.95rem" }}>
-                NewCare employs 256-bit AES encryption in transit and at rest for all electronic health records, consultation notes, and virtual video sessions. Patient health data is strictly segregated using role-based access control (RBAC), ensuring that only treating clinicians and authenticated patients access personal medical slips.
-              </p>
-            </div>
-
-            {/* Terms */}
-            <div id="terms" style={{ scrollMarginTop: "100px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#8b5cf6", fontWeight: 700, fontSize: "0.82rem", marginBottom: "4px" }}>
-                <Award size={14} /> TRANSPARENCY
-              </div>
-              <h3 style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.75rem" }}>
-                Terms of Service &amp; Fair Scheduling
-              </h3>
-              <p style={{ color: "var(--text-secondary)", lineHeight: 1.8, fontSize: "0.95rem" }}>
-                Appointments booked through NewCare feature real-time slot synchronization, clear cancellation policies, and touchless digital QR pass verification. Fees are displayed upfront without hidden administrative markups.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </div>

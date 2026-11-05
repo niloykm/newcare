@@ -4,8 +4,8 @@ import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  Search, Filter, X, ChevronDown, Stethoscope, Video, MapPin,
-  CheckCircle2, Sparkles, SlidersHorizontal, RefreshCw
+  Search, Filter, X, Stethoscope, Video, MapPin,
+  CheckCircle2, SlidersHorizontal, RefreshCw, Calendar, Clock
 } from "lucide-react";
 import api from "@/lib/api";
 import { FALLBACK_DOCTORS, DoctorProfile, matchesSpecialty } from "@/data/doctorsData";
@@ -40,8 +40,30 @@ function SearchParamsSync({
   return null;
 }
 
+/* Layout-accurate skeleton loader matching exact dimensions of DoctorCard row */
+function DoctorRowSkeleton() {
+  return (
+    <div className="card p-4 sm:p-5 flex flex-col gap-3 animate-pulse">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-neutral-200 dark:bg-neutral-800 shrink-0" />
+          <div className="space-y-2 flex-1">
+            <div className="h-5 w-48 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+            <div className="h-3.5 w-64 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+            <div className="h-3 w-40 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-20 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+          <div className="h-9 w-32 bg-neutral-200 dark:bg-neutral-800 rounded-lg" />
+        </div>
+      </div>
+      <div className="h-8 w-full bg-neutral-100 dark:bg-neutral-800/60 rounded-lg" />
+    </div>
+  );
+}
+
 export default function DoctorsPage() {
-  // Instant fallback initialization — no empty skeleton screens!
   const [doctors, setDoctors] = useState<DoctorProfile[]>(FALLBACK_DOCTORS);
   const [loading, setLoading] = useState(false);
 
@@ -64,7 +86,6 @@ export default function DoctorsPage() {
       try {
         const res = await api.get("/api/doctor/list");
         if (res.data?.success && Array.isArray(res.data.doctors) && res.data.doctors.length > 0) {
-          // Merge API doctors with rich fallback data so all cards have full properties
           const apiList = res.data.doctors.map((d: any) => {
             const fallbackMatch = FALLBACK_DOCTORS.find((f) => f.id === d._id || f._id === d._id);
             return {
@@ -80,7 +101,7 @@ export default function DoctorsPage() {
               hospitalName: fallbackMatch?.hospitalName || "NewCare Medical Center",
               rating: fallbackMatch?.rating || 4.9,
               reviewsCount: fallbackMatch?.reviewsCount || 120,
-              availableSlots: fallbackMatch?.availableSlots || ["10:30 AM", "02:00 PM", "04:30 PM"],
+              availableSlots: fallbackMatch?.availableSlots || ["09:30 AM", "11:00 AM", "02:30 PM", "04:30 PM"],
             };
           });
           setDoctors(apiList);
@@ -96,17 +117,14 @@ export default function DoctorsPage() {
   const filteredDoctors = useMemo(() => {
     return doctors
       .filter((doc) => {
-        // Specialty match (case-insensitive & plural-tolerant)
         if (specialty !== "All Specialties" && !matchesSpecialty(doc.specialty, specialty)) {
           return false;
         }
 
-        // Available Today filter
         if (availableTodayOnly && !doc.isAvailableToday && !doc.available) {
           return false;
         }
 
-        // Consultation Type filter
         if (consultType === "video") {
           const types = doc.consultationTypes || ["HD Video Consultation", "In-Clinic Visit"];
           if (!types.some((t) => t.toLowerCase().includes("video"))) return false;
@@ -115,7 +133,6 @@ export default function DoctorsPage() {
           if (!types.some((t) => t.toLowerCase().includes("clinic") || t.toLowerCase().includes("person"))) return false;
         }
 
-        // Search query (doctor name, specialty, degree, hospital)
         if (search.trim()) {
           const q = search.trim().toLowerCase();
           const nameMatch = doc.name.toLowerCase().includes(q);
@@ -147,86 +164,163 @@ export default function DoctorsPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", paddingBottom: "5rem" }}>
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 pb-16">
       <Suspense fallback={null}>
         <SearchParamsSync onParams={handleParamsSync} />
       </Suspense>
-      {/* Header Banner */}
-      <div
-        style={{
-          background: "linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%)",
-          padding: "3.5rem 0",
-          textAlign: "center",
-          color: "white",
-        }}
-      >
-        <div className="container">
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              background: "rgba(255,255,255,0.18)",
-              backdropFilter: "blur(8px)",
-              borderRadius: "50px",
-              padding: "4px 14px",
-              fontSize: "0.78rem",
-              fontWeight: 700,
-              marginBottom: "0.75rem",
-            }}
-          >
-            <Sparkles size={14} style={{ color: "#4ade80" }} /> Verified Clinical Network
-          </div>
-          <h1 style={{ fontSize: "2.4rem", fontWeight: 900, marginBottom: "0.5rem", letterSpacing: "-0.02em" }}>
-            Specialist Directory
-          </h1>
-          <p style={{ color: "rgba(255,255,255,0.9)", fontSize: "1rem", maxWidth: "560px", margin: "0 auto 1.75rem" }}>
-            Browse {doctors.length}+ verified medical specialists. Filter by consultation type, real-time availability, and verified patient ratings.
-          </p>
 
-          {/* Search bar inside header */}
-          <div
-            style={{
-              background: "white",
-              borderRadius: "16px",
-              padding: "8px",
-              display: "flex",
-              gap: "8px",
-              maxWidth: 580,
-              margin: "0 auto",
-              boxShadow: "0 15px 40px rgba(0,0,0,0.25)",
-            }}
-          >
-            <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center" }}>
-              <Search size={18} style={{ position: "absolute", left: 14, color: "#94a3b8" }} />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by doctor name, hospital, or credential..."
-                style={{
-                  width: "100%",
-                  height: 44,
-                  border: "none",
-                  outline: "none",
-                  paddingLeft: 42,
-                  paddingRight: 12,
-                  fontSize: "0.92rem",
-                  color: "#0f172a",
-                  background: "transparent",
-                }}
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "#94a3b8",
-                    padding: 4,
-                  }}
+      {/* Directory Header Bar */}
+      <div className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 py-6 sm:py-8">
+        <div className="container">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 mb-2">
+                <span>Clinical Practitioner Directory</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+                Accredited Medical Specialists
+              </h1>
+              <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
+                Showing <span className="font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">{filteredDoctors.length}</span> verified physicians ready for consultation
+              </p>
+            </div>
+
+            {/* Keyword Search Input */}
+            <div className="w-full md:w-80">
+              <label htmlFor="search-clinician" className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1">
+                Filter by Keyword
+              </label>
+              <div className="relative flex items-center">
+                <Search className="w-4 h-4 text-neutral-400 absolute left-3 pointer-events-none" />
+                <input
+                  id="search-clinician"
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Doctor name, hospital, credential..."
+                  className="w-full h-10 pl-9 pr-8 text-xs sm:text-sm bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100 focus:outline-none"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    aria-label="Clear search"
+                    className="absolute right-2.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 p-0.5"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Structural Filter Toolbar */}
+      <div className="bg-white dark:bg-neutral-900/90 border-b border-neutral-200 dark:border-neutral-800 py-3 sticky top-0 z-30 shadow-xs">
+        <div className="container">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Filter Controls */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Specialty selector */}
+              <div>
+                <select
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                  aria-label="Filter by specialty"
+                  className="h-9 px-3 text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100 focus:outline-none cursor-pointer"
                 >
-                  <X size={16} />
+                  {SPECIALTY_OPTIONS.map((spec) => (
+                    <option key={spec} value={spec} className="bg-white dark:bg-neutral-900">
+                      {spec}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Consultation Format Chips */}
+              <div className="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setConsultType("all")}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
+                    consultType === "all"
+                      ? "bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-xs"
+                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+                  }`}
+                >
+                  All Formats
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConsultType("video")}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
+                    consultType === "video"
+                      ? "bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-xs"
+                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+                  }`}
+                >
+                  <Video className="w-3.5 h-3.5" />
+                  <span>Telehealth</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConsultType("in-person")}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
+                    consultType === "in-person"
+                      ? "bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-xs"
+                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+                  }`}
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>In-Clinic</span>
+                </button>
+              </div>
+
+              {/* Available Today Toggle */}
+              <button
+                type="button"
+                onClick={() => setAvailableTodayOnly(!availableTodayOnly)}
+                className={`inline-flex items-center gap-1.5 h-9 px-3 text-xs font-semibold rounded-lg border transition-colors ${
+                  availableTodayOnly
+                    ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
+                    : "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                }`}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    availableTodayOnly ? "bg-emerald-600 dark:bg-emerald-400" : "bg-neutral-400"
+                  }`}
+                />
+                <span>Available Today</span>
+              </button>
+            </div>
+
+            {/* Sort & Reset Actions */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 hidden sm:inline">
+                Sort by:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                aria-label="Sort doctors"
+                className="h-9 px-3 text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100 focus:outline-none cursor-pointer"
+              >
+                <option value="rating-desc" className="bg-white dark:bg-neutral-900">Highest Rated (★ 5.0)</option>
+                <option value="experience-desc" className="bg-white dark:bg-neutral-900">Most Experienced</option>
+                <option value="fee-asc" className="bg-white dark:bg-neutral-900">Fee: Low to High</option>
+                <option value="fee-desc" className="bg-white dark:bg-neutral-900">Fee: High to Low</option>
+              </select>
+
+              {(specialty !== "All Specialties" || consultType !== "all" || availableTodayOnly || search) && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="inline-flex items-center gap-1 h-9 px-2.5 text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 border border-neutral-200 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 transition-colors"
+                  title="Reset all active filters"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Reset</span>
                 </button>
               )}
             </div>
@@ -234,253 +328,53 @@ export default function DoctorsPage() {
         </div>
       </div>
 
-      {/* Filter & Control Bar */}
-      <div
-        style={{
-          background: "var(--bg-card)",
-          borderBottom: "1px solid var(--border)",
-          padding: "1rem 0",
-          position: "sticky",
-          top: 70,
-          zIndex: 90,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
-        }}
-      >
-        <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
-          {/* Left: Filter Pills */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-            {/* Specialty Dropdown */}
-            <div style={{ position: "relative" }}>
-              <select
-                value={specialty}
-                onChange={(e) => setSpecialty(e.target.value)}
-                style={{
-                  padding: "8px 14px",
-                  borderRadius: "10px",
-                  border: "1px solid var(--border)",
-                  background: "var(--bg-secondary)",
-                  color: "var(--text)",
-                  fontSize: "0.85rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  outline: "none",
-                }}
-              >
-                {SPECIALTY_OPTIONS.map((spec) => (
-                  <option key={spec} value={spec}>
-                    {spec}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Consultation Format Toggle */}
-            <div
-              style={{
-                display: "inline-flex",
-                background: "var(--bg-secondary)",
-                borderRadius: "10px",
-                border: "1px solid var(--border)",
-                padding: "3px",
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setConsultType("all")}
-                style={{
-                  padding: "5px 12px",
-                  borderRadius: "8px",
-                  border: "none",
-                  fontSize: "0.78rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  background: consultType === "all" ? "var(--bg-card)" : "transparent",
-                  color: consultType === "all" ? "var(--primary)" : "var(--text-secondary)",
-                  boxShadow: consultType === "all" ? "var(--shadow-sm)" : "none",
-                }}
-              >
-                All Formats
-              </button>
-              <button
-                type="button"
-                onClick={() => setConsultType("video")}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  padding: "5px 12px",
-                  borderRadius: "8px",
-                  border: "none",
-                  fontSize: "0.78rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  background: consultType === "video" ? "var(--bg-card)" : "transparent",
-                  color: consultType === "video" ? "#6366f1" : "var(--text-secondary)",
-                  boxShadow: consultType === "video" ? "var(--shadow-sm)" : "none",
-                }}
-              >
-                <Video size={13} /> Video
-              </button>
-              <button
-                type="button"
-                onClick={() => setConsultType("in-person")}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  padding: "5px 12px",
-                  borderRadius: "8px",
-                  border: "none",
-                  fontSize: "0.78rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  background: consultType === "in-person" ? "var(--bg-card)" : "transparent",
-                  color: consultType === "in-person" ? "#0ea5e9" : "var(--text-secondary)",
-                  boxShadow: consultType === "in-person" ? "var(--shadow-sm)" : "none",
-                }}
-              >
-                <MapPin size={13} /> In-Person
-              </button>
-            </div>
-
-            {/* Available Today Toggle */}
-            <button
-              type="button"
-              onClick={() => setAvailableTodayOnly(!availableTodayOnly)}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "7px 14px",
-                borderRadius: "10px",
-                border: availableTodayOnly ? "1.5px solid #10b981" : "1px solid var(--border)",
-                background: availableTodayOnly ? "rgba(16, 185, 129, 0.12)" : "var(--bg-secondary)",
-                color: availableTodayOnly ? "#10b981" : "var(--text)",
-                fontSize: "0.82rem",
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-            >
-              <span
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: availableTodayOnly ? "#10b981" : "#94a3b8",
-                }}
-              />
-              Available only
-            </button>
+      {/* Main List Container */}
+      <main className="container pt-6">
+        {loading ? (
+          <div className="flex flex-col gap-3">
+            <DoctorRowSkeleton />
+            <DoctorRowSkeleton />
+            <DoctorRowSkeleton />
           </div>
-
-          {/* Right: Sort Dropdown & Reset */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)", fontWeight: 600 }}>Sort by:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              style={{
-                padding: "8px 12px",
-                borderRadius: "10px",
-                border: "1px solid var(--border)",
-                background: "var(--bg-secondary)",
-                color: "var(--text)",
-                fontSize: "0.85rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                outline: "none",
-              }}
-            >
-              <option value="rating-desc">Highest Rated (★ 5.0)</option>
-              <option value="experience-desc">Most Experienced</option>
-              <option value="fee-asc">Consultation Fee: Low to High</option>
-              <option value="fee-desc">Consultation Fee: High to Low</option>
-            </select>
-
-            {(specialty !== "All Specialties" || consultType !== "all" || availableTodayOnly || search) && (
-              <button
-                onClick={handleResetFilters}
-                title="Reset Filters"
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: "10px",
-                  border: "1px solid var(--border)",
-                  background: "var(--bg-secondary)",
-                  color: "var(--text-muted)",
-                  fontSize: "0.82rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
-              >
-                <RefreshCw size={12} /> Reset
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content List */}
-      <div className="container" style={{ paddingTop: "2.5rem" }}>
-        {/* Results Counter */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.92rem", fontWeight: 600 }}>
-            Showing <span style={{ color: "var(--text)", fontWeight: 800 }}>{filteredDoctors.length}</span> verified specialists
-            {specialty !== "All Specialties" && ` in ${specialty}`}
-          </p>
-        </div>
-
-        {filteredDoctors.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "4rem 2rem",
-              background: "var(--bg-card)",
-              borderRadius: "24px",
-              border: "1px solid var(--border)",
-            }}
-          >
-            <div
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: "50%",
-                background: "rgba(14, 165, 233, 0.1)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 1.25rem",
-              }}
-            >
-              <Stethoscope size={32} style={{ color: "var(--primary)" }} />
+        ) : filteredDoctors.length === 0 ? (
+          /* Purposeful Zero-State with Recovery Actions */
+          <div className="card p-8 sm:p-12 text-center max-w-lg mx-auto my-8">
+            <div className="w-12 h-12 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-500 mx-auto mb-4">
+              <Stethoscope className="w-6 h-6" />
             </div>
-            <h3 style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.5rem" }}>
-              No Doctors Match Current Filters
-            </h3>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem", maxWidth: "420px", margin: "0 auto 1.5rem" }}>
-              Try broadening your specialty selection or clear the availability filter to view all board-certified doctors.
+            <h2 className="text-base sm:text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-1.5">
+              No Doctors Match Current Filter Criteria
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-6 leading-relaxed">
+              We couldn&apos;t find any doctors matching your selected criteria
+              {specialty !== "All Specialties" && <span> for <strong>{specialty}</strong></span>}
+              {availableTodayOnly && <span> with immediate same-day availability</span>}.
             </p>
-            <button onClick={handleResetFilters} className="btn-primary">
-              Clear All Filters
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="btn-primary text-xs px-4 py-2"
+              >
+                Clear All Filters
+              </button>
+              <button
+                type="button"
+                onClick={() => setAvailableTodayOnly(false)}
+                className="btn-secondary text-xs px-4 py-2"
+              >
+                View Next Available Dates
+              </button>
+            </div>
           </div>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
-              gap: "1.75rem",
-            }}
-          >
+          <div className="flex flex-col gap-3">
             {filteredDoctors.map((doctor) => (
               <DoctorCard key={doctor.id || doctor._id} doctor={doctor} />
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

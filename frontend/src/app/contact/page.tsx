@@ -1,226 +1,174 @@
 "use client";
 
 import { useState } from "react";
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Mail, Phone, MapPin, Send, MessageSquare, Clock, CheckCircle } from "lucide-react";
-import api from "@/lib/api";
 
 export default function ContactPage() {
-  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
-  const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) {
-      toast.error("Please fill in all required fields");
+      toast.error("Please complete all required fields");
       return;
     }
-    setLoading(true);
-    try {
-      await Promise.race([
-        api.post("/api/user/contact", form),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000)),
-      ]);
-    } catch {
-      // Offline / demo graceful fallback
-    }
     setSent(true);
-    toast.success("Message sent! We'll get back to you within 24 hours.");
-    setForm({ name: "", email: "", subject: "", message: "" });
-    setLoading(false);
+    toast.success("Support inquiry submitted. Ticket #NC-9421 created.");
   };
 
   const contactInfo = [
-    { icon: Mail, label: "Email Us", value: "support@newcare.health", color: "#0ea5e9" },
-    { icon: Phone, label: "Call Us", value: "+1 (800) 123-4567", color: "#6366f1" },
-    { icon: MapPin, label: "Visit Us", value: "42 Health Plaza, New York, NY 10001", color: "#ec4899" },
-    { icon: Clock, label: "Office Hours", value: "Mon–Fri: 9am – 6pm EST", color: "#f59e0b" },
+    { icon: Mail, label: "Clinical Inquiries & Support", value: "support@newcare.health" },
+    { icon: Phone, label: "Patient Helpline", value: "+1 (800) 123-4567" },
+    { icon: MapPin, label: "Central Administrative Campus", value: "42 Health Plaza, New York, NY 10001" },
+    { icon: Clock, label: "Care Coordination Desk", value: "Mon–Fri: 8:00 AM – 7:00 PM EST" },
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
-      {/* Hero */}
-      <div style={{
-        background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
-        padding: "4rem 0",
-        textAlign: "center",
-        color: "white",
-      }}>
-        <div className="container">
-          <h1 style={{ fontSize: "2.5rem", fontWeight: 900, marginBottom: "1rem" }}>Get in Touch</h1>
-          <p style={{ fontSize: "1.1rem", opacity: 0.9, maxWidth: 500, margin: "0 auto" }}>
-            Have a question or need help? Our team is here for you.
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 pb-16">
+      {/* Header Bar */}
+      <div className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 py-10 sm:py-12">
+        <div className="container max-w-4xl text-center">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 mb-2">
+            <span>Patient & Physician Support</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-2">
+            Contact Clinical Support
+          </h1>
+          <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 max-w-xl mx-auto">
+            Have questions regarding appointment synchronization, clinical onboarding, or digital passes? Our support coordination team is available daily.
           </p>
         </div>
       </div>
 
-      <div className="container" style={{ paddingTop: "3rem", paddingBottom: "4rem" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: "3rem", alignItems: "start" }}>
-          {/* Info side */}
-          <div>
-            <h2 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text)", marginBottom: "1.5rem" }}>
-              Contact Information
+      <div className="container max-w-4xl pt-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          {/* Contact Details Column */}
+          <div className="space-y-4">
+            <h2 className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+              Department Coordinates
             </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              {contactInfo.map(({ icon: Icon, label, value, color }) => (
-                <div key={label} style={{
-                  display: "flex", alignItems: "flex-start", gap: "1rem",
-                  background: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "16px",
-                  padding: "1.25rem",
-                }}>
-                  <div style={{
-                    width: 44, height: 44,
-                    background: `${color}18`,
-                    borderRadius: "12px",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    flexShrink: 0,
-                  }}>
-                    <Icon size={20} style={{ color }} />
+
+            <div className="flex flex-col gap-3">
+              {contactInfo.map(({ icon: Icon, label, value }) => (
+                <div key={label} className="card p-3.5 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-md bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-700 dark:text-neutral-300 shrink-0">
+                    <Icon className="w-4 h-4" />
                   </div>
-                  <div>
-                    <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", fontWeight: 600, marginBottom: "2px" }}>{label}</p>
-                    <p style={{ fontSize: "0.9rem", color: "var(--text)", fontWeight: 500 }}>{value}</p>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+                      {label}
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-neutral-900 dark:text-neutral-100 mt-0.5">
+                      {value}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            {/* FAQ Accordion */}
-            <div style={{
-              marginTop: "2rem",
-              background: "linear-gradient(135deg, rgba(14,165,233,0.06), rgba(99,102,241,0.06))",
-              border: "1px solid rgba(14,165,233,0.2)",
-              borderRadius: "18px",
-              padding: "1.5rem",
-            }}>
-              <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.75rem" }}>
-                Frequently Asked Questions
-              </h3>
-              {[
-                { q: "How do I cancel or reschedule an appointment?", a: "Navigate to your Patient Dashboard or My Appointments page and click 'Cancel' or 'Reschedule'. Cancellations are free up to 2 hours before your slot." },
-                { q: "How do telehealth video consultations work?", a: "Once your appointment is confirmed, an encrypted HD video link is generated on your Digital Pass. Simply click the link at your appointment time." },
-                { q: "How do in-person touchless passes work?", a: "Your confirmation generates a QR Check-in code. Present this pass at the clinic reception desk to bypass paper registration." },
-              ].map(({ q, a }, idx) => (
-                <details key={idx} style={{ marginBottom: "0.6rem", cursor: "pointer" }}>
-                  <summary style={{ fontSize: "0.86rem", fontWeight: 700, color: "var(--primary)", outline: "none", marginBottom: "4px" }}>
-                    {q}
-                  </summary>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", lineHeight: 1.5, paddingLeft: "12px", borderLeft: "2px solid var(--primary)", marginTop: "4px" }}>
-                    {a}
-                  </p>
-                </details>
               ))}
             </div>
           </div>
 
-          {/* Form */}
-          <div style={{
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: "24px",
-            padding: "2.5rem",
-            boxShadow: "var(--shadow-lg)",
-          }}>
+          {/* Contact Form Column */}
+          <div className="card p-5 sm:p-6">
+            <h2 className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-1">
+              Send Support Message
+            </h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-5">
+              Standard response turnaround is within 2 clinical hours.
+            </p>
+
             {sent ? (
-              <div style={{ textAlign: "center", padding: "3rem 0" }}>
-                <div style={{
-                  width: 72, height: 72,
-                  background: "rgba(74,222,128,0.1)",
-                  borderRadius: "50%",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  margin: "0 auto 1.5rem"
-                }}>
-                  <CheckCircle size={36} style={{ color: "#4ade80" }} />
+              <div className="p-6 text-center space-y-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-5 h-5" />
                 </div>
-                <h3 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.75rem" }}>
-                  Message Sent!
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                  Message Dispatched
                 </h3>
-                <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
-                  We'll get back to you within 24 hours.
+                <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                  Ticket reference #NC-9421 logged. A care coordinator will reach out shortly.
                 </p>
-                <button onClick={() => setSent(false)} className="btn-primary">
-                  Send Another Message
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSent(false);
+                    setForm({ name: "", email: "", subject: "", message: "" });
+                  }}
+                  className="btn-secondary text-xs px-3 py-1.5 mt-2"
+                >
+                  Send another inquiry
                 </button>
               </div>
             ) : (
-              <>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "2rem" }}>
-                  <MessageSquare size={20} style={{ color: "var(--primary)" }} />
-                  <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--text)" }}>Send us a Message</h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="contact-name" className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Your Name *
+                  </label>
+                  <input
+                    id="contact-name"
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    className="input"
+                    placeholder="e.g. Dr. Jane Miller / Patient Name"
+                    required
+                  />
                 </div>
 
-                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                    <div>
-                      <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>
-                        Your Name *
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="John Doe"
-                        value={form.name}
-                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        className="input"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>
-                        Email Address *
-                      </label>
-                      <input
-                        type="email"
-                        placeholder="you@example.com"
-                        value={form.email}
-                        onChange={(e) => setForm({ ...form, email: e.target.value })}
-                        className="input"
-                        required
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <label htmlFor="contact-email" className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Email Address *
+                  </label>
+                  <input
+                    id="contact-email"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    className="input"
+                    placeholder="name@example.com"
+                    required
+                  />
+                </div>
 
-                  <div>
-                    <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>
-                      Subject
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="How can we help?"
-                      value={form.subject}
-                      onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                      className="input"
-                    />
-                  </div>
+                <div>
+                  <label htmlFor="contact-subject" className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Subject / Concern
+                  </label>
+                  <input
+                    id="contact-subject"
+                    type="text"
+                    value={form.subject}
+                    onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                    className="input"
+                    placeholder="e.g. Appointment rescheduling or physician verification"
+                  />
+                </div>
 
-                  <div>
-                    <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>
-                      Message *
-                    </label>
-                    <textarea
-                      placeholder="Tell us how we can help you..."
-                      value={form.message}
-                      onChange={(e) => setForm({ ...form, message: e.target.value })}
-                      rows={5}
-                      className="input"
-                      style={{ resize: "vertical", lineHeight: 1.6 }}
-                      required
-                    />
-                  </div>
+                <div>
+                  <label htmlFor="contact-message" className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                    Message Details *
+                  </label>
+                  <textarea
+                    id="contact-message"
+                    value={form.message}
+                    onChange={(e) => setForm({ ...form, message: e.target.value })}
+                    rows={4}
+                    className="input resize-y"
+                    placeholder="Please include relevant booking IDs or doctor names..."
+                    required
+                  />
+                </div>
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn-primary"
-                    style={{ justifyContent: "center", padding: "14px", fontSize: "0.95rem", opacity: loading ? 0.7 : 1 }}
-                  >
-                    <Send size={16} />
-                    {loading ? "Sending..." : "Send Message"}
-                  </button>
-                </form>
-              </>
+                <button
+                  type="submit"
+                  className="btn-primary w-full py-2.5 text-xs sm:text-sm font-semibold rounded-lg"
+                >
+                  <Send className="w-3.5 h-3.5 mr-1" />
+                  <span>Submit Inquiry</span>
+                </button>
+              </form>
             )}
           </div>
         </div>

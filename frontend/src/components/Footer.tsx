@@ -2,26 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, ShieldCheck } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer style={{
-      background: "var(--bg-secondary)",
-      borderTop: "1px solid var(--border)",
-      paddingTop: "4rem",
-      paddingBottom: "2rem",
-    }}>
+    <footer className="bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 pt-12 pb-8 text-neutral-900 dark:text-neutral-100">
       <div className="container">
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "3rem",
-          marginBottom: "3rem",
-        }}>
-          {/* Brand */}
-          <div>
-            <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none", marginBottom: "1rem" }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+          {/* Brand & Accreditation */}
+          <div className="space-y-3">
+            <Link href="/" className="inline-block">
               <Image
                 src="https://res.cloudinary.com/dg5gwims9/image/upload/v1783617203/newcare_assets/newCare.png"
                 alt="NewCare Logo"
@@ -31,105 +21,100 @@ export default function Footer() {
                 unoptimized
               />
             </Link>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", lineHeight: 1.7, maxWidth: 260 }}>
-              Your trusted partner in healthcare. Find and book appointments with the best doctors near you.
+            <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-xs">
+              Synchronized clinical scheduling platform connecting patients with verified, board-certified medical specialists.
             </p>
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+              <ShieldCheck className="w-4 h-4" />
+              <span>BMDC Verified Faculty</span>
+            </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Clinical Navigation */}
           <div>
-            <h4 style={{ fontWeight: 700, marginBottom: "1rem", fontSize: "0.9rem", color: "var(--text)" }}>Quick Links</h4>
-            {[
-              { label: "Home", href: "/" },
-              { label: "All Doctors", href: "/doctors" },
-              { label: "Role Dashboards", href: "/dashboard" },
-              { label: "About Us", href: "/about" },
-              { label: "Contact", href: "/contact" },
-            ].map(({ label, href }) => (
-              <Link
-                key={label}
-                href={href}
-                style={{
-                  display: "block",
-                  color: "var(--text-secondary)",
-                  textDecoration: "none",
-                  fontSize: "0.875rem",
-                  marginBottom: "0.6rem",
-                  transition: "color 0.2s ease",
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.color = "var(--primary)")}
-                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.color = "var(--text-secondary)")}
-              >
-                {label}
-              </Link>
-            ))}
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-900 dark:text-neutral-100 mb-3">
+              Platform
+            </h4>
+            <ul className="space-y-2 text-xs text-neutral-600 dark:text-neutral-400">
+              <li>
+                <Link href="/" className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+                  Home Triage
+                </Link>
+              </li>
+              <li>
+                <Link href="/doctors" className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+                  Specialist Directory
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard" className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+                  Role-Based Dashboards
+                </Link>
+              </li>
+              <li>
+                <Link href="/my-appointments" className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+                  Patient Appointments
+                </Link>
+              </li>
+            </ul>
           </div>
 
           {/* Specialties */}
           <div>
-            <h4 style={{ fontWeight: 700, marginBottom: "1rem", fontSize: "0.9rem", color: "var(--text)" }}>Specialties</h4>
-            {["General Physician", "Cardiologist", "Neurologist", "Dermatologist", "Pediatrician", "Gynecologist"].map((spec) => (
-              <Link
-                key={spec}
-                href={`/doctors?specialty=${encodeURIComponent(spec)}`}
-                style={{
-                  display: "block",
-                  color: "var(--text-secondary)",
-                  textDecoration: "none",
-                  fontSize: "0.875rem",
-                  marginBottom: "0.6rem",
-                  transition: "color 0.2s ease",
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.color = "var(--primary)")}
-                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.color = "var(--text-secondary)")}
-              >
-                {spec}
-              </Link>
-            ))}
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-900 dark:text-neutral-100 mb-3">
+              Specialties
+            </h4>
+            <ul className="space-y-2 text-xs text-neutral-600 dark:text-neutral-400">
+              {["General Physician", "Cardiologist", "Neurologist", "Dermatologist", "Pediatrician", "Gynecologist"].map((spec) => (
+                <li key={spec}>
+                  <Link
+                    href={`/doctors?specialty=${encodeURIComponent(spec)}`}
+                    className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+                  >
+                    {spec}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* Contact */}
+          {/* Care Coordination Coordinates */}
           <div>
-            <h4 style={{ fontWeight: 700, marginBottom: "1rem", fontSize: "0.9rem", color: "var(--text)" }}>Contact Us</h4>
-            {[
-              { Icon: Mail, text: "support@newcare.health" },
-              { Icon: Phone, text: "+1 (800) 123-4567" },
-              { Icon: MapPin, text: "New York, NY 10001, USA" },
-            ].map(({ Icon, text }, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "0.75rem" }}>
-                <Icon size={15} style={{ color: "var(--primary)", flexShrink: 0 }} />
-                <span style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>{text}</span>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-900 dark:text-neutral-100 mb-3">
+              Care Coordination
+            </h4>
+            <div className="space-y-2.5 text-xs text-neutral-600 dark:text-neutral-400">
+              <div className="flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                <span>support@newcare.health</span>
               </div>
-            ))}
+              <div className="flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                <span className="tabular-nums">+1 (800) 123-4567</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                <span>42 Health Plaza, New York, NY</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div style={{
-          borderTop: "1px solid var(--border)",
-          paddingTop: "1.5rem",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "1rem"
-        }}>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>
-            © {new Date().getFullYear()} NewCare. All rights reserved.
+        {/* Footer Bottom Ledger */}
+        <div className="pt-6 border-t border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="tabular-nums">
+            © {new Date().getFullYear()} NewCare Clinical Systems. All rights reserved.
           </p>
-          <div style={{ display: "flex", gap: "1.5rem" }}>
-            {[
-              { label: "Privacy Policy", href: "/about#privacy" },
-              { label: "Terms of Service", href: "/about#terms" },
-              { label: "Clinical Standards", href: "/about#standards" },
-            ].map(({ label, href }) => (
-              <Link
-                key={label}
-                href={href}
-                style={{ color: "var(--text-muted)", fontSize: "0.8rem", textDecoration: "none" }}
-              >
-                {label}
-              </Link>
-            ))}
+          <div className="flex gap-4">
+            <Link href="/about" className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+              Clinical Guidelines
+            </Link>
+            <Link href="/about" className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/contact" className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+              Contact Desk
+            </Link>
           </div>
         </div>
       </div>

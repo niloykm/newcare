@@ -133,50 +133,29 @@ export default function ProfilePage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", padding: "4rem 0" }}>
-      <div className="container" style={{ maxWidth: 800 }}>
-        {/* Header card */}
-        <div style={{
-          background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
-          borderRadius: "24px 24px 0 0",
-          padding: "3rem 2rem",
-          color: "white",
-          position: "relative",
-          overflow: "hidden"
-        }}>
-          <div style={{
-            position: "absolute", inset: 0,
-            backgroundImage: "radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 40%)",
-          }} />
-          <div style={{ display: "flex", alignItems: "center", gap: "24px", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 py-8 pb-16">
+      <div className="container max-w-3xl">
+        {/* Profile Card Header */}
+        <div className="card p-6 mb-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
             {/* Profile image picker */}
-            <div style={{ position: "relative" }}>
-              <div style={{
-                width: 120, height: 120,
-                borderRadius: "50%",
-                overflow: "hidden",
-                border: "4px solid rgba(255,255,255,0.3)",
-                position: "relative",
-                background: "#f1f5f9"
-              }}>
+            <div className="relative">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 relative bg-neutral-100 dark:bg-neutral-900">
                 <Image
                   src={previewUrl || userData.image || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop"}
                   alt="User photo"
                   fill
-                  style={{ objectFit: "cover" }}
+                  className="object-cover"
                   unoptimized
                 />
               </div>
               {isEdit && (
-                <label htmlFor="fileInput" style={{
-                  position: "absolute", bottom: 0, right: 0,
-                  background: "#0ea5e9", color: "white",
-                  width: 36, height: 36, borderRadius: "50%",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  cursor: "pointer", boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-                  border: "2px solid white"
-                }}>
-                  <UploadCloud size={16} />
+                <label
+                  htmlFor="fileInput"
+                  className="absolute -bottom-1 -right-1 bg-sky-600 hover:bg-sky-700 text-white w-7 h-7 rounded-md flex items-center justify-center cursor-pointer shadow-xs border border-white dark:border-neutral-900 transition-colors"
+                  title="Upload avatar"
+                >
+                  <UploadCloud size={14} />
                   <input
                     type="file"
                     id="fileInput"
@@ -188,25 +167,22 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.2)", backdropFilter: "blur(6px)", padding: "4px 12px", borderRadius: "50px", fontSize: "0.75rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-                <Sparkles size={12} /> Patient Profile
+            <div className="flex-1 text-center sm:text-left min-w-0">
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 mb-1.5">
+                <span>Patient Account</span>
               </div>
-              <h1 style={{ fontSize: "2rem", fontWeight: 900, marginBottom: "0.25rem" }}>{userData.name}</h1>
-              <p style={{ opacity: 0.85, fontSize: "0.9rem" }}>Manage your personal records & appointments</p>
+              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 truncate">
+                {userData.name}
+              </h1>
+              <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
+                Synchronized personal intake & healthcare record details
+              </p>
             </div>
           </div>
         </div>
 
         {/* Content card */}
-        <div style={{
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
-          borderTop: "none",
-          borderRadius: "0 0 24px 24px",
-          padding: "2.5rem",
-          boxShadow: "var(--shadow-lg)"
-        }}>
+        <div className="card p-6 sm:p-8">
           {isEdit ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
               {/* Edit Mode */}

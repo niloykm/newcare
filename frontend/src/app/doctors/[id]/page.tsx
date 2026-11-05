@@ -1,9 +1,9 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, ArrowRight, Stethoscope } from "lucide-react";
+import { ChevronLeft, ArrowRight } from "lucide-react";
 import { FALLBACK_DOCTORS, DoctorProfile } from "@/data/doctorsData";
 import MultiStepBooking from "@/components/MultiStepBooking";
 import DoctorCard from "@/components/DoctorCard";
@@ -21,14 +21,12 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
 
   useEffect(() => {
     const fetchDoc = async () => {
-      // Find in fallback first
       const found = FALLBACK_DOCTORS.find((d) => d.id === docId || d._id === docId || d.slug === docId);
       if (found) {
         setDoctor(found);
         setRelatedDoctors(FALLBACK_DOCTORS.filter((d) => d.id !== found.id && d.specialty === found.specialty).slice(0, 3));
       }
 
-      // Also try API
       try {
         const res = await api.get("/api/doctor/list");
         if (res.data?.success && Array.isArray(res.data.doctors)) {
@@ -47,7 +45,7 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
               rating: found?.rating || 4.9,
               reviewsCount: found?.reviewsCount || 120,
               isAvailableToday: apiDoc.available !== false,
-              availableSlots: found?.availableSlots || ["10:30 AM", "02:00 PM", "04:30 PM"],
+              availableSlots: found?.availableSlots || ["09:30 AM", "11:00 AM", "02:30 PM", "04:30 PM"],
             };
             setDoctor(merged);
           }
@@ -61,11 +59,11 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
 
   if (!doctor) {
     return (
-      <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center" }}>
-          <p style={{ color: "var(--text-secondary)", marginBottom: "1rem" }}>Doctor profile not found</p>
-          <Link href="/doctors" className="btn-primary">
-            Back to All Doctors
+      <div className="min-h-[60vh] flex items-center justify-center p-6">
+        <div className="card p-8 text-center max-w-sm">
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">Doctor profile could not be located</p>
+          <Link href="/doctors" className="btn-primary text-xs px-4 py-2">
+            Back to Specialist Directory
           </Link>
         </div>
       </div>
@@ -73,63 +71,48 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", padding: "2.5rem 0 5rem" }}>
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 py-6 sm:py-8">
       <div className="container">
         {/* Navigation Breadcrumb */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "1.5rem", fontSize: "0.85rem" }}>
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 mb-6 text-xs font-medium text-neutral-500 dark:text-neutral-400">
           <button
             onClick={() => router.push("/doctors")}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--text-secondary)",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "4px",
-              fontWeight: 600,
-            }}
+            className="hover:text-neutral-900 dark:hover:text-neutral-100 inline-flex items-center gap-1 transition-colors"
           >
-            <ChevronLeft size={16} /> All Doctors
+            <ChevronLeft className="w-3.5 h-3.5" />
+            <span>All Doctors</span>
           </button>
-          <span style={{ color: "var(--border)" }}>/</span>
-          <span style={{ color: "var(--text-muted)" }}>{doctor.specialty}</span>
-          <span style={{ color: "var(--border)" }}>/</span>
-          <span style={{ color: "var(--text)", fontWeight: 700 }}>{doctor.name}</span>
-        </div>
+          <span>/</span>
+          <span>{doctor.specialty}</span>
+          <span>/</span>
+          <span className="font-semibold text-neutral-900 dark:text-neutral-100">{doctor.name}</span>
+        </nav>
 
         {/* Multi-Step Booking Engine */}
         <MultiStepBooking doctor={doctor} />
 
-        {/* Related Specialists */}
+        {/* Related Department Specialists */}
         {relatedDoctors.length > 0 && (
-          <div style={{ marginTop: "4rem", paddingTop: "3rem", borderTop: "1px solid var(--border)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+          <div className="mt-12 pt-8 border-t border-neutral-200 dark:border-neutral-800">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text)" }}>
-                  Other Top {doctor.specialty} Specialists
+                <h3 className="text-base sm:text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+                  Other {doctor.specialty} Practitioners
                 </h3>
-                <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem" }}>
-                  Explore verified faculty members in the same department
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  Accredited physicians in the same department
                 </p>
               </div>
               <Link
                 href={`/doctors?specialty=${encodeURIComponent(doctor.specialty)}`}
-                style={{
-                  color: "var(--primary)",
-                  fontWeight: 700,
-                  fontSize: "0.88rem",
-                  textDecoration: "none",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
+                className="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1"
               >
-                View Department <ArrowRight size={14} />
+                <span>View department</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
+            <div className="flex flex-col gap-3">
               {relatedDoctors.map((relDoc) => (
                 <DoctorCard key={relDoc.id} doctor={relDoc} />
               ))}

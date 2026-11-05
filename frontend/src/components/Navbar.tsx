@@ -167,15 +167,15 @@ export default function Navbar() {
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
-                  padding: "4px 10px 4px 5px",
-                  borderRadius: "9999px",
+                  padding: "6px 10px 6px 6px",
+                  borderRadius: "8px",
                   border: "1px solid var(--border)",
                   background: "var(--bg-secondary)",
                   cursor: "pointer",
                   color: "var(--text)",
                   fontWeight: 600,
                   fontSize: "0.875rem",
-                  transition: "all 0.2s ease",
+                  transition: "all 0.15s ease",
                 }}
               >
                 {/* Profile Pic / Avatar initial */}
@@ -183,11 +183,11 @@ export default function Navbar() {
                   <div
                     style={{
                       position: "relative",
-                      width: 32,
-                      height: 32,
-                      borderRadius: "50%",
+                      width: 28,
+                      height: 28,
+                      borderRadius: "6px",
                       overflow: "hidden",
-                      border: "2px solid var(--primary)",
+                      border: "1px solid var(--border)",
                       flexShrink: 0,
                     }}
                   >
@@ -195,7 +195,7 @@ export default function Navbar() {
                       src={user.image}
                       alt={user.name || "User profile"}
                       fill
-                      sizes="32px"
+                      sizes="28px"
                       style={{ objectFit: "cover" }}
                       unoptimized
                     />
@@ -203,21 +203,20 @@ export default function Navbar() {
                 ) : (
                   <div
                     style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "50%",
-                      background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
-                      color: "#ffffff",
+                      width: 28,
+                      height: 28,
+                      borderRadius: "6px",
+                      background: "var(--text)",
+                      color: "var(--bg)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: "0.85rem",
+                      fontSize: "0.8rem",
                       fontWeight: 700,
-                      boxShadow: "0 2px 6px rgba(14, 165, 233, 0.35)",
                       flexShrink: 0,
                     }}
                   >
-                    {user.name?.trim().charAt(0).toUpperCase() || <User size={15} />}
+                    {user.name?.trim().charAt(0).toUpperCase() || <User size={14} />}
                   </div>
                 )}
 
@@ -411,13 +410,13 @@ export default function Navbar() {
                 </div>
               ) : (
                 <div style={{
-                  width: 36, height: 36, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
-                  color: "#ffffff", display: "flex", alignItems: "center",
-                  justifyContent: "center", fontSize: "0.95rem", fontWeight: 700,
+                  width: 32, height: 32, borderRadius: "6px",
+                  background: "var(--text)",
+                  color: "var(--bg)", display: "flex", alignItems: "center",
+                  justifyContent: "center", fontSize: "0.85rem", fontWeight: 700,
                   flexShrink: 0
                 }}>
-                  {user.name?.trim().charAt(0).toUpperCase() || <User size={16} />}
+                  {user.name?.trim().charAt(0).toUpperCase() || <User size={15} />}
                 </div>
               )}
               <div style={{ overflow: "hidden" }}>

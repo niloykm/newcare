@@ -4,3 +4,5 @@ declare module "next/types.js" {
   export type Viewport = any;
   export type ResolvingViewport = any;
 }
+
+declare module "lucide-react";

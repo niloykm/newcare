@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Calendar, Video, MapPin, Stethoscope, ChevronDown } from "lucide-react";
+import { Search, Calendar, MapPin, Stethoscope, Video } from "lucide-react";
 
 const SPECIALTIES = [
   "All Specialties",
@@ -16,16 +16,26 @@ const SPECIALTIES = [
   "ENT Specialist",
 ];
 
+const LOCATIONS = [
+  { label: "All Clinics & Hospitals", value: "all" },
+  { label: "NewCare Health Plaza (Manhattan)", value: "Manhattan" },
+  { label: "Brooklyn Ambulatory Center", value: "Brooklyn" },
+  { label: "Queens Specialty Pavilion", value: "Queens" },
+  { label: "HD Telehealth (Video Consult)", value: "telehealth" },
+];
+
 const DATES = [
   { label: "Today", value: "today" },
   { label: "Tomorrow", value: "tomorrow" },
-  { label: "This Weekend", value: "weekend" },
+  { label: "This Week", value: "week" },
+  { label: "Any Available Date", value: "any" },
 ];
 
 export default function QuickFinder() {
   const router = useRouter();
   const [specialty, setSpecialty] = useState("All Specialties");
-  const [consultationType, setConsultationType] = useState<"all" | "in-person" | "video">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [location, setLocation] = useState("all");
   const [dateChoice, setDateChoice] = useState("today");
 
   const handleSearch = (e: React.FormEvent) => {
@@ -34,8 +44,13 @@ export default function QuickFinder() {
     if (specialty !== "All Specialties") {
       params.set("specialty", specialty);
     }
-    if (consultationType !== "all") {
-      params.set("type", consultationType);
+    if (searchQuery.trim()) {
+      params.set("search", searchQuery.trim());
+    }
+    if (location === "telehealth") {
+      params.set("type", "video");
+    } else if (location !== "all") {
+      params.set("search", location);
     }
     if (dateChoice === "today") {
       params.set("available", "today");
@@ -46,201 +61,94 @@ export default function QuickFinder() {
   return (
     <form
       onSubmit={handleSearch}
-      style={{
-        background: "white",
-        borderRadius: "20px",
-        padding: "10px",
-        boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.4)",
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-        maxWidth: 580,
-        width: "100%",
-      }}
+      className="w-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-3 sm:p-4 shadow-sm"
     >
-      {/* Upper Mode Pill Toggle */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "6px",
-          padding: "4px",
-          background: "#f1f5f9",
-          borderRadius: "12px",
-          width: "fit-content",
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setConsultationType("all")}
-          style={{
-            padding: "5px 12px",
-            borderRadius: "8px",
-            border: "none",
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            cursor: "pointer",
-            background: consultationType === "all" ? "white" : "transparent",
-            color: consultationType === "all" ? "#0f172a" : "#64748b",
-            boxShadow: consultationType === "all" ? "0 2px 6px rgba(0,0,0,0.08)" : "none",
-            transition: "all 0.15s ease",
-          }}
-        >
-          All Formats
-        </button>
-        <button
-          type="button"
-          onClick={() => setConsultationType("in-person")}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "5px",
-            padding: "5px 12px",
-            borderRadius: "8px",
-            border: "none",
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            cursor: "pointer",
-            background: consultationType === "in-person" ? "white" : "transparent",
-            color: consultationType === "in-person" ? "#0ea5e9" : "#64748b",
-            boxShadow: consultationType === "in-person" ? "0 2px 6px rgba(0,0,0,0.08)" : "none",
-            transition: "all 0.15s ease",
-          }}
-        >
-          <MapPin size={12} /> In-Clinic Visit
-        </button>
-        <button
-          type="button"
-          onClick={() => setConsultationType("video")}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "5px",
-            padding: "5px 12px",
-            borderRadius: "8px",
-            border: "none",
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            cursor: "pointer",
-            background: consultationType === "video" ? "white" : "transparent",
-            color: consultationType === "video" ? "#6366f1" : "#64748b",
-            boxShadow: consultationType === "video" ? "0 2px 6px rgba(0,0,0,0.08)" : "none",
-            transition: "all 0.15s ease",
-          }}
-        >
-          <Video size={12} /> HD Video Call
-        </button>
-      </div>
-
-      {/* Main Search Row */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1.4fr 1fr auto",
-          gap: "8px",
-          alignItems: "center",
-        }}
-        className="quick-finder-grid"
-      >
-        {/* Specialty Selection */}
-        <div
-          style={{
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            background: "#f8fafc",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            padding: "0 12px",
-            height: "48px",
-          }}
-        >
-          <Stethoscope size={18} style={{ color: "#0ea5e9", marginRight: "8px", flexShrink: 0 }} />
-          <select
-            value={specialty}
-            onChange={(e) => setSpecialty(e.target.value)}
-            style={{
-              width: "100%",
-              height: "100%",
-              border: "none",
-              outline: "none",
-              background: "transparent",
-              fontSize: "0.88rem",
-              fontWeight: 600,
-              color: "#0f172a",
-              cursor: "pointer",
-            }}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+        {/* Doctor Name / Specialty */}
+        <div>
+          <label
+            htmlFor="triage-specialty"
+            className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1"
           >
-            {SPECIALTIES.map((spec) => (
-              <option key={spec} value={spec}>
-                {spec}
-              </option>
-            ))}
-          </select>
+            Specialty or Clinician
+          </label>
+          <div className="relative flex items-center">
+            <Stethoscope className="absolute left-3 w-4 h-4 text-neutral-400 pointer-events-none" />
+            <select
+              id="triage-specialty"
+              value={specialty}
+              onChange={(e) => setSpecialty(e.target.value)}
+              className="w-full h-10 pl-9 pr-8 text-sm font-medium bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100 focus:outline-none transition-all cursor-pointer"
+            >
+              {SPECIALTIES.map((spec) => (
+                <option key={spec} value={spec} className="bg-white dark:bg-neutral-900">
+                  {spec}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        {/* Date Selection */}
-        <div
-          style={{
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            background: "#f8fafc",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            padding: "0 12px",
-            height: "48px",
-          }}
-        >
-          <Calendar size={18} style={{ color: "#6366f1", marginRight: "8px", flexShrink: 0 }} />
-          <select
-            value={dateChoice}
-            onChange={(e) => setDateChoice(e.target.value)}
-            style={{
-              width: "100%",
-              height: "100%",
-              border: "none",
-              outline: "none",
-              background: "transparent",
-              fontSize: "0.88rem",
-              fontWeight: 600,
-              color: "#0f172a",
-              cursor: "pointer",
-            }}
+        {/* Hospital / Clinic / Telehealth Location */}
+        <div>
+          <label
+            htmlFor="triage-location"
+            className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1"
           >
-            {DATES.map((d) => (
-              <option key={d.value} value={d.value}>
-                {d.label}
-              </option>
-            ))}
-          </select>
+            Hospital or Location
+          </label>
+          <div className="relative flex items-center">
+            <MapPin className="absolute left-3 w-4 h-4 text-neutral-400 pointer-events-none" />
+            <select
+              id="triage-location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full h-10 pl-9 pr-8 text-sm font-medium bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100 focus:outline-none transition-all cursor-pointer"
+            >
+              {LOCATIONS.map((loc) => (
+                <option key={loc.value} value={loc.value} className="bg-white dark:bg-neutral-900">
+                  {loc.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          style={{
-            height: "48px",
-            padding: "0 22px",
-            borderRadius: "12px",
-            border: "none",
-            background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
-            color: "white",
-            fontWeight: 800,
-            fontSize: "0.92rem",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-            cursor: "pointer",
-            boxShadow: "0 8px 20px rgba(14, 165, 233, 0.35)",
-            whiteSpace: "nowrap",
-            transition: "transform 0.15s ease",
-          }}
-        >
-          <Search size={16} />
-          Find Doctors
-        </button>
+        {/* Date Selector */}
+        <div>
+          <label
+            htmlFor="triage-date"
+            className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1"
+          >
+            Appointment Date
+          </label>
+          <div className="relative flex items-center">
+            <Calendar className="absolute left-3 w-4 h-4 text-neutral-400 pointer-events-none" />
+            <select
+              id="triage-date"
+              value={dateChoice}
+              onChange={(e) => setDateChoice(e.target.value)}
+              className="w-full h-10 pl-9 pr-8 text-sm font-medium bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100 focus:outline-none transition-all cursor-pointer"
+            >
+              {DATES.map((d) => (
+                <option key={d.value} value={d.value} className="bg-white dark:bg-neutral-900">
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Search Action */}
+        <div>
+          <button
+            type="submit"
+            className="w-full h-10 inline-flex items-center justify-center gap-2 px-4 text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 dark:text-neutral-950 rounded-lg transition-colors focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100 focus:outline-none"
+          >
+            <Search className="w-4 h-4" />
+            <span>Search Doctors</span>
+          </button>
+        </div>
       </div>
     </form>
   );

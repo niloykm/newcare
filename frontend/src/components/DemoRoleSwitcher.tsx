@@ -3,7 +3,7 @@
 import { useStore, RoleType } from "@/store/useStore";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { User, Stethoscope, ShieldAlert, Sparkles, RefreshCw, ChevronUp, ChevronDown, Check } from "lucide-react";
+import { User, Stethoscope, ShieldAlert, RefreshCw, ChevronUp, ChevronDown, Check } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function DemoRoleSwitcher() {
@@ -13,7 +13,6 @@ export default function DemoRoleSwitcher() {
   const [expanded, setExpanded] = useState(false);
   const containerRef = useRef<HTMLElement>(null);
 
-  // Close on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -30,9 +29,8 @@ export default function DemoRoleSwitcher() {
 
   const handleRoleChange = (role: RoleType, targetPath: string) => {
     setCurrentRole(role);
-    toast.success(`Switched to ${role.toUpperCase()} mode`, {
-      icon: role === "patient" ? "👤" : role === "doctor" ? "🩺" : "🛡️",
-      duration: 2500,
+    toast.success(`Active View: ${role.toUpperCase()}`, {
+      duration: 2000,
     });
     router.push(targetPath);
     setExpanded(false);
@@ -41,7 +39,7 @@ export default function DemoRoleSwitcher() {
   const handleResetData = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("newcare-storage-v2");
-      toast.success("Demo appointments & clinic data reset to defaults!");
+      toast.success("Demo appointments & records reset to default state");
       window.location.reload();
     }
   };
@@ -49,177 +47,85 @@ export default function DemoRoleSwitcher() {
   const roles = [
     {
       id: "patient" as RoleType,
-      label: "Patient View",
+      label: "Patient Portal",
       shortLabel: "Patient",
       icon: User,
       path: "/dashboard/patient",
-      desc: "Multi-step booking & digital pass",
-      color: "#0ea5e9",
     },
     {
       id: "doctor" as RoleType,
-      label: "Doctor Dashboard",
+      label: "Doctor Desk",
       shortLabel: "Doctor",
       icon: Stethoscope,
       path: "/dashboard/doctor",
-      desc: "Live queue & consultation notes",
-      color: "#10b981",
     },
     {
       id: "admin" as RoleType,
-      label: "Admin Portal",
+      label: "Clinic Admin",
       shortLabel: "Admin",
       icon: ShieldAlert,
       path: "/dashboard/admin",
-      desc: "Clinic revenue & RBAC analytics",
-      color: "#8b5cf6",
     },
   ];
 
   return (
     <aside
       ref={containerRef}
-      aria-label="Interactive Demo Switcher"
-      style={{
-        position: "fixed",
-        bottom: 20,
-        right: 20,
-        zIndex: 9999,
-        transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-        maxWidth: "calc(100vw - 32px)",
-      }}
+      aria-label="Role Switcher"
+      className="fixed bottom-4 right-4 z-50 max-w-[calc(100vw-32px)]"
     >
-      <div
-        style={{
-          background: "rgba(15, 23, 42, 0.94)",
-          backdropFilter: "blur(16px)",
-          border: "1px solid rgba(255, 255, 255, 0.15)",
-          borderRadius: expanded ? "24px" : "50px",
-          padding: expanded ? "10px 14px" : "6px 8px 6px 14px",
-          boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(14, 165, 233, 0.25)",
-          color: "white",
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          flexWrap: "wrap",
-        }}
-      >
-        {/* Compact Toggle Button */}
+      <div className="bg-neutral-900 border border-neutral-700 rounded-xl p-1.5 shadow-md text-white flex items-center gap-2 flex-wrap">
+        {/* Toggle Button */}
         <button
+          type="button"
           onClick={() => setExpanded(!expanded)}
-          title={expanded ? "Minimize Demo Switcher" : "Open Demo Switcher"}
           aria-expanded={expanded}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: 0,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            color: "white",
-          }}
+          className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-200 transition-colors"
         >
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
-              padding: "6px 12px",
-              borderRadius: "50px",
-              fontSize: "0.76rem",
-              fontWeight: 800,
-              letterSpacing: "0.03em",
-              textTransform: "uppercase",
-              boxShadow: "0 0 12px rgba(14, 165, 233, 0.6)",
-            }}
-          >
-            <Sparkles size={13} className="animate-spin" />
-            <span>Interactive Demo</span>
-          </div>
-
-          <div
-            style={{
-              background: "rgba(255,255,255,0.08)",
-              borderRadius: "50%",
-              width: 26,
-              height: 26,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#94a3b8",
-            }}
-          >
-            {expanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-          </div>
+          <span className="w-2 h-2 rounded-full bg-sky-400" />
+          <span>Role View</span>
+          {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
         </button>
 
         {/* Expanded Options */}
         {expanded && (
           <>
-            <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.15)" }} />
+            <div className="w-px h-5 bg-neutral-700" />
 
-            {/* Role Options */}
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              {roles.map(({ id, label, shortLabel, icon: Icon, path, color }) => {
+            <div className="flex items-center gap-1">
+              {roles.map(({ id, label, shortLabel, icon: Icon, path }) => {
                 const isActive = currentRole === id && pathname.startsWith(path);
                 return (
                   <button
                     key={id}
+                    type="button"
                     onClick={() => handleRoleChange(id, path)}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      padding: "6px 12px",
-                      borderRadius: "12px",
-                      fontSize: "0.82rem",
-                      fontWeight: isActive ? 700 : 500,
-                      cursor: "pointer",
-                      border: isActive
-                        ? `1.5px solid ${color}`
-                        : "1px solid rgba(255,255,255,0.1)",
-                      background: isActive
-                        ? `${color}28`
-                        : "rgba(255, 255, 255, 0.05)",
-                      color: isActive ? "#ffffff" : "#cbd5e1",
-                      transition: "all 0.2s ease",
-                      boxShadow: isActive ? `0 0 16px ${color}40` : "none",
-                    }}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors ${
+                      isActive
+                        ? "bg-white text-neutral-950 border-white"
+                        : "bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700 hover:text-white"
+                    }`}
                   >
-                    <Icon size={14} style={{ color: isActive ? color : "#94a3b8" }} />
-                    <span className="hidden-mobile">{label}</span>
-                    <span className="mobile-only">{shortLabel}</span>
-                    {isActive && <Check size={12} style={{ color }} />}
+                    <Icon className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{label}</span>
+                    <span className="sm:hidden">{shortLabel}</span>
+                    {isActive && <Check className="w-3 h-3 text-neutral-950" />}
                   </button>
                 );
               })}
             </div>
 
-            <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.15)" }} />
+            <div className="w-px h-5 bg-neutral-700" />
 
-            {/* Quick Reset Button */}
+            {/* Reset Button */}
             <button
+              type="button"
               onClick={handleResetData}
-              title="Reset sample appointments & doctor stats"
-              style={{
-                background: "rgba(239, 68, 68, 0.15)",
-                border: "1px solid rgba(239, 68, 68, 0.3)",
-                color: "#fca5a5",
-                borderRadius: "10px",
-                padding: "6px 10px",
-                fontSize: "0.74rem",
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
+              title="Reset sample appointments"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-rose-950/60 border border-rose-800 text-rose-300 hover:bg-rose-900 transition-colors"
             >
-              <RefreshCw size={11} />
-              <span className="hidden-mobile">Reset</span>
+              <RefreshCw className="w-3 h-3" />
+              <span className="hidden sm:inline">Reset</span>
             </button>
           </>
         )}

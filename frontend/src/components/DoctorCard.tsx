@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Star, ShieldCheck, MapPin, Calendar, Clock, ArrowRight, Video, UserCheck } from "lucide-react";
+import { Star, ShieldCheck, MapPin, Clock, Calendar, ArrowRight, Video } from "lucide-react";
 import { DoctorProfile } from "@/data/doctorsData";
 
 interface DoctorCardProps {
@@ -20,268 +20,148 @@ export default function DoctorCard({ doctor, onQuickBookSlot }: DoctorCardProps)
   const specialty = doctor.specialty || doctor.speciality || "General Physician";
   const degree = doctor.degree || "MBBS, MD";
   const experienceYears = doctor.experienceYears || doctor.experience || 5;
-  const rating = doctor.rating || 4.9;
-  const reviewsCount = doctor.reviewsCount || doctor.reviewCount || 128;
-  const consultationFee = doctor.consultationFee || doctor.fees || 50;
+  const rating = Number(doctor.rating || 4.9);
+  const reviewsCount = Number(doctor.reviewsCount || doctor.reviewCount || 128);
+  const consultationFee = Number(doctor.consultationFee || doctor.fees || 50);
   const hospitalName = doctor.hospitalName || (doctor.address?.line1 ? `${doctor.address.line1}` : "NewCare Medical Center");
   const avatarUrl = imgError ? fallbackImg : (doctor.avatarUrl || doctor.image || fallbackImg);
   const isAvailableToday = doctor.isAvailableToday !== undefined ? doctor.isAvailableToday : doctor.available !== false;
-  const nextAvailableSlot = doctor.nextAvailableSlot || (isAvailableToday ? "Today, 4:30 PM" : "Tomorrow, 10:00 AM");
-  const slots: string[] = doctor.availableSlots || ["10:30 AM", "02:00 PM", "04:30 PM"];
+  const slots: string[] = doctor.availableSlots || ["09:30 AM", "11:00 AM", "02:30 PM", "04:30 PM"];
 
   return (
-    <div
+    <article
+      className="card group p-4 sm:p-5 transition-all duration-150 hover:border-neutral-400 dark:hover:border-neutral-600"
       style={{
-        background: "var(--bg-card)",
-        border: "1px solid var(--border)",
-        borderRadius: "20px",
-        overflow: "hidden",
-        boxShadow: "var(--shadow-sm)",
-        transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
+        display: "grid",
+        gridTemplateColumns: "1fr",
+        gap: "1.25rem",
       }}
-      className="group hover:shadow-xl hover:-translate-y-1"
     >
-      {/* Top Image & Status Pill */}
-      <div style={{ position: "relative", height: "210px", width: "100%", background: "#f1f5f9", overflow: "hidden" }}>
-        <Image
-          src={avatarUrl}
-          alt={name}
-          fill
-          sizes="(max-width: 768px) 100vw, 320px"
-          style={{ objectFit: "cover" }}
-          onError={() => setImgError(true)}
-          unoptimized
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(to top, rgba(15,23,42,0.6) 0%, transparent 60%)",
-          }}
-        />
-
-        {/* Live Status Pill */}
-        <div
-          style={{
-            position: "absolute",
-            top: "12px",
-            right: "12px",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            background: isAvailableToday ? "rgba(16, 185, 129, 0.95)" : "rgba(30, 41, 59, 0.85)",
-            backdropFilter: "blur(8px)",
-            color: "white",
-            padding: "5px 12px",
-            borderRadius: "50px",
-            fontSize: "0.74rem",
-            fontWeight: 700,
-            letterSpacing: "0.02em",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          }}
-        >
-          <span
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: "50%",
-              background: isAvailableToday ? "#ffffff" : "#fbbf24",
-              display: "inline-block",
-            }}
-          />
-          {isAvailableToday ? "🟢 Available Today" : `Next: ${nextAvailableSlot}`}
-        </div>
-
-        {/* Board Verified Pill */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: "12px",
-            left: "12px",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "5px",
-            background: "rgba(14, 165, 233, 0.92)",
-            backdropFilter: "blur(6px)",
-            color: "white",
-            padding: "4px 10px",
-            borderRadius: "8px",
-            fontSize: "0.7rem",
-            fontWeight: 700,
-          }}
-        >
-          <ShieldCheck size={13} />
-          ✓ BMDC / Board Verified
-        </div>
-      </div>
-
-      {/* Body Details */}
-      <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", flex: 1, gap: "0.6rem" }}>
-        {/* Specialty Tag & Fee */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span
-            style={{
-              background: "rgba(14, 165, 233, 0.12)",
-              color: "var(--primary)",
-              fontWeight: 700,
-              fontSize: "0.76rem",
-              padding: "3px 10px",
-              borderRadius: "6px",
-              letterSpacing: "0.02em",
-              textTransform: "uppercase",
-            }}
-          >
-            {specialty}
-          </span>
-          <div style={{ textAlign: "right" }}>
-            <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text)" }}>${consultationFee}</span>
-            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginLeft: "3px" }}>/ visit</span>
-          </div>
-        </div>
-
-        {/* Doctor Name & Degree */}
-        <div>
-          <Link
-            href={`/doctors/${id}`}
-            style={{
-              textDecoration: "none",
-              color: "var(--text)",
-              display: "block",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: "1.1rem",
-                fontWeight: 800,
-                lineHeight: 1.3,
-                marginBottom: "3px",
-              }}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Left Section: Avatar + Identity + Hospital & Credentials */}
+        <div className="flex items-start gap-3.5 sm:gap-4 min-w-0">
+          {/* Avatar / Photo with Verified Status */}
+          <div className="relative shrink-0">
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900">
+              <Image
+                src={avatarUrl}
+                alt={name}
+                fill
+                sizes="(max-width: 640px) 64px, 80px"
+                className="object-cover"
+                onError={() => setImgError(true)}
+                unoptimized
+              />
+            </div>
+            {/* Clinical Verified Pip */}
+            <span
+              className="absolute -bottom-1 -right-1 bg-white dark:bg-neutral-900 rounded-full p-0.5 shadow-xs"
+              title="BMDC / Board Verified Clinician"
             >
-              {name}
-            </h3>
-          </Link>
-          <p
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--text-secondary)",
-              fontWeight: 500,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {degree}
-          </p>
-        </div>
-
-        {/* Hospital */}
-        <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--text-secondary)", fontSize: "0.78rem" }}>
-          <MapPin size={13} style={{ color: "var(--primary)", flexShrink: 0 }} />
-          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{hospitalName}</span>
-        </div>
-
-        {/* Rating & Experience */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingTop: "0.4rem",
-            borderTop: "1px dashed var(--border)",
-            fontSize: "0.8rem",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            <Star size={14} fill="#f59e0b" style={{ color: "#f59e0b" }} />
-            <span style={{ fontWeight: 800, color: "var(--text)" }}>{rating.toFixed(1)}</span>
-            <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>({reviewsCount} reviews)</span>
-          </div>
-          <div style={{ fontWeight: 600, color: "var(--text-secondary)" }}>
-            ⚡ {experienceYears}+ Yrs Exp
-          </div>
-        </div>
-
-        {/* Next Available Slots Pills */}
-        <div style={{ marginTop: "0.25rem" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-            <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>
-              Next Available Slots:
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             </span>
           </div>
-          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-            {slots.slice(0, 2).map((slot) => (
+
+          {/* Name, Credentials, Specialty & Hospital */}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-0.5">
               <Link
-                key={slot}
-                href={`/doctors/${id}?slot=${encodeURIComponent(slot)}`}
-                style={{
-                  textDecoration: "none",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  padding: "4px 10px",
-                  borderRadius: "8px",
-                  background: "var(--bg-secondary)",
-                  color: "var(--text)",
-                  border: "1px solid var(--border)",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  transition: "all 0.15s ease",
-                }}
+                href={`/doctors/${id}`}
+                className="text-base sm:text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 hover:text-sky-600 dark:hover:text-sky-400 transition-colors truncate"
               >
-                <Clock size={11} style={{ color: "var(--primary)" }} />
-                {slot}
+                {name}
               </Link>
-            ))}
+              <span className="badge-clinical badge-neutral text-xs text-neutral-700 dark:text-neutral-300">
+                {specialty}
+              </span>
+              {isAvailableToday && (
+                <span className="badge-clinical badge-verified text-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 pulse-live inline-block" />
+                  Available Today
+                </span>
+              )}
+            </div>
+
+            {/* Credentials & Degree */}
+            <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">
+              {degree} • <span className="tabular-nums">{experienceYears}</span> yrs clinical practice
+            </p>
+
+            {/* Hospital Affiliation & Reviews */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-600 dark:text-neutral-300">
+              <span className="inline-flex items-center gap-1 truncate max-w-[220px] sm:max-w-[320px]">
+                <MapPin className="w-3.5 h-3.5 text-neutral-400 dark:text-neutral-500 shrink-0" />
+                <span className="truncate">{hospitalName}</span>
+              </span>
+              <span className="inline-flex items-center gap-1 font-medium">
+                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">
+                  {rating.toFixed(1)}
+                </span>
+                <span className="text-neutral-500 dark:text-neutral-400 tabular-nums">
+                  ({reviewsCount})
+                </span>
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Action Button */}
-        <div style={{ marginTop: "0.5rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+        {/* Right Section: Fee & Primary Action */}
+        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-neutral-100 dark:border-neutral-800/80 shrink-0">
+          <div className="text-left md:text-right">
+            <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 block">Consultation Fee</span>
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 tabular-nums">
+                ${consultationFee}
+              </span>
+              <span className="text-xs text-neutral-500 dark:text-neutral-400">/ visit</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/doctors/${id}`}
+              className="btn-primary text-xs sm:text-sm px-3.5 sm:px-4 py-2 font-semibold rounded-lg"
+            >
+              <span>Book Appointment</span>
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Scannable Today's Available Slots (Interactive Mini-Chips) */}
+      <div className="bg-neutral-50 dark:bg-neutral-900/60 rounded-lg p-2.5 sm:px-3 sm:py-2 border border-neutral-200/80 dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-600 dark:text-neutral-400 shrink-0">
+          <Clock className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+          <span>Available Slots:</span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          {slots.slice(0, 4).map((slot) => (
+            <Link
+              key={slot}
+              href={`/doctors/${id}?slot=${encodeURIComponent(slot)}`}
+              onClick={(e) => {
+                if (onQuickBookSlot) {
+                  e.preventDefault();
+                  onQuickBookSlot(doctor, slot);
+                }
+              }}
+              className="inline-flex items-center px-2.5 py-1 text-xs font-semibold tabular-nums rounded-md bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 hover:border-sky-500 hover:text-sky-600 dark:hover:border-sky-400 dark:hover:text-sky-300 transition-colors"
+              title={`Book ${slot} slot`}
+            >
+              {slot}
+            </Link>
+          ))}
           <Link
             href={`/doctors/${id}`}
-            style={{
-              textDecoration: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "6px",
-              padding: "9px 12px",
-              borderRadius: "10px",
-              background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
-              color: "white",
-              fontWeight: 700,
-              fontSize: "0.82rem",
-              boxShadow: "0 4px 12px rgba(14, 165, 233, 0.25)",
-              textAlign: "center",
-            }}
+            className="text-xs font-medium text-sky-600 dark:text-sky-400 hover:underline px-1.5 py-1"
           >
-            Book Slot <ArrowRight size={14} />
-          </Link>
-          <Link
-            href={`/appointment/${id}`}
-            style={{
-              textDecoration: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "5px",
-              padding: "9px 12px",
-              borderRadius: "10px",
-              background: "var(--bg-secondary)",
-              color: "var(--text)",
-              border: "1px solid var(--border)",
-              fontWeight: 600,
-              fontSize: "0.82rem",
-              textAlign: "center",
-            }}
-          >
-            <Video size={13} style={{ color: "var(--primary)" }} /> Video / Clinic
+            All slots →
           </Link>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

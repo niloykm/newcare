@@ -4,154 +4,111 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { Heart, Mail, Lock, Eye, EyeOff, Shield } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ShieldCheck } from "lucide-react";
 import axios from "axios";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://newcarebackend.vercel.app";
 
 export default function AdminLogin() {
   const router = useRouter();
-  const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ email: "", password: "" });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.email || !form.password) {
-      toast.error("Please fill in all fields");
-      return;
-    }
     setLoading(true);
+
     try {
-      const res = await axios.post(`${API}/api/admin/login`, form);
+      const res = await axios.post(`${API}/api/admin/login`, {
+        email: form.email,
+        password: form.password,
+      });
+
       if (res.data.success) {
         localStorage.setItem("aToken", res.data.token);
-        toast.success("Welcome to Admin Panel!");
+        toast.success("Welcome back, Admin!");
         router.push("/");
       } else {
-        toast.error(res.data.message || "Invalid credentials");
+        toast.error(res.data.message || "Invalid admin credentials");
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Login failed");
+      toast.error(err?.response?.data?.message || "Login failed. Please check credentials.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)",
-      padding: "2rem",
-    }}>
-      {/* Glow effects */}
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none",
-        backgroundImage: "radial-gradient(circle at 30% 40%, rgba(99,102,241,0.15) 0%, transparent 50%), radial-gradient(circle at 70% 70%, rgba(139,92,246,0.1) 0%, transparent 50%)"
-      }} />
-
-      <div style={{ width: "100%", maxWidth: 420, position: "relative" }}>
-        {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
-          <div style={{ marginBottom: "1rem" }}>
+    <div className="min-h-screen flex items-center justify-center bg-neutral-950 p-4 text-neutral-100">
+      <div className="w-full max-w-sm">
+        {/* Logo & Header */}
+        <div className="text-center mb-6">
+          <div className="mb-3">
             <Image
               src="https://res.cloudinary.com/dg5gwims9/image/upload/v1783617203/newcare_assets/newCare.png"
               alt="NewCare Logo"
-              width={160}
-              height={40}
-              style={{ objectFit: "contain", height: "40px", width: "auto", margin: "0 auto", filter: "brightness(0) invert(1)" }}
+              width={140}
+              height={36}
+              style={{ objectFit: "contain", height: "36px", width: "auto", margin: "0 auto", filter: "brightness(0) invert(1)" }}
               unoptimized
             />
           </div>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 900, color: "white", marginBottom: "0.4rem" }}>
-            Admin Panel
+          <h1 className="text-xl font-semibold tracking-tight text-white">
+            Clinic Administration Console
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.9rem" }}>
-            Secure administrator access
+          <p className="text-xs text-neutral-400 mt-1">
+            Restricted administrative and financial access
           </p>
         </div>
 
         {/* Card */}
-        <div style={{
-          background: "rgba(255,255,255,0.04)",
-          backdropFilter: "blur(16px)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: "24px",
-          padding: "2.5rem",
-        }}>
-          <div style={{
-            display: "flex", alignItems: "center", gap: "8px",
-            background: "rgba(99,102,241,0.1)",
-            border: "1px solid rgba(99,102,241,0.2)",
-            borderRadius: "10px",
-            padding: "10px 16px",
-            marginBottom: "1.75rem",
-          }}>
-            <Shield size={16} style={{ color: "#6366f1" }} />
-            <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.82rem" }}>
-              Admin credentials required
-            </span>
+        <div className="card bg-neutral-900 border border-neutral-800 p-6 sm:p-7 rounded-xl shadow-sm">
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-neutral-800/80 border border-neutral-700/80 mb-5 text-xs text-neutral-300">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>Authorized credentials required</span>
           </div>
 
-          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "rgba(255,255,255,0.6)", marginBottom: 6, display: "block" }}>
+              <label htmlFor="admin-email" className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1">
                 Admin Email
               </label>
-              <div style={{ position: "relative" }}>
-                <Mail size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.3)" }} />
+              <div className="relative flex items-center">
+                <Mail className="w-4 h-4 text-neutral-500 absolute left-3 pointer-events-none" />
                 <input
+                  id="admin-email"
                   type="email"
                   placeholder="admin@newcare.health"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  style={{
-                    width: "100%",
-                    background: "rgba(255,255,255,0.06)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    borderRadius: "10px",
-                    padding: "0.75rem 1rem 0.75rem 2.5rem",
-                    color: "white",
-                    fontSize: "0.9rem",
-                    outline: "none",
-                  }}
+                  className="w-full h-10 pl-9 pr-3 text-xs sm:text-sm bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-neutral-100 focus:outline-none"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "rgba(255,255,255,0.6)", marginBottom: 6, display: "block" }}>
+              <label htmlFor="admin-pass" className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1">
                 Password
               </label>
-              <div style={{ position: "relative" }}>
-                <Lock size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.3)" }} />
+              <div className="relative flex items-center">
+                <Lock className="w-4 h-4 text-neutral-500 absolute left-3 pointer-events-none" />
                 <input
+                  id="admin-pass"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Your admin password"
+                  placeholder="Password"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  style={{
-                    width: "100%",
-                    background: "rgba(255,255,255,0.06)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    borderRadius: "10px",
-                    padding: "0.75rem 2.5rem 0.75rem 2.5rem",
-                    color: "white",
-                    fontSize: "0.9rem",
-                    outline: "none",
-                  }}
+                  className="w-full h-10 pl-9 pr-9 text-xs sm:text-sm bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-neutral-100 focus:outline-none"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)" }}
+                  className="absolute right-3 text-neutral-400 hover:text-white p-0.5"
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
@@ -159,28 +116,15 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading}
-              style={{
-                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
-                color: "white",
-                padding: "14px",
-                borderRadius: "12px",
-                border: "none",
-                cursor: "pointer",
-                fontWeight: 700,
-                fontSize: "0.95rem",
-                marginTop: "0.5rem",
-                opacity: loading ? 0.7 : 1,
-                transition: "all 0.2s ease",
-                boxShadow: "0 6px 20px rgba(99,102,241,0.35)",
-              }}
+              className="btn-primary w-full h-10 text-xs sm:text-sm font-semibold rounded-lg mt-2"
             >
-              {loading ? "Signing in..." : "Sign In to Admin Panel"}
+              {loading ? "Authenticating..." : "Sign In to Admin Console"}
             </button>
           </form>
         </div>
 
-        <p style={{ textAlign: "center", marginTop: "1.5rem", color: "rgba(255,255,255,0.3)", fontSize: "0.78rem" }}>
-          © {new Date().getFullYear()} NewCare — Restricted Access
+        <p className="text-center mt-5 text-[11px] text-neutral-500 tabular-nums">
+          © {new Date().getFullYear()} NewCare Clinical Operations — Access Audited
         </p>
       </div>
     </div>
