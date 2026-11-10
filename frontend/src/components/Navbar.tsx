@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { Sun, Moon, Menu, X, Heart, User, LogOut, Calendar, ChevronDown, LayoutDashboard } from "lucide-react";
+import {
+  Sun, Moon, Menu, X, ShieldCheck, Phone, ChevronDown,
+  LayoutDashboard, User, LogOut, Calendar, Activity
+} from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import toast from "react-hot-toast";
 
@@ -60,15 +62,22 @@ export default function Navbar() {
   }, [dropOpen]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 15);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Close mobile drawer on navigation
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/doctors", label: "All Doctors" },
-    { href: "/dashboard", label: "Role Dashboards" },
+    { href: "/#services", label: "Care Services & Rates" },
+    { href: "/#process", label: "Care Process" },
+    { href: "/#safety", label: "Safety & Vetting" },
+    { href: "/doctors", label: "Specialist Directory" },
+    { href: "/dashboard", label: "Portals" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ];
@@ -83,417 +92,243 @@ export default function Navbar() {
   };
 
   return (
-    <nav
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 1000,
-        background: scrolled
-          ? theme === "dark"
-            ? "rgba(10, 15, 30, 0.95)"
-            : "rgba(255, 255, 255, 0.95)"
-          : "transparent",
-        backdropFilter: scrolled ? "blur(12px)" : "none",
-        borderBottom: scrolled ? `1px solid var(--border)` : "none",
-        transition: "all 0.3s ease",
-      }}
-    >
-      <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: "70px" }}>
-        {/* Logo */}
-        <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-          <Image
-            src="https://res.cloudinary.com/dg5gwims9/image/upload/v1783617203/newcare_assets/newCare.png"
-            alt="NewCare Logo"
-            width={140}
-            height={36}
-            style={{ objectFit: "contain", height: "36px", width: "auto" }}
-            unoptimized
-          />
-        </Link>
+    <header className="sticky top-0 z-50 w-full overflow-x-hidden transition-colors duration-200">
+      {/* ── Top Clinical Emergency Triage & Dispatch Bar ── */}
+      <div className="bg-slate-900 text-slate-100 dark:bg-black dark:text-zinc-200 border-b border-slate-800 text-xs py-1.5 px-3 sm:px-4">
+        <div className="container flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="flex h-2 w-2 relative shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="font-semibold text-emerald-400 shrink-0 text-[11px] sm:text-xs">
+              24/7 Nurse Triage & Dispatch:
+            </span>
+            <span className="text-slate-300 hidden md:inline text-[11px] truncate">
+              Rapid on-demand caregiver dispatch across Greater NY & Tri-State.
+            </span>
+          </div>
 
-        {/* Desktop nav */}
-        <div style={{ display: "flex", alignItems: "center", gap: "2rem" }} className="hidden-mobile">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              style={{
-                textDecoration: "none",
-                fontSize: "0.9rem",
-                fontWeight: pathname === link.href ? 600 : 500,
-                color: pathname === link.href ? "var(--primary)" : "var(--text-secondary)",
-                transition: "color 0.2s ease",
-                position: "relative",
-              }}
+          <div className="flex items-center gap-3 shrink-0 font-medium">
+            <a
+              href="tel:18001234567"
+              className="inline-flex items-center gap-1 text-slate-100 hover:text-emerald-400 font-semibold transition-colors text-[11px] sm:text-xs"
+              title="Immediate Nurse Hotline"
             >
-              {link.label}
-              {pathname === link.href && (
-                <span style={{
-                  position: "absolute", bottom: -4, left: 0, right: 0,
-                  height: 2, background: "var(--primary)", borderRadius: 2
-                }} />
-              )}
-            </Link>
-          ))}
-        </div>
-
-        {/* Actions */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-            style={{
-              width: 38, height: 38,
-              borderRadius: "10px",
-              border: "1px solid var(--border)",
-              background: "var(--bg-secondary)",
-              cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "var(--text)",
-              transition: "all 0.2s ease",
-            }}
-          >
-            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-
-          {user ? (
-            <div ref={dropdownRef} style={{ position: "relative" }}>
-              <button
-                onClick={() => setDropOpen(!dropOpen)}
-                aria-label="User menu"
-                aria-expanded={dropOpen}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  padding: "6px 10px 6px 6px",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  background: "var(--bg-secondary)",
-                  cursor: "pointer",
-                  color: "var(--text)",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                {/* Profile Pic / Avatar initial */}
-                {user.image ? (
-                  <div
-                    style={{
-                      position: "relative",
-                      width: 28,
-                      height: 28,
-                      borderRadius: "6px",
-                      overflow: "hidden",
-                      border: "1px solid var(--border)",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Image
-                      src={user.image}
-                      alt={user.name || "User profile"}
-                      fill
-                      sizes="28px"
-                      style={{ objectFit: "cover" }}
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "6px",
-                      background: "var(--text)",
-                      color: "var(--bg)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "0.8rem",
-                      fontWeight: 700,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {user.name?.trim().charAt(0).toUpperCase() || <User size={14} />}
-                  </div>
-                )}
-
-                {/* User Name */}
-                <span
-                  style={{
-                    maxWidth: 120,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {user.name?.trim() ? user.name.trim().split(" ")[0] : "Account"}
-                </span>
-
-                <ChevronDown
-                  size={14}
-                  style={{
-                    color: "var(--text-muted)",
-                    transform: dropOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    transition: "transform 0.2s ease",
-                  }}
-                />
-              </button>
-
-              {dropOpen && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "calc(100% + 8px)",
-                    right: 0,
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "14px",
-                    boxShadow: "var(--shadow-lg)",
-                    minWidth: 220,
-                    overflow: "hidden",
-                    zIndex: 999,
-                    animation: "fadeInUp 0.15s ease-out",
-                  }}
-                >
-                  {/* User brief header */}
-                  <div
-                    style={{
-                      padding: "12px 16px",
-                      background: "var(--bg-secondary)",
-                      borderBottom: "1px solid var(--border)",
-                    }}
-                  >
-                    <p
-                      style={{
-                        fontSize: "0.85rem",
-                        fontWeight: 700,
-                        color: "var(--text)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {user.name || "Patient"}
-                    </p>
-                    {user.email && (
-                      <p
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "var(--text-muted)",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          marginTop: "2px",
-                        }}
-                      >
-                        {user.email}
-                      </p>
-                    )}
-                  </div>
-
-                  <Link
-                    href="/dashboard/patient"
-                    onClick={() => setDropOpen(false)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "10px 16px",
-                      color: "var(--text)",
-                      textDecoration: "none",
-                      fontSize: "0.85rem",
-                      fontWeight: 500,
-                    }}
-                  >
-                    <LayoutDashboard size={15} style={{ color: "var(--primary)" }} /> Patient Dashboard
-                  </Link>
-                  <Link
-                    href="/profile"
-                    onClick={() => setDropOpen(false)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "10px 16px",
-                      color: "var(--text)",
-                      textDecoration: "none",
-                      fontSize: "0.85rem",
-                      fontWeight: 500,
-                    }}
-                  >
-                    <User size={15} style={{ color: "var(--primary)" }} /> My Profile
-                  </Link>
-                  <Link
-                    href="/my-appointments"
-                    onClick={() => setDropOpen(false)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "10px 16px",
-                      color: "var(--text)",
-                      textDecoration: "none",
-                      fontSize: "0.85rem",
-                      fontWeight: 500,
-                    }}
-                  >
-                    <Calendar size={15} style={{ color: "var(--primary)" }} /> My Appointments
-                  </Link>
-
-                  <div style={{ height: 1, background: "var(--border)" }} />
-                  <button
-                    onClick={handleLogout}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "11px 16px",
-                      color: "#ef4444",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: "0.85rem",
-                      fontWeight: 500,
-                      width: "100%",
-                      textAlign: "left",
-                    }}
-                  >
-                    <LogOut size={15} /> Logout
-                  </button>
-                </div>
-              )}
+              <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400 shrink-0" />
+              <span className="tabular-nums">(800) 123-4567</span>
+            </a>
+            <span className="text-slate-600 hidden sm:inline">|</span>
+            <div className="hidden sm:flex items-center gap-1 text-[11px] text-slate-400">
+              <ShieldCheck className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+              <span>100% Vetted</span>
             </div>
-          ) : (
-            <Link href="/login" className="btn-primary" style={{ textDecoration: "none" }}>
-              Get Started
-            </Link>
-          )}
-
-          {/* Mobile menu */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="mobile-only"
-            style={{
-              background: "none", border: "none", cursor: "pointer",
-              color: "var(--text)", display: "none"
-            }}
-          >
-            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile menu drawer */}
-      {mobileOpen && (
-        <div style={{
-          position: "absolute", top: "100%", left: 0, right: 0,
-          background: "var(--bg-card)",
-          borderBottom: "1px solid var(--border)",
-          padding: "1rem 1.5rem",
-          display: "flex", flexDirection: "column", gap: "0.75rem"
-        }}>
-          {user && (
-            <div style={{
-              display: "flex", alignItems: "center", gap: "10px",
-              paddingBottom: "0.75rem", borderBottom: "1px solid var(--border)"
-            }}>
-              {user.image ? (
-                <div style={{
-                  position: "relative", width: 36, height: 36,
-                  borderRadius: "50%", overflow: "hidden",
-                  border: "2px solid var(--primary)", flexShrink: 0
-                }}>
-                  <Image src={user.image} alt={user.name || "User"} fill sizes="36px" style={{ objectFit: "cover" }} unoptimized />
-                </div>
-              ) : (
-                <div style={{
-                  width: 32, height: 32, borderRadius: "6px",
-                  background: "var(--text)",
-                  color: "var(--bg)", display: "flex", alignItems: "center",
-                  justifyContent: "center", fontSize: "0.85rem", fontWeight: 700,
-                  flexShrink: 0
-                }}>
-                  {user.name?.trim().charAt(0).toUpperCase() || <User size={15} />}
-                </div>
-              )}
-              <div style={{ overflow: "hidden" }}>
-                <p style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text)" }}>{user.name || "Patient"}</p>
-                {user.email && <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{user.email}</p>}
-              </div>
+      {/* ── Main Navigation Bar ── */}
+      <nav
+        className={`w-full border-b transition-all duration-200 ${
+          scrolled
+            ? "bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-slate-200 dark:border-zinc-800 shadow-xs"
+            : "bg-white dark:bg-neutral-900 border-slate-200 dark:border-zinc-800"
+        }`}
+      >
+        <div className="container flex items-center justify-between h-16">
+          {/* Logo & Clinical Brand */}
+          <Link href="/" className="flex items-center gap-2 text-decoration-none group shrink-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-teal-600 text-white flex items-center justify-center font-bold text-sm shadow-xs group-hover:bg-teal-700 transition-colors shrink-0">
+              <Activity className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2]" />
             </div>
-          )}
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-zinc-50">
+                  NewCare
+                </span>
+                <span className="text-[9px] sm:text-[10px] font-semibold px-1 py-0.2 rounded bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
+                  Clinical
+                </span>
+              </div>
+              <span className="hidden sm:block text-[10px] font-medium text-slate-500 dark:text-zinc-400 -mt-0.5">
+                In-Home Care & Nursing
+              </span>
+            </div>
+          </Link>
 
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              style={{
-                textDecoration: "none",
-                fontSize: "1rem",
-                fontWeight: 500,
-                color: pathname === link.href ? "var(--primary)" : "var(--text)",
-                padding: "0.5rem 0",
-              }}
+          {/* Desktop Nav Links */}
+          <div className="hidden lg:flex items-center gap-6">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-xs font-semibold tracking-tight transition-colors hover:text-teal-600 dark:hover:text-teal-400 ${
+                  pathname === link.href
+                    ? "text-teal-600 dark:text-teal-400"
+                    : "text-slate-600 dark:text-zinc-400"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+              aria-label="Toggle color theme"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-md border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/80 flex items-center justify-center text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-zinc-100 transition-colors cursor-pointer shrink-0"
             >
-              {link.label}
-            </Link>
-          ))}
+              {theme === "dark" ? <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+            </button>
 
-          {user && (
-            <>
-              <div style={{ height: 1, background: "var(--border)", margin: "0.25rem 0" }} />
+            {/* User Dropdown / Login button */}
+            {user ? (
+              <div ref={dropdownRef} className="relative">
+                <button
+                  onClick={() => setDropOpen(!dropOpen)}
+                  aria-label="User account menu"
+                  aria-expanded={dropOpen}
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/80 text-xs font-semibold text-slate-900 dark:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                >
+                  <div className="w-5 h-5 rounded bg-slate-800 text-white flex items-center justify-center text-[10px] font-bold">
+                    {user.name?.trim().charAt(0).toUpperCase() || <User className="w-3 h-3" />}
+                  </div>
+                  <span className="max-w-[80px] sm:max-w-[100px] truncate hidden sm:inline text-xs">
+                    {user.name?.trim() ? user.name.trim().split(" ")[0] : "Account"}
+                  </span>
+                  <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${dropOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {dropOpen && (
+                  <div className="absolute right-0 mt-1.5 w-48 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-zinc-800 rounded-md shadow-lg py-1 z-50 text-xs">
+                    <div className="px-3 py-2 border-b border-slate-100 dark:border-zinc-800 text-slate-500 dark:text-zinc-400">
+                      Signed in as <strong className="text-slate-900 dark:text-zinc-100 block truncate">{user.email || user.name}</strong>
+                    </div>
+                    <Link
+                      href="/my-appointments"
+                      onClick={() => setDropOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/60"
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>My Care Bookings</span>
+                    </Link>
+                    <Link
+                      href="/dashboard/patient"
+                      onClick={() => setDropOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/60"
+                    >
+                      <LayoutDashboard className="w-3.5 h-3.5" />
+                      <span>Family Care Portal</span>
+                    </Link>
+                    <Link
+                      href="/profile"
+                      onClick={() => setDropOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/60"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>Profile & Settings</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-left border-t border-slate-100 dark:border-zinc-800"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
               <Link
-                href="/dashboard/patient"
-                onClick={() => setMobileOpen(false)}
-                style={{
-                  display: "flex", alignItems: "center", gap: "8px",
-                  color: "var(--text)", textDecoration: "none",
-                  fontSize: "0.95rem", fontWeight: 500, padding: "0.4rem 0"
-                }}
+                href="/login"
+                className="hidden md:inline-flex btn-secondary text-xs font-semibold px-2.5 py-1.5"
               >
-                <LayoutDashboard size={16} style={{ color: "var(--primary)" }} /> Patient Dashboard
+                Sign In
               </Link>
-              <Link
-                href="/profile"
-                onClick={() => setMobileOpen(false)}
-                style={{
-                  display: "flex", alignItems: "center", gap: "8px",
-                  color: "var(--text)", textDecoration: "none",
-                  fontSize: "0.95rem", fontWeight: 500, padding: "0.4rem 0"
-                }}
-              >
-                <User size={16} style={{ color: "var(--primary)" }} /> My Profile
-              </Link>
-              <Link
-                href="/my-appointments"
-                onClick={() => setMobileOpen(false)}
-                style={{
-                  display: "flex", alignItems: "center", gap: "8px",
-                  color: "var(--text)", textDecoration: "none",
-                  fontSize: "0.95rem", fontWeight: 500, padding: "0.4rem 0"
-                }}
-              >
-                <Calendar size={16} style={{ color: "var(--primary)" }} /> My Appointments
-              </Link>
-              <button
-                onClick={() => { setMobileOpen(false); handleLogout(); }}
-                style={{
-                  display: "flex", alignItems: "center", gap: "8px",
-                  color: "#ef4444", background: "none", border: "none",
-                  cursor: "pointer", fontSize: "0.95rem", fontWeight: 600,
-                  padding: "0.5rem 0", textAlign: "left"
-                }}
-              >
-                <LogOut size={16} /> Logout
-              </button>
-            </>
-          )}
+            )}
+
+            {/* Primary Action Button */}
+            <Link
+              href="/#services"
+              className="btn-primary text-xs font-semibold px-3 py-1.5 hidden sm:inline-flex shrink-0"
+            >
+              Book Care
+            </Link>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileOpen}
+              className="lg:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-md border border-slate-200 dark:border-zinc-800 flex items-center justify-center text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+            >
+              {mobileOpen ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Menu className="w-4 h-4 sm:w-5 sm:h-5" />}
+            </button>
+          </div>
         </div>
-      )}
-    </nav>
+
+        {/* ── Mobile Navigation Drawer ── */}
+        {mobileOpen && (
+          <div className="lg:hidden border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-neutral-900 px-4 pt-3 pb-6 animate-in slide-in-from-top duration-150">
+            {/* Quick Emergency Dial */}
+            <div className="p-3 mb-4 rounded-md bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase block">
+                  24/7 Urgent Care Dispatch
+                </span>
+                <span className="text-xs text-slate-600 dark:text-zinc-400">
+                  On-call Registered Nurse intake
+                </span>
+              </div>
+              <a
+                href="tel:18001234567"
+                className="btn-primary text-xs px-3 py-1.5 shrink-0"
+              >
+                <Phone className="w-3.5 h-3.5 mr-1" />
+                Call Now
+              </a>
+            </div>
+
+            {/* Mobile Nav Links */}
+            <div className="flex flex-col space-y-1 mb-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="px-3 py-2.5 rounded-md text-sm font-semibold text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Mobile CTAs */}
+            <div className="flex flex-col gap-2 pt-2 border-t border-slate-200 dark:border-zinc-800">
+              <Link
+                href="/#services"
+                onClick={() => setMobileOpen(false)}
+                className="btn-primary w-full text-center text-sm font-semibold py-2.5"
+              >
+                Book Care Today
+              </Link>
+              {!user && (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="btn-secondary w-full text-center text-sm font-semibold py-2.5"
+                >
+                  Sign In to Patient Portal
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+      </nav>
+    </header>
   );
 }

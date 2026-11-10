@@ -10,9 +10,9 @@ import DemoRoleSwitcher from "@/components/DemoRoleSwitcher";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "NewCare – Find & Book Top Doctors",
-  description: "Book appointments with the best doctors near you. Trusted by thousands of patients worldwide.",
-  keywords: "doctor, appointment, healthcare, medical, online booking",
+  title: "NewCare | Verified In-Home Care & Professional Nursing Support",
+  description: "Licensed clinical nurses, certified caregivers, and board-certified physicians dispatched directly to your residence. 24/7 clinical triage, 100% background vetting, and transparent rates.",
+  keywords: "in-home nursing, home caregiving, post-op recovery, dementia care, elderly care, nurse dispatch, licensed RN, clinical home health, telehealth",
 };
 
 export default function RootLayout({
@@ -29,15 +29,16 @@ export default function RootLayout({
             toastOptions={{
               duration: 4000,
               style: {
-                borderRadius: "12px",
-                padding: "14px 18px",
+                borderRadius: "8px",
+                padding: "12px 16px",
                 fontSize: "0.875rem",
                 fontWeight: "500",
+                border: "1px solid var(--border)",
               },
             }}
           />
           <Navbar />
-          <main style={{ position: "relative", zIndex: 1 }}>{children}</main>
+          <main className="relative z-1 min-h-[calc(100vh-140px)]">{children}</main>
           <Footer />
           <DemoRoleSwitcher />
         </ThemeProvider>
