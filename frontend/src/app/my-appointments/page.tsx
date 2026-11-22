@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
+import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { Calendar, Clock, Download, MapPin, QrCode, Video, X } from "lucide-react";
 import api from "@/lib/api";
@@ -204,13 +205,21 @@ export default function MyAppointmentsPage() {
                   role="tab"
                   aria-selected={active}
                   onClick={() => setStatusFilter(tab)}
-                  className={`min-h-[36px] px-3 text-xs font-semibold rounded transition-colors cursor-pointer ${
+                  className={`relative min-h-[36px] px-3 text-xs font-semibold rounded transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer ${
                     active
-                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-50 shadow-xs"
+                      ? "text-slate-900 dark:text-slate-50"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                   }`}
                 >
-                  {tab}
+                  {active && (
+                    <motion.span
+                      layoutId="appointments-filter-pill"
+                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute inset-0 rounded bg-white dark:bg-slate-800 shadow-xs"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span className="relative z-10">{tab}</span>
                 </button>
               );
             })}
@@ -250,7 +259,7 @@ export default function MyAppointmentsPage() {
               return (
                 <article
                   key={appt._id}
-                  className="card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  className="card card-interactive p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
                 >
                   <div className="flex items-start gap-4 min-w-0">
                     <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 shrink-0">
@@ -388,8 +397,8 @@ export default function MyAppointmentsPage() {
         }}
       >
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-[2px]" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white dark:bg-[#11161d] border border-slate-200 dark:border-slate-800 shadow-lg p-6 focus:outline-none">
+          <Dialog.Overlay className="dialog-overlay fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-[2px]" />
+          <Dialog.Content className="dialog-content fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white dark:bg-[#11161d] border border-slate-200 dark:border-slate-800 shadow-lg p-6 focus:outline-none">
             {selectedPass && (
               <>
                 <div className="flex items-start justify-between gap-2 pb-4 border-b border-slate-200 dark:border-slate-800">

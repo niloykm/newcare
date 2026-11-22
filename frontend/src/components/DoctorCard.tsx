@@ -25,7 +25,7 @@ export default function DoctorCard({ doctor, onQuickBookSlot }: DoctorCardProps)
     : ["10:00 AM", "02:00 PM", "04:30 PM"];
 
   return (
-    <article className="card card-interactive p-5 flex flex-col justify-between gap-4">
+    <article className="card card-interactive group/card p-5 flex flex-col justify-between gap-4">
       <div className="flex items-start gap-4">
         {/* Clinician Portrait (object-top to never crop head) */}
         <div className="relative shrink-0">
@@ -36,7 +36,7 @@ export default function DoctorCard({ doctor, onQuickBookSlot }: DoctorCardProps)
               fill
               sizes="72px"
               loading="eager"
-              className="object-cover object-top"
+              className="object-cover object-top transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/card:scale-[1.04]"
               onError={() => setImgError(true)}
               unoptimized
             />
@@ -117,7 +117,7 @@ export default function DoctorCard({ doctor, onQuickBookSlot }: DoctorCardProps)
                   onQuickBookSlot(doctor, slot);
                 }
               }}
-              className="inline-flex items-center min-h-[36px] px-2.5 py-1.5 text-xs font-medium tabular-nums rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-teal-700 hover:text-teal-700 dark:hover:border-teal-400 dark:hover:text-teal-300 transition-colors duration-200"
+              className="inline-flex items-center min-h-[36px] px-2.5 py-1.5 text-xs font-medium tabular-nums rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-teal-700 hover:text-teal-700 hover:bg-teal-50/70 dark:hover:border-teal-400 dark:hover:text-teal-300 dark:hover:bg-teal-950/40 hover:-translate-y-0.5 hover:shadow-xs active:translate-y-0 active:scale-[0.97] transition-[transform,translate,scale,background-color,border-color,color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
             >
               {slot}
             </Link>
@@ -126,10 +126,13 @@ export default function DoctorCard({ doctor, onQuickBookSlot }: DoctorCardProps)
 
         <Link
           href={`/doctors/${id}`}
-          className="inline-flex items-center min-h-[36px] gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors"
+          className="group/book inline-flex items-center min-h-[36px] gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors duration-200"
         >
           <span>Book Visit</span>
-          <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          <ArrowRight
+            className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/book:translate-x-1"
+            aria-hidden="true"
+          />
         </Link>
       </div>
     </article>

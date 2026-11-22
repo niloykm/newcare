@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Star,
   ShieldCheck,
@@ -315,402 +316,456 @@ export default function MultiStepBooking({ doctor }: MultiStepBookingProps) {
         })}
       </ol>
 
-      {/* Step 1: Modality, Date & Time */}
-      {step === 1 && (
-        <div className="card p-6 space-y-6">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-              Select Visit Format &amp; Time
-            </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Choose an in-clinic visit or encrypted video consultation with {doctor.name}.
-            </p>
-          </div>
-
-          <fieldset>
-            <legend className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-              Consultation Format
-            </legend>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(
-                [
-                  {
-                    type: "In-Clinic Visit" as ConsultationType,
-                    title: "In-Clinic Visit",
-                    desc: doctor.hospitalName,
-                    icon: MapPin,
-                  },
-                  {
-                    type: "HD Video Consultation" as ConsultationType,
-                    title: "Telehealth Video",
-                    desc: "Encrypted browser video room",
-                    icon: Video,
-                  },
-                ] as const
-              ).map(({ type, title, desc, icon: Icon }) => {
-                const selected = consultationType === type;
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => setConsultationType(type)}
-                    className={`p-4 rounded-lg border text-left transition-colors flex items-start gap-3 cursor-pointer ${
-                      selected
-                        ? "border-teal-700 dark:border-teal-400 bg-teal-50/50 dark:bg-teal-950/30"
-                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-[#11161d] hover:border-slate-400"
-                    }`}
-                  >
-                    <Icon
-                      className={`w-5 h-5 shrink-0 mt-0.5 ${
-                        selected ? "text-teal-700 dark:text-teal-400" : "text-slate-500"
-                      }`}
-                      aria-hidden="true"
-                    />
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        {title}
-                      </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                        {desc}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-              Select Date
-            </legend>
-            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-              {days.map((d, index) => {
-                const isSelected = selectedDayIndex === index;
-                return (
-                  <button
-                    key={d.label}
-                    type="button"
-                    aria-pressed={isSelected}
-                    onClick={() => setSelectedDayIndex(index)}
-                    className={`min-h-[64px] py-2 px-1.5 rounded-md border text-center transition-colors flex flex-col items-center justify-center cursor-pointer ${
-                      isSelected
-                        ? "bg-teal-700 dark:bg-teal-400 border-teal-700 dark:border-teal-400 text-white dark:text-slate-950"
-                        : "bg-white dark:bg-[#11161d] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-400"
-                    }`}
-                  >
-                    <span className="text-[11px] font-medium opacity-80">{d.dayName}</span>
-                    <span className="text-base font-semibold tabular-nums">{d.dayNumber}</span>
-                    <span className="text-[10px] opacity-80">{d.month}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-              Available Times ({days[selectedDayIndex].label})
-            </legend>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {availableTimeSlots.map((slot) => {
-                const isSelected = selectedSlot === slot;
-                return (
-                  <button
-                    key={slot}
-                    type="button"
-                    aria-pressed={isSelected}
-                    onClick={() => setSelectedSlot(slot)}
-                    className={`min-h-[44px] px-3 rounded-md border text-xs font-semibold tabular-nums transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
-                      isSelected
-                        ? "bg-teal-700 dark:bg-teal-400 border-teal-700 dark:border-teal-400 text-white dark:text-slate-950"
-                        : "bg-white dark:bg-[#11161d] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-slate-400"
-                    }`}
-                  >
-                    <Clock className="w-3.5 h-3.5 opacity-75" aria-hidden="true" />
-                    <span>{slot}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
-
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
-            <p className="text-xs text-slate-600 dark:text-slate-400">
-              Fee:{" "}
-              <strong className="text-slate-900 dark:text-slate-100 tabular-nums">
-                ${doctor.consultationFee}
-              </strong>{" "}
-              · Free reschedule up to 24h prior
-            </p>
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              className="btn-primary px-5"
-            >
-              <span>Continue to Patient Info</span>
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 2: Patient Intake */}
-      {step === 2 && (
-        <div className="card p-6 space-y-5">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-              Patient Intake Details
-            </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Confirm contact information and visit objective for {doctor.name}.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="patient-name"
-                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-              >
-                Patient Full Name *
-              </label>
-              <input
-                id="patient-name"
-                type="text"
-                value={patientName}
-                onChange={(e) => {
-                  setPatientName(e.target.value);
-                  if (errors.patientName) setErrors({ ...errors, patientName: undefined });
-                }}
-                aria-invalid={Boolean(errors.patientName)}
-                aria-describedby={errors.patientName ? "booking-name-error" : undefined}
-                className="input"
-              />
-              {errors.patientName && (
-                <p id="booking-name-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
-                  {errors.patientName}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="patient-email"
-                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-              >
-                Email Address *
-              </label>
-              <input
-                id="patient-email"
-                type="email"
-                value={patientEmail}
-                onChange={(e) => {
-                  setPatientEmail(e.target.value);
-                  if (errors.patientEmail) setErrors({ ...errors, patientEmail: undefined });
-                }}
-                aria-invalid={Boolean(errors.patientEmail)}
-                aria-describedby={errors.patientEmail ? "booking-email-error" : undefined}
-                className="input"
-              />
-              {errors.patientEmail && (
-                <p id="booking-email-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
-                  {errors.patientEmail}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="patient-phone"
-                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-              >
-                Phone Number *
-              </label>
-              <input
-                id="patient-phone"
-                type="tel"
-                value={patientPhone}
-                onChange={(e) => {
-                  setPatientPhone(e.target.value);
-                  if (errors.patientPhone) setErrors({ ...errors, patientPhone: undefined });
-                }}
-                aria-invalid={Boolean(errors.patientPhone)}
-                aria-describedby={errors.patientPhone ? "booking-phone-error" : undefined}
-                className="input"
-              />
-              {errors.patientPhone && (
-                <p id="booking-phone-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
-                  {errors.patientPhone}
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label
-                  htmlFor="patient-age"
-                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-                >
-                  Age
-                </label>
-                <input
-                  id="patient-age"
-                  type="number"
-                  min={1}
-                  max={120}
-                  value={patientAge}
-                  onChange={(e) => setPatientAge(e.target.value)}
-                  className="input tabular-nums"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="patient-gender"
-                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-                >
-                  Gender
-                </label>
-                <select
-                  id="patient-gender"
-                  value={patientGender}
-                  onChange={(e) => setPatientGender(e.target.value)}
-                  className="input cursor-pointer"
-                >
-                  <option value="Female">Female</option>
-                  <option value="Male">Male</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="visit-reason"
-              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-            >
-              Reason for Visit
-            </label>
-            <textarea
-              id="visit-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={3}
-              className="input py-2 resize-y"
-            />
-          </div>
-
-          <div>
-            <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-              Relevant Topics (Optional)
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {COMMON_SYMPTOMS.map((item) => {
-                const active = symptoms.includes(item);
-                return (
-                  <button
-                    key={item}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => toggleSymptom(item)}
-                    className={`min-h-[36px] px-3 py-1 rounded-md text-xs font-medium border transition-colors cursor-pointer ${
-                      active
-                        ? "bg-teal-700 dark:bg-teal-400 text-white dark:text-slate-950 border-teal-700 dark:border-teal-400"
-                        : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-400"
-                    }`}
-                  >
-                    {item}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
-            <button type="button" onClick={() => setStep(1)} className="btn-secondary">
-              <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-              <span>Back</span>
-            </button>
-            <button type="button" onClick={handleConfirmBooking} className="btn-primary px-5">
-              <span>Confirm Appointment</span>
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 3: Confirmation Pass */}
-      {step === 3 && confirmedBooking && (
-        <div className="card p-6 space-y-6">
-          <div className="flex items-start gap-3">
-            <span className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
-            </span>
+      {/* Multi-Step Panel */}
+      <AnimatePresence mode="wait" initial={false}>
+        {/* Step 1: Modality, Date & Time */}
+        {step === 1 && (
+          <motion.div
+            key="step-1"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="card p-6 space-y-6"
+          >
             <div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-                Appointment Confirmed
+                Select Visit Format &amp; Time
               </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                Confirmation ID{" "}
-                <strong className="font-mono text-slate-900 dark:text-slate-100">
-                  {confirmedBooking.bookingId}
-                </strong>{" "}
-                has been saved to your Patient Portal.
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                Choose an in-clinic visit or encrypted video consultation with {doctor.name}.
               </p>
             </div>
-          </div>
 
-          <dl className="divide-y divide-slate-200 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-sm">
-            <div className="flex justify-between gap-4 px-4 py-3">
-              <dt className="text-slate-500 dark:text-slate-400">Physician</dt>
-              <dd className="font-semibold text-slate-900 dark:text-slate-100 text-right">
-                {doctor.name} ({doctor.specialty})
-              </dd>
-            </div>
-            <div className="flex justify-between gap-4 px-4 py-3">
-              <dt className="text-slate-500 dark:text-slate-400">Schedule</dt>
-              <dd className="font-semibold text-teal-700 dark:text-teal-400 tabular-nums text-right">
-                {confirmedBooking.slotDate} at {confirmedBooking.slotTime}
-              </dd>
-            </div>
-            <div className="flex justify-between gap-4 px-4 py-3">
-              <dt className="text-slate-500 dark:text-slate-400">Format</dt>
-              <dd className="text-slate-900 dark:text-slate-100 text-right">
-                {confirmedBooking.consultationType}
-              </dd>
-            </div>
-            <div className="flex justify-between gap-4 px-4 py-3">
-              <dt className="text-slate-500 dark:text-slate-400">Patient</dt>
-              <dd className="text-slate-900 dark:text-slate-100 text-right">
-                {confirmedBooking.patientName} (Age {confirmedBooking.patientAge})
-              </dd>
-            </div>
-            <div className="flex justify-between gap-4 px-4 py-3">
-              <dt className="text-slate-500 dark:text-slate-400">Consultation Fee</dt>
-              <dd className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-right">
-                ${confirmedBooking.amount}
-              </dd>
-            </div>
-          </dl>
+            <fieldset>
+              <legend className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                Consultation Format
+              </legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(
+                  [
+                    {
+                      type: "In-Clinic Visit" as ConsultationType,
+                      title: "In-Clinic Visit",
+                      desc: doctor.hospitalName,
+                      icon: MapPin,
+                    },
+                    {
+                      type: "HD Video Consultation" as ConsultationType,
+                      title: "Telehealth Video",
+                      desc: "Encrypted browser video room",
+                      icon: Video,
+                    },
+                  ] as const
+                ).map(({ type, title, desc, icon: Icon }) => {
+                  const selected = consultationType === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setConsultationType(type)}
+                      className={`p-4 rounded-lg border text-left transition-[transform,translate,scale,background-color,border-color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-start gap-3 cursor-pointer ${
+                        selected
+                          ? "border-teal-700 dark:border-teal-400 bg-teal-50/50 dark:bg-teal-950/30 shadow-xs"
+                          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-[#11161d] hover:border-teal-600/60 dark:hover:border-teal-400/60"
+                      }`}
+                    >
+                      <Icon
+                        className={`w-5 h-5 shrink-0 mt-0.5 transition-colors duration-200 ${
+                          selected ? "text-teal-700 dark:text-teal-400" : "text-slate-500"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                          {title}
+                        </p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                          {desc}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
 
-          <div className="flex flex-wrap items-center justify-end gap-2.5">
-            <button type="button" onClick={handleDownloadSlip} className="btn-secondary text-xs">
-              <Download className="w-4 h-4" aria-hidden="true" />
-              <span>Download Slip</span>
-            </button>
-            <button type="button" onClick={handleExportICS} className="btn-secondary text-xs">
-              <Calendar className="w-4 h-4" aria-hidden="true" />
-              <span>Add to Calendar (.ics)</span>
-            </button>
-            <Link href="/dashboard/patient" className="btn-primary text-xs px-4">
-              <span>View in Patient Portal</span>
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </Link>
-          </div>
-        </div>
-      )}
+            <fieldset>
+              <legend className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                Select Date
+              </legend>
+              <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                {days.map((d, index) => {
+                  const isSelected = selectedDayIndex === index;
+                  return (
+                    <button
+                      key={d.label}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => setSelectedDayIndex(index)}
+                      className={`min-h-[64px] py-2 px-1.5 rounded-md border text-center transition-[transform,translate,scale,background-color,border-color,color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] flex flex-col items-center justify-center cursor-pointer ${
+                        isSelected
+                          ? "bg-teal-700 dark:bg-teal-400 border-teal-700 dark:border-teal-400 text-white dark:text-slate-950 shadow-xs"
+                          : "bg-white dark:bg-[#11161d] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-teal-600/60 dark:hover:border-teal-400/60"
+                      }`}
+                    >
+                      <span className="text-[11px] font-medium opacity-80">{d.dayName}</span>
+                      <span className="text-base font-semibold tabular-nums">{d.dayNumber}</span>
+                      <span className="text-[10px] opacity-80">{d.month}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                Available Times ({days[selectedDayIndex].label})
+              </legend>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {availableTimeSlots.map((slot) => {
+                  const isSelected = selectedSlot === slot;
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => setSelectedSlot(slot)}
+                      className={`min-h-[44px] px-3 rounded-md border text-xs font-semibold tabular-nums transition-[transform,translate,scale,background-color,border-color,color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] flex items-center justify-center gap-1.5 cursor-pointer ${
+                        isSelected
+                          ? "bg-teal-700 dark:bg-teal-400 border-teal-700 dark:border-teal-400 text-white dark:text-slate-950 shadow-xs"
+                          : "bg-white dark:bg-[#11161d] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-teal-600/60 dark:hover:border-teal-400/60"
+                      }`}
+                    >
+                      <Clock className="w-3.5 h-3.5 opacity-75" aria-hidden="true" />
+                      <span>{slot}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Fee:{" "}
+                <strong className="text-slate-900 dark:text-slate-100 tabular-nums">
+                  ${doctor.consultationFee}
+                </strong>{" "}
+                · Free reschedule up to 24h prior
+              </p>
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="btn-primary group px-5"
+              >
+                <span>Continue to Patient Info</span>
+                <ArrowRight
+                  className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Step 2: Patient Intake */}
+        {step === 2 && (
+          <motion.div
+            key="step-2"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="card p-6 space-y-5"
+          >
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+                Patient Intake Details
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                Confirm contact information and visit objective for {doctor.name}.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="patient-name"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
+                  Patient Full Name *
+                </label>
+                <input
+                  id="patient-name"
+                  type="text"
+                  value={patientName}
+                  onChange={(e) => {
+                    setPatientName(e.target.value);
+                    if (errors.patientName) setErrors({ ...errors, patientName: undefined });
+                  }}
+                  aria-invalid={Boolean(errors.patientName)}
+                  aria-describedby={errors.patientName ? "booking-name-error" : undefined}
+                  className="input"
+                />
+                {errors.patientName && (
+                  <motion.p
+                    id="booking-name-error"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                    className="text-xs text-red-700 dark:text-red-400 mt-1"
+                  >
+                    {errors.patientName}
+                  </motion.p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="patient-email"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
+                  Email Address *
+                </label>
+                <input
+                  id="patient-email"
+                  type="email"
+                  value={patientEmail}
+                  onChange={(e) => {
+                    setPatientEmail(e.target.value);
+                    if (errors.patientEmail) setErrors({ ...errors, patientEmail: undefined });
+                  }}
+                  aria-invalid={Boolean(errors.patientEmail)}
+                  aria-describedby={errors.patientEmail ? "booking-email-error" : undefined}
+                  className="input"
+                />
+                {errors.patientEmail && (
+                  <motion.p
+                    id="booking-email-error"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                    className="text-xs text-red-700 dark:text-red-400 mt-1"
+                  >
+                    {errors.patientEmail}
+                  </motion.p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="patient-phone"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
+                  Phone Number *
+                </label>
+                <input
+                  id="patient-phone"
+                  type="tel"
+                  value={patientPhone}
+                  onChange={(e) => {
+                    setPatientPhone(e.target.value);
+                    if (errors.patientPhone) setErrors({ ...errors, patientPhone: undefined });
+                  }}
+                  aria-invalid={Boolean(errors.patientPhone)}
+                  aria-describedby={errors.patientPhone ? "booking-phone-error" : undefined}
+                  className="input"
+                />
+                {errors.patientPhone && (
+                  <motion.p
+                    id="booking-phone-error"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                    className="text-xs text-red-700 dark:text-red-400 mt-1"
+                  >
+                    {errors.patientPhone}
+                  </motion.p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label
+                    htmlFor="patient-age"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Age
+                  </label>
+                  <input
+                    id="patient-age"
+                    type="number"
+                    min={1}
+                    max={120}
+                    value={patientAge}
+                    onChange={(e) => setPatientAge(e.target.value)}
+                    className="input tabular-nums"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="patient-gender"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Gender
+                  </label>
+                  <select
+                    id="patient-gender"
+                    value={patientGender}
+                    onChange={(e) => setPatientGender(e.target.value)}
+                    className="input cursor-pointer"
+                  >
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="visit-reason"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Reason for Visit
+              </label>
+              <textarea
+                id="visit-reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={3}
+                className="input py-2 resize-y"
+              />
+            </div>
+
+            <div>
+              <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                Relevant Topics (Optional)
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {COMMON_SYMPTOMS.map((item) => {
+                  const active = symptoms.includes(item);
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => toggleSymptom(item)}
+                      className={`min-h-[36px] px-3 py-1 rounded-md text-xs font-medium border transition-[transform,translate,scale,background-color,border-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] cursor-pointer ${
+                        active
+                          ? "bg-teal-700 dark:bg-teal-400 text-white dark:text-slate-950 border-teal-700 dark:border-teal-400"
+                          : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-teal-600/60 dark:hover:border-teal-400/60"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+              <button type="button" onClick={() => setStep(1)} className="btn-secondary group">
+                <ArrowLeft
+                  className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-x-1"
+                  aria-hidden="true"
+                />
+                <span>Back</span>
+              </button>
+              <button type="button" onClick={handleConfirmBooking} className="btn-primary group px-5">
+                <span>Confirm Appointment</span>
+                <ArrowRight
+                  className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Step 3: Confirmation Pass */}
+        {step === 3 && confirmedBooking && (
+          <motion.div
+            key="step-3"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            className="card p-6 space-y-6"
+          >
+            <div className="flex items-start gap-3">
+              <span className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+                  Appointment Confirmed
+                </h2>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                  Confirmation ID{" "}
+                  <strong className="font-mono text-slate-900 dark:text-slate-100">
+                    {confirmedBooking.bookingId}
+                  </strong>{" "}
+                  has been saved to your Patient Portal.
+                </p>
+              </div>
+            </div>
+
+            <dl className="divide-y divide-slate-200 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-sm">
+              <div className="flex justify-between gap-4 px-4 py-3">
+                <dt className="text-slate-500 dark:text-slate-400">Physician</dt>
+                <dd className="font-semibold text-slate-900 dark:text-slate-100 text-right">
+                  {doctor.name} ({doctor.specialty})
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4 px-4 py-3">
+                <dt className="text-slate-500 dark:text-slate-400">Schedule</dt>
+                <dd className="font-semibold text-teal-700 dark:text-teal-400 tabular-nums text-right">
+                  {confirmedBooking.slotDate} at {confirmedBooking.slotTime}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4 px-4 py-3">
+                <dt className="text-slate-500 dark:text-slate-400">Format</dt>
+                <dd className="text-slate-900 dark:text-slate-100 text-right">
+                  {confirmedBooking.consultationType}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4 px-4 py-3">
+                <dt className="text-slate-500 dark:text-slate-400">Patient</dt>
+                <dd className="text-slate-900 dark:text-slate-100 text-right">
+                  {confirmedBooking.patientName} (Age {confirmedBooking.patientAge})
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4 px-4 py-3">
+                <dt className="text-slate-500 dark:text-slate-400">Consultation Fee</dt>
+                <dd className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-right">
+                  ${confirmedBooking.amount}
+                </dd>
+              </div>
+            </dl>
+
+            <div className="flex flex-wrap items-center justify-end gap-2.5">
+              <button type="button" onClick={handleDownloadSlip} className="btn-secondary text-xs">
+                <Download className="w-4 h-4" aria-hidden="true" />
+                <span>Download Slip</span>
+              </button>
+              <button type="button" onClick={handleExportICS} className="btn-secondary text-xs">
+                <Calendar className="w-4 h-4" aria-hidden="true" />
+                <span>Add to Calendar (.ics)</span>
+              </button>
+              <Link href="/dashboard/patient" className="btn-primary group text-xs px-4">
+                <span>View in Patient Portal</span>
+                <ArrowRight
+                  className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

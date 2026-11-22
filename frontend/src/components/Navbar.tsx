@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Sun,
   Moon,
@@ -148,17 +149,17 @@ export default function Navbar() {
           {/* Brand Wordmark */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 rounded-md"
+            className="group flex items-center gap-2.5 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 rounded-md"
           >
-            <span className="w-8 h-8 rounded-md bg-teal-700 dark:bg-teal-400 text-white dark:text-slate-950 flex items-center justify-center shrink-0">
+            <span className="w-8 h-8 rounded-md bg-teal-700 dark:bg-teal-400 text-white dark:text-slate-950 flex items-center justify-center shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105 group-active:scale-95">
               <Activity className="w-4 h-4 stroke-[2.2]" aria-hidden="true" />
             </span>
-            <span className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+            <span className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-50 transition-colors duration-200 group-hover:text-teal-700 dark:group-hover:text-teal-400">
               NewCare
             </span>
           </Link>
 
-          {/* Desktop Navigation (5 concise links) */}
+          {/* Desktop Navigation (5 concise links with sliding underline) */}
           <div className="hidden md:flex items-center gap-7">
             {NAV_LINKS.map((link) => {
               const active = isLinkActive(link.match);
@@ -166,12 +167,13 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  data-active={active ? "true" : "false"}
                   onClick={
                     link.href === "/#services"
                       ? (e) => handleHomeAnchorClick(e, "services")
                       : undefined
                   }
-                  className={`text-sm font-medium transition-colors duration-200 ${
+                  className={`nav-underline text-sm font-medium transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                     active
                       ? "text-teal-700 dark:text-teal-400 font-semibold"
                       : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
@@ -189,13 +191,24 @@ export default function Navbar() {
               type="button"
               onClick={toggleTheme}
               aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
-              className="w-11 h-11 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
+              className="w-11 h-11 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-[transform,translate,scale,background-color,border-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer"
             >
-              {theme === "dark" ? (
-                <Sun className="w-4 h-4" aria-hidden="true" />
-              ) : (
-                <Moon className="w-4 h-4" aria-hidden="true" />
-              )}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={theme}
+                  initial={{ opacity: 0, rotate: -25, scale: 0.85 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotate: 25, scale: 0.85 }}
+                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                  className="inline-flex items-center justify-center"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="w-4 h-4" aria-hidden="true" />
+                  ) : (
+                    <Moon className="w-4 h-4" aria-hidden="true" />
+                  )}
+                </motion.span>
+              </AnimatePresence>
             </button>
 
             {user ? (
@@ -223,50 +236,58 @@ export default function Navbar() {
                   />
                 </button>
 
-                {dropOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#11161d] border border-slate-200 dark:border-slate-800 rounded-lg shadow-md py-1.5 z-50 text-sm">
-                    <div className="px-3.5 py-2 border-b border-slate-100 dark:border-slate-800">
-                      <span className="text-xs text-slate-500 dark:text-slate-400 block">
-                        Signed in as
-                      </span>
-                      <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">
-                        {user.email || user.name}
-                      </span>
-                    </div>
-                    <Link
-                      href="/my-appointments"
-                      onClick={() => setDropOpen(false)}
-                      className="flex items-center gap-2.5 px-3.5 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/70"
+                <AnimatePresence>
+                  {dropOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#11161d] border border-slate-200 dark:border-slate-800 rounded-lg shadow-md py-1.5 z-50 text-sm origin-top-right"
                     >
-                      <Calendar className="w-4 h-4 text-slate-500" aria-hidden="true" />
-                      <span>My Appointments</span>
-                    </Link>
-                    <Link
-                      href="/dashboard/patient"
-                      onClick={() => setDropOpen(false)}
-                      className="flex items-center gap-2.5 px-3.5 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/70"
-                    >
-                      <LayoutDashboard className="w-4 h-4 text-slate-500" aria-hidden="true" />
-                      <span>Patient Portal</span>
-                    </Link>
-                    <Link
-                      href="/profile"
-                      onClick={() => setDropOpen(false)}
-                      className="flex items-center gap-2.5 px-3.5 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/70"
-                    >
-                      <User className="w-4 h-4 text-slate-500" aria-hidden="true" />
-                      <span>Profile Settings</span>
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 text-left border-t border-slate-100 dark:border-slate-800 mt-1 cursor-pointer"
-                    >
-                      <LogOut className="w-4 h-4" aria-hidden="true" />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                )}
+                      <div className="px-3.5 py-2 border-b border-slate-100 dark:border-slate-800">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 block">
+                          Signed in as
+                        </span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">
+                          {user.email || user.name}
+                        </span>
+                      </div>
+                      <Link
+                        href="/my-appointments"
+                        onClick={() => setDropOpen(false)}
+                        className="flex items-center gap-2.5 px-3.5 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors duration-150"
+                      >
+                        <Calendar className="w-4 h-4 text-slate-500" aria-hidden="true" />
+                        <span>My Appointments</span>
+                      </Link>
+                      <Link
+                        href="/dashboard/patient"
+                        onClick={() => setDropOpen(false)}
+                        className="flex items-center gap-2.5 px-3.5 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors duration-150"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-slate-500" aria-hidden="true" />
+                        <span>Patient Portal</span>
+                      </Link>
+                      <Link
+                        href="/profile"
+                        onClick={() => setDropOpen(false)}
+                        className="flex items-center gap-2.5 px-3.5 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors duration-150"
+                      >
+                        <User className="w-4 h-4 text-slate-500" aria-hidden="true" />
+                        <span>Profile Settings</span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 text-left border-t border-slate-100 dark:border-slate-800 mt-1 transition-colors duration-150 cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" aria-hidden="true" />
+                        <span>Sign Out</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <Link
@@ -302,47 +323,55 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Navigation Drawer */}
-        {mobileOpen && (
-          <div className="md:hidden border-t border-slate-200 dark:border-slate-800 py-4 space-y-3">
-            <div className="flex flex-col space-y-1">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={(e) => {
-                    if (link.href === "/#services") {
-                      handleHomeAnchorClick(e, "services");
-                    } else {
-                      setMobileOpen(false);
-                    }
-                  }}
-                  className="min-h-[44px] px-3 flex items-center rounded-md text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="md:hidden border-t border-slate-200 dark:border-slate-800 py-4 space-y-3"
+            >
+              <div className="flex flex-col space-y-1">
+                {NAV_LINKS.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={(e) => {
+                      if (link.href === "/#services") {
+                        handleHomeAnchorClick(e, "services");
+                      } else {
+                        setMobileOpen(false);
+                      }
+                    }}
+                    className="min-h-[44px] px-3 flex items-center rounded-md text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:translate-x-1 transition-[transform,translate,background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
 
-            <div className="flex flex-col gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-              <Link
-                href="/#estimator"
-                onClick={(e) => handleHomeAnchorClick(e, "estimator")}
-                className="btn-primary w-full"
-              >
-                Book Care
-              </Link>
-              {!user && (
+              <div className="flex flex-col gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
                 <Link
-                  href="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="btn-secondary w-full"
+                  href="/#estimator"
+                  onClick={(e) => handleHomeAnchorClick(e, "estimator")}
+                  className="btn-primary w-full"
                 >
-                  Sign In
+                  Book Care
                 </Link>
-              )}
-            </div>
-          </div>
-        )}
+                {!user && (
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="btn-secondary w-full"
+                  >
+                    Sign In
+                  </Link>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
     </header>
   );

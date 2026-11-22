@@ -121,25 +121,25 @@ export default function PatientDashboardView() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        <div className="card p-4">
+        <div className="card card-interactive p-4">
           <span className="text-xs text-slate-500 dark:text-slate-400">Upcoming Visits</span>
           <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
             {upcomingAppointments.length}
           </p>
         </div>
-        <div className="card p-4">
+        <div className="card card-interactive p-4">
           <span className="text-xs text-slate-500 dark:text-slate-400">Completed Visits</span>
           <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
             {completedCount}
           </p>
         </div>
-        <div className="card p-4">
+        <div className="card card-interactive p-4">
           <span className="text-xs text-slate-500 dark:text-slate-400">Consultation Spend</span>
           <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
             ${totalSpent}
           </p>
         </div>
-        <div className="card p-4">
+        <div className="card card-interactive p-4">
           <span className="text-xs text-slate-500 dark:text-slate-400">Total Records</span>
           <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
             {appointments.length}
@@ -173,7 +173,7 @@ export default function PatientDashboardView() {
               return (
                 <div
                   key={appt.id}
-                  className="card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  className="card card-interactive p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
                 >
                   <div className="flex items-start gap-3.5 min-w-0">
                     <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 shrink-0">
@@ -351,8 +351,8 @@ export default function PatientDashboardView() {
         }}
       >
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-[2px]" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white dark:bg-[#11161d] border border-slate-200 dark:border-slate-800 shadow-lg p-6 focus:outline-none">
+          <Dialog.Overlay className="dialog-overlay fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-[2px]" />
+          <Dialog.Content className="dialog-content fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white dark:bg-[#11161d] border border-slate-200 dark:border-slate-800 shadow-lg p-6 focus:outline-none">
             {selectedPass && (
               <>
                 <div className="flex items-start justify-between gap-2 pb-4 border-b border-slate-200 dark:border-slate-800">

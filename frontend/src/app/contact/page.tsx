@@ -141,7 +141,7 @@ export default function ContactPage() {
             </h2>
             <div className="space-y-3">
               {contactDetails.map(({ icon: Icon, label, value, sub, isEmail }) => (
-                <div key={label} className="card p-4 flex items-start gap-3">
+                <div key={label} className="card card-interactive p-4 flex items-start gap-3">
                   <span className="w-9 h-9 rounded-md bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-900 flex items-center justify-center text-teal-700 dark:text-teal-400 shrink-0">
                     <Icon className="w-4 h-4" aria-hidden="true" />
                   </span>
@@ -153,7 +153,7 @@ export default function ContactPage() {
                       <div className="flex flex-wrap items-center gap-2 mt-0.5">
                         <a
                           href="mailto:intake@newcare.health"
-                          className="text-sm font-semibold text-teal-700 dark:text-teal-400 hover:underline transition-colors duration-150 break-all"
+                          className="text-sm font-semibold text-teal-700 dark:text-teal-400 hover:underline transition-colors duration-200 break-all"
                         >
                           {value}
                         </a>
@@ -161,19 +161,35 @@ export default function ContactPage() {
                           type="button"
                           onClick={handleCopyEmail}
                           aria-label="Copy intake email address"
-                          className="inline-flex items-center gap-1 min-h-[32px] px-2 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-150 shrink-0 cursor-pointer"
+                          className="inline-flex items-center justify-center min-w-[72px] min-h-[32px] px-2.5 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 hover:border-teal-600/60 dark:hover:border-teal-400/60 hover:bg-slate-100 dark:hover:bg-slate-800 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-[transform,translate,scale,background-color,border-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] shrink-0 cursor-pointer"
                         >
-                          {copiedEmail ? (
-                            <>
-                              <Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" aria-hidden="true" />
-                              <span>Copied</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5" aria-hidden="true" />
-                              <span>Copy</span>
-                            </>
-                          )}
+                          <AnimatePresence mode="wait" initial={false}>
+                            {copiedEmail ? (
+                              <motion.span
+                                key="copied"
+                                initial={{ opacity: 0, y: 3 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -3 }}
+                                transition={{ duration: 0.16, ease: SMOOTH_EASE }}
+                                className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400"
+                              >
+                                <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                                <span>Copied</span>
+                              </motion.span>
+                            ) : (
+                              <motion.span
+                                key="copy"
+                                initial={{ opacity: 0, y: 3 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -3 }}
+                                transition={{ duration: 0.16, ease: SMOOTH_EASE }}
+                                className="inline-flex items-center gap-1"
+                              >
+                                <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+                                <span>Copy</span>
+                              </motion.span>
+                            )}
+                          </AnimatePresence>
                         </button>
                       </div>
                     ) : (
@@ -189,24 +205,30 @@ export default function ContactPage() {
               ))}
             </div>
 
-            <div className="card p-4 space-y-2.5">
+            <div className="card card-interactive p-4 space-y-2.5">
               <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
                 Looking for immediate pricing or specialist slots?
               </p>
               <div className="flex flex-col gap-2">
                 <Link
                   href="/#estimator"
-                  className="inline-flex items-center justify-between min-h-[36px] text-xs font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors duration-150"
+                  className="group inline-flex items-center justify-between min-h-[36px] text-xs font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors duration-200"
                 >
                   <span>Open Interactive Care Estimator</span>
-                  <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                  <ArrowRight
+                    className="w-3.5 h-3.5 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                    aria-hidden="true"
+                  />
                 </Link>
                 <Link
                   href="/doctors"
-                  className="inline-flex items-center justify-between min-h-[36px] text-xs font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors duration-150"
+                  className="group inline-flex items-center justify-between min-h-[36px] text-xs font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors duration-200"
                 >
                   <span>Browse Board-Certified Specialists</span>
-                  <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                  <ArrowRight
+                    className="w-3.5 h-3.5 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                    aria-hidden="true"
+                  />
                 </Link>
               </div>
             </div>
@@ -230,10 +252,10 @@ export default function ContactPage() {
               {sent ? (
                 <motion.div
                   key="contact-confirmation"
-                  initial={{ opacity: 0, y: 6 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.18, ease: SMOOTH_EASE }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.24, ease: SMOOTH_EASE }}
                   className="my-auto p-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-center space-y-3"
                 >
                   <div className="w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center mx-auto">
@@ -266,10 +288,10 @@ export default function ContactPage() {
               ) : (
                 <motion.form
                   key="contact-form"
-                  initial={{ opacity: 0, y: 6 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.18, ease: SMOOTH_EASE }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.22, ease: SMOOTH_EASE }}
                   onSubmit={handleSubmit}
                   noValidate
                   className="space-y-4"
@@ -295,9 +317,15 @@ export default function ContactPage() {
                       placeholder="e.g. Rachel Miller"
                     />
                     {errors.name && (
-                      <p id="contact-name-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
+                      <motion.p
+                        id="contact-name-error"
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.18, ease: SMOOTH_EASE }}
+                        className="text-xs text-red-700 dark:text-red-400 mt-1"
+                      >
                         {errors.name}
-                      </p>
+                      </motion.p>
                     )}
                   </div>
 
@@ -323,9 +351,15 @@ export default function ContactPage() {
                         placeholder="rachel@example.com"
                       />
                       {errors.email && (
-                        <p id="contact-email-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
+                        <motion.p
+                          id="contact-email-error"
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.18, ease: SMOOTH_EASE }}
+                          className="text-xs text-red-700 dark:text-red-400 mt-1"
+                        >
                           {errors.email}
-                        </p>
+                        </motion.p>
                       )}
                     </div>
                     <div>
@@ -349,9 +383,15 @@ export default function ContactPage() {
                         placeholder="(212) 480-0192"
                       />
                       {errors.phone && (
-                        <p id="contact-phone-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
+                        <motion.p
+                          id="contact-phone-error"
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.18, ease: SMOOTH_EASE }}
+                          className="text-xs text-red-700 dark:text-red-400 mt-1"
+                        >
                           {errors.phone}
-                        </p>
+                        </motion.p>
                       )}
                     </div>
                   </div>
@@ -401,14 +441,23 @@ export default function ContactPage() {
                       placeholder="Share patient care needs, borough/ZIP code, and preferred start timeline..."
                     />
                     {errors.message && (
-                      <p id="contact-message-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
+                      <motion.p
+                        id="contact-message-error"
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.18, ease: SMOOTH_EASE }}
+                        className="text-xs text-red-700 dark:text-red-400 mt-1"
+                      >
                         {errors.message}
-                      </p>
+                      </motion.p>
                     )}
                   </div>
 
-                  <button type="submit" disabled={submitting} className="btn-primary w-full">
-                    <Send className="w-4 h-4" aria-hidden="true" />
+                  <button type="submit" disabled={submitting} className="btn-primary group w-full">
+                    <Send
+                      className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                      aria-hidden="true"
+                    />
                     <span>{submitting ? "Submitting..." : "Submit Care Inquiry"}</span>
                   </button>
                 </motion.form>

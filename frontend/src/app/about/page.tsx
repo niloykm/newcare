@@ -60,9 +60,12 @@ export default function AboutPage() {
               always share an accurate care record.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <Link href="/#services" className="btn-primary text-sm">
+              <Link href="/#services" className="btn-primary group text-sm">
                 <span>View Care Services</span>
-                <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                <ArrowRight
+                  className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
               </Link>
               <Link href="/contact" className="btn-secondary text-sm">
                 Contact Intake Desk
@@ -70,7 +73,7 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div className="md:col-span-6 card p-6">
+          <div className="md:col-span-6 card card-interactive p-6">
             <div className="flex items-center gap-2 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
               <ShieldCheck
                 className="w-5 h-5 text-teal-700 dark:text-teal-400 shrink-0"
@@ -109,7 +112,7 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {principles.map((p) => (
-              <div key={p.title} className="card p-5">
+              <div key={p.title} className="card card-interactive p-5">
                 <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-2">
                   {p.title}
                 </h3>

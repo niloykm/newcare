@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import { User, Stethoscope, ShieldCheck } from "lucide-react";
 import { useStore, RoleType } from "@/store/useStore";
 import PatientDashboardView from "@/components/dashboard/PatientDashboardView";
@@ -76,23 +77,41 @@ export default function DashboardPage() {
                   aria-selected={isActive}
                   type="button"
                   onClick={() => handleTabSwitch(id)}
-                  className={`min-h-[38px] inline-flex items-center gap-2 px-3.5 text-xs font-semibold rounded transition-colors cursor-pointer ${
+                  className={`relative min-h-[38px] inline-flex items-center gap-2 px-3.5 text-xs font-semibold rounded transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer ${
                     isActive
-                      ? "bg-teal-700 dark:bg-teal-400 text-white dark:text-slate-950"
+                      ? "text-white dark:text-slate-950"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>{label}</span>
+                  {isActive && (
+                    <motion.span
+                      layoutId="portal-tab-pill"
+                      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute inset-0 rounded bg-teal-700 dark:bg-teal-400"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <Icon className="relative z-10 w-3.5 h-3.5" aria-hidden="true" />
+                  <span className="relative z-10">{label}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {activeTab === "patient" && <PatientDashboardView />}
-        {activeTab === "doctor" && <DoctorDashboardView />}
-        {activeTab === "admin" && <AdminDashboardView />}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {activeTab === "patient" && <PatientDashboardView />}
+            {activeTab === "doctor" && <DoctorDashboardView />}
+            {activeTab === "admin" && <AdminDashboardView />}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

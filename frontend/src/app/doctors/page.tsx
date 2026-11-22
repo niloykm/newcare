@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   Search,
   X,
@@ -264,14 +265,22 @@ export default function DoctorsPage() {
                       type="button"
                       aria-pressed={active}
                       onClick={() => setConsultType(item.id)}
-                      className={`min-h-[36px] inline-flex items-center gap-1.5 px-3 text-xs font-semibold rounded transition-colors cursor-pointer ${
+                      className={`relative min-h-[36px] inline-flex items-center gap-1.5 px-3 text-xs font-semibold rounded transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer ${
                         active
-                          ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-50 shadow-xs"
+                          ? "text-slate-900 dark:text-slate-50"
                           : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                       }`}
                     >
-                      {Icon && <Icon className="w-3.5 h-3.5" aria-hidden="true" />}
-                      <span>{item.label}</span>
+                      {active && (
+                        <motion.span
+                          layoutId="consult-format-pill"
+                          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                          className="absolute inset-0 rounded bg-white dark:bg-slate-800 shadow-xs"
+                          aria-hidden="true"
+                        />
+                      )}
+                      {Icon && <Icon className="relative z-10 w-3.5 h-3.5" aria-hidden="true" />}
+                      <span className="relative z-10">{item.label}</span>
                     </button>
                   );
                 })}
@@ -281,14 +290,14 @@ export default function DoctorsPage() {
                 type="button"
                 aria-pressed={availableTodayOnly}
                 onClick={() => setAvailableTodayOnly((prev) => !prev)}
-                className={`min-h-[40px] inline-flex items-center gap-2 px-3 text-xs font-semibold rounded-md border transition-colors cursor-pointer ${
+                className={`min-h-[40px] inline-flex items-center gap-2 px-3 text-xs font-semibold rounded-md border transition-[transform,translate,scale,background-color,border-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] cursor-pointer ${
                   availableTodayOnly
                     ? "bg-teal-50 dark:bg-teal-950/60 border-teal-300 dark:border-teal-800 text-teal-800 dark:text-teal-300"
                     : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <span
-                  className={`w-2 h-2 rounded-full ${
+                  className={`w-2 h-2 rounded-full transition-colors duration-200 ${
                     availableTodayOnly ? "bg-teal-700 dark:bg-teal-400" : "bg-slate-400"
                   }`}
                 />
@@ -316,9 +325,12 @@ export default function DoctorsPage() {
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="min-h-[40px] inline-flex items-center gap-1.5 px-3 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 cursor-pointer"
+                  className="group min-h-[40px] inline-flex items-center gap-1.5 px-3 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 rounded-md bg-white dark:bg-slate-900 transition-[transform,translate,scale,border-color,color,background-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] cursor-pointer"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
+                  <RefreshCw
+                    className="w-3.5 h-3.5 transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:rotate-90"
+                    aria-hidden="true"
+                  />
                   <span>Reset</span>
                 </button>
               )}

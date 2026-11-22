@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, ChevronDown, ShieldCheck } from "lucide-react";
 import api from "@/lib/api";
 import {
@@ -103,7 +104,12 @@ export default function Home() {
       <section className="bg-white dark:bg-[#11161d] border-b border-slate-200 dark:border-slate-800 py-14 md:py-20">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
-            <div className="lg:col-span-5 space-y-6 lg:pt-2">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+              className="lg:col-span-5 space-y-6 lg:pt-2"
+            >
               <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400">
                 Greater New York &amp; Tri-State Home Care
               </p>
@@ -119,9 +125,12 @@ export default function Home() {
               </p>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
-                <a href="#services" className="btn-primary px-5">
+                <a href="#services" className="group btn-primary px-5">
                   <span>View Care Rates</span>
-                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                  <ArrowRight
+                    className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                    aria-hidden="true"
+                  />
                 </a>
                 <Link href="/doctors" className="btn-secondary px-5">
                   Browse Specialists
@@ -151,10 +160,13 @@ export default function Home() {
                   <span>Itemized CMS-1500 invoices for Long-Term Care Insurance</span>
                 </li>
               </ul>
-            </div>
+            </motion.div>
 
-            <div
+            <motion.div
               id="estimator"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.26, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
               className={`lg:col-span-7 scroll-mt-24 rounded-lg transition-shadow duration-200 ${
                 estimatorHighlighted
                   ? "ring-2 ring-teal-700/40 dark:ring-teal-400/50 ring-offset-2 ring-offset-white dark:ring-offset-[#11161d]"
@@ -165,7 +177,7 @@ export default function Home() {
                 selectedServiceId={selectedServiceId}
                 onServiceChange={setSelectedServiceId}
               />
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -246,10 +258,13 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => handleSelectServiceForEstimator(service.id)}
-                    className="btn-secondary w-full text-sm"
+                    className="group btn-secondary w-full text-sm"
                   >
                     <span>Estimate This Care</span>
-                    <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                    <ArrowRight
+                      className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                      aria-hidden="true"
+                    />
                   </button>
                 </div>
               </div>
@@ -316,9 +331,12 @@ export default function Home() {
                   </span>
                 </div>
 
-                <Link href="/doctors" className="btn-primary w-full text-sm">
+                <Link href="/doctors" className="group btn-primary w-full text-sm">
                   <span>Browse Specialists</span>
-                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                  <ArrowRight
+                    className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                    aria-hidden="true"
+                  />
                 </Link>
               </div>
             </div>
@@ -344,7 +362,10 @@ export default function Home() {
 
               <ol className="divide-y divide-slate-200 dark:divide-slate-800 border-t border-slate-200 dark:border-slate-800">
                 {CARE_WORKFLOW_STEPS.map((item) => (
-                  <li key={item.step} className="py-6 flex items-start gap-4">
+                  <li
+                    key={item.step}
+                    className="py-6 px-3 -mx-3 rounded-lg flex items-start gap-4 transition-[transform,translate,background-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:translate-x-1"
+                  >
                     <span className="font-mono text-sm font-semibold text-teal-700 dark:text-teal-400 tabular-nums pt-0.5 shrink-0">
                       {item.step}
                     </span>
@@ -368,7 +389,7 @@ export default function Home() {
 
             {/* Right: Clinical Vetting & Safety Ledger */}
             <div className="lg:col-span-6">
-              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f14] p-6 sm:p-8">
+              <div className="card card-interactive rounded-lg bg-slate-50 dark:bg-[#0b0f14] p-6 sm:p-8">
                 <div className="flex items-center gap-2.5 mb-2">
                   <ShieldCheck
                     className="w-5 h-5 text-teal-700 dark:text-teal-400 shrink-0"
@@ -399,10 +420,13 @@ export default function Home() {
                 <div className="mt-6 pt-5 border-t border-slate-200 dark:border-slate-800">
                   <Link
                     href="/about"
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors"
+                    className="group inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors duration-200"
                   >
                     <span>Read full clinical governance standards</span>
-                    <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                    <ArrowRight
+                      className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                      aria-hidden="true"
+                    />
                   </Link>
                 </div>
               </div>
@@ -429,10 +453,13 @@ export default function Home() {
 
             <Link
               href="/doctors"
-              className="btn-secondary text-sm self-start sm:self-auto shrink-0"
+              className="group btn-secondary text-sm self-start sm:self-auto shrink-0"
             >
               <span className="tabular-nums">View All {totalDoctorsCount} Specialists</span>
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              <ArrowRight
+                className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                aria-hidden="true"
+              />
             </Link>
           </div>
 
@@ -460,9 +487,12 @@ export default function Home() {
                 Insurance paperwork? Reach our RN coordination desk directly.
               </p>
               <div className="pt-1">
-                <Link href="/contact" className="btn-secondary text-sm">
+                <Link href="/contact" className="group btn-secondary text-sm">
                   <span>Contact Care Coordination</span>
-                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                  <ArrowRight
+                    className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                    aria-hidden="true"
+                  />
                 </Link>
               </div>
             </div>
@@ -478,24 +508,31 @@ export default function Home() {
                       onClick={() => setOpenFaqId(isOpen ? null : item.id)}
                       aria-expanded={isOpen}
                       aria-controls={panelId}
-                      className="w-full py-5 text-left flex items-center justify-between gap-4 text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100 hover:text-teal-700 dark:hover:text-teal-400 transition-colors cursor-pointer"
+                      className="w-full py-5 text-left flex items-center justify-between gap-4 text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100 hover:text-teal-700 dark:hover:text-teal-400 transition-colors duration-200 cursor-pointer"
                     >
                       <span>{item.question}</span>
                       <ChevronDown
-                        className={`w-4 h-4 shrink-0 text-slate-500 transition-transform duration-200 ${
+                        className={`w-4 h-4 shrink-0 text-slate-500 transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                           isOpen ? "rotate-180 text-teal-700 dark:text-teal-400" : ""
                         }`}
                         aria-hidden="true"
                       />
                     </button>
-                    {isOpen && (
-                      <div
-                        id={panelId}
-                        className="pb-5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed pr-8"
-                      >
-                        {item.answer}
-                      </div>
-                    )}
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          key={panelId}
+                          id={panelId}
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                          className="pb-5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed pr-8"
+                        >
+                          {item.answer}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 );
               })}
