@@ -7,8 +7,13 @@ export const CLINICAL_EASE = [0.22, 1, 0.36, 1] as const;
 
 export const SHARED_PILL_SPRING = {
   type: "spring" as const,
-  stiffness: 420,
-  damping: 32,
+  stiffness: 380,
+  damping: 30,
+};
+
+export const TAB_PANEL_TRANSITION = {
+  duration: 0.22,
+  ease: CLINICAL_EASE,
 };
 
 export const REVEAL_VIEWPORT = {
@@ -16,7 +21,7 @@ export const REVEAL_VIEWPORT = {
   amount: "some" as const,
 };
 
-interface RevealProps {
+interface RevealSectionProps {
   children: ReactNode;
   delay?: number;
   y?: number;
@@ -24,13 +29,13 @@ interface RevealProps {
   className?: string;
 }
 
-export function Reveal({
+export function RevealSection({
   children,
   delay = 0,
-  y = 14,
-  duration = 0.35,
+  y = 24,
+  duration = 0.4,
   className,
-}: RevealProps) {
+}: RevealSectionProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y }}
@@ -43,3 +48,35 @@ export function Reveal({
     </motion.div>
   );
 }
+
+interface RevealStaggerProps {
+  children: ReactNode;
+  index: number;
+  step?: number;
+  y?: number;
+  duration?: number;
+  className?: string;
+}
+
+export function RevealStagger({
+  children,
+  index,
+  step = 0.06,
+  y = 24,
+  duration = 0.4,
+  className,
+}: RevealStaggerProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={REVEAL_VIEWPORT}
+      transition={{ duration, delay: index * step, ease: CLINICAL_EASE }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export const Reveal = RevealSection;

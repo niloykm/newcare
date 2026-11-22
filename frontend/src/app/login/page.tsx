@@ -18,7 +18,11 @@ import {
   Activity,
 } from "lucide-react";
 import api from "@/lib/api";
-import { CLINICAL_EASE, SHARED_PILL_SPRING } from "@/components/MotionPrimitives";
+import {
+  CLINICAL_EASE,
+  SHARED_PILL_SPRING,
+  TAB_PANEL_TRANSITION,
+} from "@/components/MotionPrimitives";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -294,127 +298,133 @@ function LoginForm() {
                   })}
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {mode === "register" && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                    >
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.form
+                    key={mode}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={TAB_PANEL_TRANSITION}
+                    onSubmit={handleSubmit}
+                    className="space-y-4"
+                  >
+                    {mode === "register" && (
+                      <div>
+                        <label
+                          htmlFor="auth-name"
+                          className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                        >
+                          Full Name
+                        </label>
+                        <div className="relative flex items-center">
+                          <User
+                            className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none"
+                            aria-hidden="true"
+                          />
+                          <input
+                            id="auth-name"
+                            type="text"
+                            placeholder="e.g. Claire Bennett"
+                            value={form.name}
+                            onChange={(e) => setForm({ ...form, name: e.target.value })}
+                            className="input pl-9"
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
                       <label
-                        htmlFor="auth-name"
+                        htmlFor="auth-email"
                         className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
                       >
-                        Full Name
+                        Email Address
                       </label>
                       <div className="relative flex items-center">
-                        <User
+                        <Mail
                           className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none"
                           aria-hidden="true"
                         />
                         <input
-                          id="auth-name"
-                          type="text"
-                          placeholder="e.g. Claire Bennett"
-                          value={form.name}
-                          onChange={(e) => setForm({ ...form, name: e.target.value })}
+                          id="auth-email"
+                          type="email"
+                          placeholder="name@example.com"
+                          value={form.email}
+                          onChange={(e) => setForm({ ...form, email: e.target.value })}
                           className="input pl-9"
                           required
                         />
                       </div>
-                    </motion.div>
-                  )}
-
-                  <div>
-                    <label
-                      htmlFor="auth-email"
-                      className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-                    >
-                      Email Address
-                    </label>
-                    <div className="relative flex items-center">
-                      <Mail
-                        className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none"
-                        aria-hidden="true"
-                      />
-                      <input
-                        id="auth-email"
-                        type="email"
-                        placeholder="name@example.com"
-                        value={form.email}
-                        onChange={(e) => setForm({ ...form, email: e.target.value })}
-                        className="input pl-9"
-                        required
-                      />
                     </div>
-                  </div>
 
-                  <div>
-                    <label
-                      htmlFor="auth-password"
-                      className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-                    >
-                      Password
-                    </label>
-                    <div className="relative flex items-center">
-                      <Lock
-                        className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none"
-                        aria-hidden="true"
-                      />
-                      <input
-                        id="auth-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder={
-                          mode === "register" ? "Minimum 8 characters" : "Enter your password"
-                        }
-                        value={form.password}
-                        onChange={(e) => setForm({ ...form, password: e.target.value })}
-                        className="input pl-9 pr-10"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        aria-label={showPassword ? "Hide password" : "Show password"}
-                        className="absolute right-1 w-10 h-10 flex items-center justify-center rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors duration-200 cursor-pointer"
+                    <div>
+                      <label
+                        htmlFor="auth-password"
+                        className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
                       >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4" aria-hidden="true" />
-                        ) : (
-                          <Eye className="w-4 h-4" aria-hidden="true" />
-                        )}
-                      </button>
+                        Password
+                      </label>
+                      <div className="relative flex items-center">
+                        <Lock
+                          className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none"
+                          aria-hidden="true"
+                        />
+                        <input
+                          id="auth-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder={
+                            mode === "register" ? "Minimum 8 characters" : "Enter your password"
+                          }
+                          value={form.password}
+                          onChange={(e) => setForm({ ...form, password: e.target.value })}
+                          className="input pl-9 pr-10"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                          className="absolute right-1 w-10 h-10 flex items-center justify-center rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors duration-200 cursor-pointer"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-4 h-4" aria-hidden="true" />
+                          ) : (
+                            <Eye className="w-4 h-4" aria-hidden="true" />
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
-                  {mode === "login" && (
-                    <div className="text-right">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setForgotEmail(form.email);
-                          setMode("forgot");
-                          setForgotStep("request");
-                        }}
-                        className="inline-flex items-center min-h-[36px] px-1 text-xs font-semibold text-teal-700 dark:text-teal-400 hover:underline cursor-pointer"
-                      >
-                        Forgot password?
-                      </button>
-                    </div>
-                  )}
+                    {mode === "login" && (
+                      <div className="text-right">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForgotEmail(form.email);
+                            setMode("forgot");
+                            setForgotStep("request");
+                          }}
+                          className="inline-flex items-center min-h-[36px] px-1 text-xs font-semibold text-teal-700 dark:text-teal-400 hover:underline cursor-pointer"
+                        >
+                          Forgot password?
+                        </button>
+                      </div>
+                    )}
 
-                  <button
-                    type="submit"
-                    disabled={loading || googleLoading}
-                    className="btn-primary w-full"
-                  >
-                    {loading
-                      ? "Processing..."
-                      : mode === "login"
-                        ? "Sign In"
-                        : "Create Account"}
-                  </button>
-                </form>
+                    <button
+                      type="submit"
+                      disabled={loading || googleLoading}
+                      className="btn-primary w-full"
+                    >
+                      {loading
+                        ? "Processing..."
+                        : mode === "login"
+                          ? "Sign In"
+                          : "Create Account"}
+                    </button>
+                  </motion.form>
+                </AnimatePresence>
 
                 <div className="flex items-center my-5 gap-3">
                   <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />

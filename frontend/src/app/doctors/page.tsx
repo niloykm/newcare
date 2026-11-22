@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Search,
   X,
@@ -20,7 +20,12 @@ import {
   normalizeApiDoctor,
 } from "@/data/doctorsData";
 import DoctorCard from "@/components/DoctorCard";
-import { SHARED_PILL_SPRING } from "@/components/MotionPrimitives";
+import {
+  RevealSection,
+  RevealStagger,
+  SHARED_PILL_SPRING,
+  TAB_PANEL_TRANSITION,
+} from "@/components/MotionPrimitives";
 
 const SPECIALTY_OPTIONS = [
   "All Specialties",
@@ -342,67 +347,81 @@ export default function DoctorsPage() {
 
       {/* Directory Grid */}
       <section className="container pt-8">
-        {filteredDoctors.length === 0 ? (
-          <div className="card p-10 text-center max-w-lg mx-auto my-10">
-            <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 mx-auto mb-4">
-              <Stethoscope className="w-6 h-6" aria-hidden="true" />
-            </div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-1.5">
-              No specialists match your filters
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-              Try clearing one or more filters to see available board-certified physicians.
-            </p>
-            <button type="button" onClick={handleResetFilters} className="btn-primary">
-              Clear All Filters
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {paginatedDoctors.map((doctor) => (
-                <DoctorCard key={doctor.id || doctor._id} doctor={doctor} />
-              ))}
-            </div>
-
-            {totalPages > 1 && (
-              <nav
-                aria-label="Specialist directory pagination"
-                className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4"
-              >
-                <p className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
-                  Showing {(safePage - 1) * PAGE_SIZE + 1}–
-                  {Math.min(safePage * PAGE_SIZE, filteredDoctors.length)} of{" "}
-                  {filteredDoctors.length} specialists (Page {safePage} of {totalPages})
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={safePage <= 1}
-                    onClick={() => {
-                      setCurrentPage((p) => Math.max(1, p - 1));
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="btn-secondary text-xs px-3.5"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    type="button"
-                    disabled={safePage >= totalPages}
-                    onClick={() => {
-                      setCurrentPage((p) => Math.min(totalPages, p + 1));
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="btn-secondary text-xs px-3.5"
-                  >
-                    Next
-                  </button>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={`${consultType}-${specialty}-${availableTodayOnly}-${sortBy}-${safePage}-${search.trim()}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={TAB_PANEL_TRANSITION}
+          >
+            {filteredDoctors.length === 0 ? (
+              <RevealSection className="card p-10 text-center max-w-lg mx-auto my-10">
+                <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 mx-auto mb-4">
+                  <Stethoscope className="w-6 h-6" aria-hidden="true" />
                 </div>
-              </nav>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-1.5">
+                  No specialists match your filters
+                </h2>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+                  Try clearing one or more filters to see available board-certified physicians.
+                </p>
+                <button type="button" onClick={handleResetFilters} className="btn-primary">
+                  Clear All Filters
+                </button>
+              </RevealSection>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  {paginatedDoctors.map((doctor, idx) => (
+                    <RevealStagger key={doctor.id || doctor._id} index={idx % 6}>
+                      <DoctorCard doctor={doctor} />
+                    </RevealStagger>
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <RevealSection className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+                    <nav
+                      aria-label="Specialist directory pagination"
+                      className="flex flex-col sm:flex-row items-center justify-between gap-4"
+                    >
+                      <p className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                        Showing {(safePage - 1) * PAGE_SIZE + 1}–
+                        {Math.min(safePage * PAGE_SIZE, filteredDoctors.length)} of{" "}
+                        {filteredDoctors.length} specialists (Page {safePage} of {totalPages})
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={safePage <= 1}
+                          onClick={() => {
+                            setCurrentPage((p) => Math.max(1, p - 1));
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="btn-secondary text-xs px-3.5"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          type="button"
+                          disabled={safePage >= totalPages}
+                          onClick={() => {
+                            setCurrentPage((p) => Math.min(totalPages, p + 1));
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="btn-secondary text-xs px-3.5"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </nav>
+                  </RevealSection>
+                )}
+              </>
             )}
-          </>
-        )}
+          </motion.div>
+        </AnimatePresence>
       </section>
     </div>
   );

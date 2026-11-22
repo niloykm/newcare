@@ -20,7 +20,11 @@ import {
 } from "@/lib/careData";
 import DoctorCard from "@/components/DoctorCard";
 import CareEstimatorWidget from "@/components/CareEstimatorWidget";
-import { CLINICAL_EASE, Reveal } from "@/components/MotionPrimitives";
+import {
+  CLINICAL_EASE,
+  RevealSection,
+  RevealStagger,
+} from "@/components/MotionPrimitives";
 
 export default function Home() {
   const [featuredDoctors, setFeaturedDoctors] = useState<DoctorProfile[]>(
@@ -222,7 +226,7 @@ export default function Home() {
         className="py-16 md:py-24 border-b border-slate-200 dark:border-slate-800 scroll-mt-24"
       >
         <div className="container">
-          <Reveal className="max-w-2xl mb-10">
+          <RevealSection className="max-w-2xl mb-10">
             <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400 mb-2">
               Services &amp; Pricing
             </p>
@@ -233,11 +237,11 @@ export default function Home() {
               Every in-home plan includes an RN clinical intake, written care schedule,
               and Family Portal shift charting with zero surprise fees.
             </p>
-          </Reveal>
+          </RevealSection>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {CARE_SERVICES.map((service, idx) => (
-              <Reveal key={service.id} delay={idx * 0.04} className="flex">
+              <RevealStagger key={service.id} index={idx} className="flex">
                 <div className="card card-interactive p-6 flex flex-col justify-between w-full">
                   <div>
                     <div className="flex items-center justify-between gap-2 text-xs mb-3">
@@ -300,11 +304,11 @@ export default function Home() {
                     </button>
                   </div>
                 </div>
-              </Reveal>
+              </RevealStagger>
             ))}
 
             {/* 6th Card: Board-Certified Physician Consultations */}
-            <Reveal delay={CARE_SERVICES.length * 0.04} className="flex">
+            <RevealStagger index={CARE_SERVICES.length} className="flex">
               <div className="card card-interactive p-6 flex flex-col justify-between w-full">
                 <div>
                   <div className="flex items-center justify-between gap-2 text-xs mb-3">
@@ -374,7 +378,7 @@ export default function Home() {
                   </Link>
                 </div>
               </div>
-            </Reveal>
+            </RevealStagger>
           </div>
         </div>
       </section>
@@ -387,7 +391,7 @@ export default function Home() {
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             {/* Left: 3-Step Workflow */}
-            <Reveal className="lg:col-span-6">
+            <RevealSection className="lg:col-span-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400 mb-2">
                 How Care Starts
               </p>
@@ -420,10 +424,10 @@ export default function Home() {
                   </li>
                 ))}
               </ol>
-            </Reveal>
+            </RevealSection>
 
             {/* Right: Clinical Vetting & Safety Ledger */}
-            <Reveal delay={0.08} className="lg:col-span-6">
+            <RevealSection delay={0.1} className="lg:col-span-6">
               <div className="card card-interactive rounded-lg bg-slate-50 dark:bg-[#0b0f14] p-6 sm:p-8">
                 <div className="flex items-center gap-2.5 mb-2">
                   <ShieldCheck
@@ -465,7 +469,7 @@ export default function Home() {
                   </Link>
                 </div>
               </div>
-            </Reveal>
+            </RevealSection>
           </div>
         </div>
       </section>
@@ -473,7 +477,7 @@ export default function Home() {
       {/* 4. Featured Board-Certified Specialists */}
       <section className="py-16 md:py-24 border-b border-slate-200 dark:border-slate-800">
         <div className="container">
-          <Reveal className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+          <RevealSection className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400 mb-2">
                 Physician Network
@@ -496,13 +500,13 @@ export default function Home() {
                 aria-hidden="true"
               />
             </Link>
-          </Reveal>
+          </RevealSection>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {featuredDoctors.map((doctor, idx) => (
-              <Reveal key={doctor.id || doctor._id} delay={idx * 0.05}>
+              <RevealStagger key={doctor.id || doctor._id} index={idx}>
                 <DoctorCard doctor={doctor} />
-              </Reveal>
+              </RevealStagger>
             ))}
           </div>
         </div>
@@ -512,7 +516,7 @@ export default function Home() {
       <section className="bg-white dark:bg-[#11161d] py-16 md:py-24">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-            <Reveal className="lg:col-span-4 space-y-4">
+            <RevealSection className="lg:col-span-4 space-y-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400">
                 Common Questions
               </p>
@@ -532,9 +536,9 @@ export default function Home() {
                   />
                 </Link>
               </div>
-            </Reveal>
+            </RevealSection>
 
-            <Reveal delay={0.06} className="lg:col-span-8 divide-y divide-slate-200 dark:divide-slate-800 border-y border-slate-200 dark:border-slate-800">
+            <RevealSection delay={0.08} className="lg:col-span-8 divide-y divide-slate-200 dark:divide-slate-800 border-y border-slate-200 dark:border-slate-800">
               {CLINICAL_FAQS.map((item) => {
                 const isOpen = openFaqId === item.id;
                 const panelId = `faq-panel-${item.id}`;
@@ -549,7 +553,7 @@ export default function Home() {
                     >
                       <span>{item.question}</span>
                       <ChevronDown
-                        className={`w-4 h-4 shrink-0 text-slate-500 transition-transform duration-240 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                        className={`w-4 h-4 shrink-0 text-slate-500 transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                           isOpen ? "rotate-180 text-teal-700 dark:text-teal-400" : ""
                         }`}
                         aria-hidden="true"
@@ -560,20 +564,22 @@ export default function Home() {
                         <motion.div
                           key={panelId}
                           id={panelId}
-                          initial={{ opacity: 0, y: -6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -4 }}
-                          transition={{ duration: 0.24, ease: CLINICAL_EASE }}
-                          className="pb-5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed pr-8"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25, ease: CLINICAL_EASE }}
+                          className="overflow-hidden"
                         >
-                          {item.answer}
+                          <div className="pb-5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed pr-8">
+                            {item.answer}
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
                   </div>
                 );
               })}
-            </Reveal>
+            </RevealSection>
           </div>
         </div>
       </section>

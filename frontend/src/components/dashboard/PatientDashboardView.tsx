@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useStore, StoredAppointment } from "@/store/useStore";
+import { RevealSection, RevealStagger } from "@/components/MotionPrimitives";
 
 export default function PatientDashboardView() {
   const { appointments, cancelAppointment } = useStore();
@@ -121,34 +122,25 @@ export default function PatientDashboardView() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        <div className="card card-interactive p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Upcoming Visits</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            {upcomingAppointments.length}
-          </p>
-        </div>
-        <div className="card card-interactive p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Completed Visits</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            {completedCount}
-          </p>
-        </div>
-        <div className="card card-interactive p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Consultation Spend</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            ${totalSpent}
-          </p>
-        </div>
-        <div className="card card-interactive p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Total Records</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            {appointments.length}
-          </p>
-        </div>
+        {[
+          { label: "Upcoming Visits", value: upcomingAppointments.length },
+          { label: "Completed Visits", value: completedCount },
+          { label: "Consultation Spend", value: `$${totalSpent}` },
+          { label: "Total Records", value: appointments.length },
+        ].map((kpi, idx) => (
+          <RevealStagger key={kpi.label} index={idx}>
+            <div className="card card-interactive p-4">
+              <span className="text-xs text-slate-500 dark:text-slate-400">{kpi.label}</span>
+              <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
+                {kpi.value}
+              </p>
+            </div>
+          </RevealStagger>
+        ))}
       </div>
 
       {/* Upcoming Visits */}
-      <div>
+      <RevealSection>
         <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50 mb-3">
           Upcoming Consultations ({upcomingAppointments.length})
         </h3>
@@ -277,11 +269,11 @@ export default function PatientDashboardView() {
             })}
           </div>
         )}
-      </div>
+      </RevealSection>
 
       {/* History */}
       {pastAppointments.length > 0 && (
-        <div>
+        <RevealSection delay={0.08}>
           <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50 mb-3">
             Consultation History ({pastAppointments.length})
           </h3>
@@ -340,7 +332,7 @@ export default function PatientDashboardView() {
               );
             })}
           </div>
-        </div>
+        </RevealSection>
       )}
 
       {/* Accessible Radix Dialog: Digital Pass */}

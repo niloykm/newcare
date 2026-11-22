@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { VETTING_STANDARDS } from "@/lib/careData";
-import { Reveal } from "@/components/MotionPrimitives";
+import { RevealSection, RevealStagger } from "@/components/MotionPrimitives";
 
 export default function AboutPage() {
   const principles = [
@@ -46,7 +46,7 @@ export default function AboutPage() {
       {/* Main Content */}
       <section className="container max-w-4xl pt-12 space-y-14">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
-          <Reveal className="md:col-span-6 space-y-4">
+          <RevealSection className="md:col-span-6 space-y-4">
             <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
               Built for families managing real transitions of care
             </h2>
@@ -72,9 +72,9 @@ export default function AboutPage() {
                 Contact Intake Desk
               </Link>
             </div>
-          </Reveal>
+          </RevealSection>
 
-          <Reveal delay={0.08} className="md:col-span-6">
+          <RevealSection delay={0.1} className="md:col-span-6">
             <div className="card card-interactive p-6">
               <div className="flex items-center gap-2 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
                 <ShieldCheck
@@ -105,19 +105,19 @@ export default function AboutPage() {
                 ))}
               </ul>
             </div>
-          </Reveal>
+          </RevealSection>
         </div>
 
         {/* Core Principles */}
         <div className="pt-10 border-t border-slate-200 dark:border-slate-800">
-          <Reveal>
+          <RevealSection>
             <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 mb-6">
               Operating Principles
             </h2>
-          </Reveal>
+          </RevealSection>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {principles.map((p, idx) => (
-              <Reveal key={p.title} delay={idx * 0.05} className="flex">
+              <RevealStagger key={p.title} index={idx} className="flex">
                 <div className="card card-interactive p-5 w-full">
                   <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-2">
                     {p.title}
@@ -126,7 +126,7 @@ export default function AboutPage() {
                     {p.description}
                   </p>
                 </div>
-              </Reveal>
+              </RevealStagger>
             ))}
           </div>
         </div>

@@ -5,16 +5,17 @@ import { motion, useScroll, useSpring } from "framer-motion";
 export default function ScrollProgressBar() {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
-    stiffness: 320,
-    damping: 36,
+    stiffness: 200,
+    damping: 30,
     restDelta: 0.001,
   });
 
   return (
     <motion.div
       aria-hidden="true"
+      data-testid="scroll-progress-bar"
       style={{ scaleX }}
-      className="fixed top-0 left-0 right-0 z-[70] h-[2px] origin-left bg-teal-700 dark:bg-teal-400 pointer-events-none"
+      className="fixed top-0 inset-x-0 z-[60] h-[3px] origin-left bg-[var(--primary)] pointer-events-none"
     />
   );
 }

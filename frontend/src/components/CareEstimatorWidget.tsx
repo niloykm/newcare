@@ -19,7 +19,11 @@ import {
   validatePhone,
   validateRequiredText,
 } from "@/lib/validation";
-import { CLINICAL_EASE, SHARED_PILL_SPRING } from "@/components/MotionPrimitives";
+import {
+  CLINICAL_EASE,
+  SHARED_PILL_SPRING,
+  TAB_PANEL_TRANSITION,
+} from "@/components/MotionPrimitives";
 
 export { CARE_SERVICES } from "@/lib/careData";
 
@@ -305,53 +309,36 @@ export default function CareEstimatorWidget({
       {/* Estimate Summary */}
       <div className="mt-6 p-4 sm:p-5 rounded-lg bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <span className="block text-xs font-medium text-slate-600 dark:text-slate-400">
-              Estimated Rate
-            </span>
-            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mt-1">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={`${shiftCost}-${selectedShiftId}`}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.18, ease: CLINICAL_EASE }}
-                  className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 tabular-nums inline-block"
-                >
-                  ${shiftCost}
-                </motion.span>
-              </AnimatePresence>
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                per {isLiveIn ? "24h live-in day" : `${currentShift.hours}-hour shift`}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={`${selectedServiceId}-${selectedShiftId}-${selectedFreqId}-${selectedZip}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={TAB_PANEL_TRANSITION}
+            >
+              <span className="block text-xs font-medium text-slate-600 dark:text-slate-400">
+                Estimated Rate · {currentService.name}
               </span>
-            </div>
-            <AnimatePresence mode="wait" initial={false}>
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mt-1">
+                <span className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 tabular-nums inline-block">
+                  ${shiftCost}
+                </span>
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  per {isLiveIn ? "24h live-in day" : `${currentShift.hours}-hour shift`}
+                </span>
+              </div>
               {currentFreq.multiplier > 1 ? (
-                <motion.p
-                  key={`${estimatedWeeklyTotal}-${currentFreq.multiplier}`}
-                  initial={{ opacity: 0, y: 3 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -3 }}
-                  transition={{ duration: 0.18, ease: CLINICAL_EASE }}
-                  className="text-xs text-slate-600 dark:text-slate-400 mt-1 tabular-nums"
-                >
-                  ${estimatedWeeklyTotal.toLocaleString()}/wk · {currentFreq.multiplier} shifts
-                </motion.p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 tabular-nums">
+                  ${estimatedWeeklyTotal.toLocaleString()}/wk · {currentFreq.multiplier} shifts · {currentRegion.name}
+                </p>
               ) : (
-                <motion.p
-                  key="single-shift"
-                  initial={{ opacity: 0, y: 3 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -3 }}
-                  transition={{ duration: 0.18, ease: CLINICAL_EASE }}
-                  className="text-xs text-slate-600 dark:text-slate-400 mt-1 tabular-nums"
-                >
-                  Single scheduled shift · No ongoing minimum
-                </motion.p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 tabular-nums">
+                  Single scheduled shift · {currentRegion.name} · No ongoing minimum
+                </p>
               )}
-            </AnimatePresence>
-          </div>
+            </motion.div>
+          </AnimatePresence>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
             <button

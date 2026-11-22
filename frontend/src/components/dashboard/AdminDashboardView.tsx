@@ -2,9 +2,16 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
 import { ShieldCheck, Search, Edit } from "lucide-react";
 import toast from "react-hot-toast";
 import { useStore, AppointmentStatus } from "@/store/useStore";
+import {
+  RevealSection,
+  RevealStagger,
+  SHARED_PILL_SPRING,
+  TAB_PANEL_TRANSITION,
+} from "@/components/MotionPrimitives";
 
 export default function AdminDashboardView() {
   const {
@@ -68,34 +75,25 @@ export default function AdminDashboardView() {
 
       {/* Real Store KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        <div className="card p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Booked Revenue</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            ${totalRevenue.toLocaleString()}
-          </p>
-        </div>
-        <div className="card p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Active Appointments</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            {totalConfirmed}
-          </p>
-        </div>
-        <div className="card p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Completed Visits</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            {totalCompleted}
-          </p>
-        </div>
-        <div className="card p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Active Specialists</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            {doctors.length}
-          </p>
-        </div>
+        {[
+          { label: "Booked Revenue", value: `$${totalRevenue.toLocaleString()}` },
+          { label: "Active Appointments", value: totalConfirmed },
+          { label: "Completed Visits", value: totalCompleted },
+          { label: "Active Specialists", value: doctors.length },
+        ].map((kpi, idx) => (
+          <RevealStagger key={kpi.label} index={idx}>
+            <div className="card card-interactive p-4">
+              <span className="text-xs text-slate-500 dark:text-slate-400">{kpi.label}</span>
+              <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
+                {kpi.value}
+              </p>
+            </div>
+          </RevealStagger>
+        ))}
       </div>
 
       {/* Practitioner Registry */}
-      <div className="card p-5 sm:p-6">
+      <RevealSection className="card p-5 sm:p-6">
         <div className="mb-4">
           <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">
             Practitioner Credentialing &amp; Fees
@@ -319,10 +317,10 @@ export default function AdminDashboardView() {
             </tbody>
           </table>
         </div>
-      </div>
+      </RevealSection>
 
       {/* Master Appointments Ledger */}
-      <div className="card p-5 sm:p-6">
+      <RevealSection delay={0.08} className="card p-5 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">
@@ -349,19 +347,50 @@ export default function AdminDashboardView() {
               />
             </div>
 
-            <select
+            <div
+              role="tablist"
               aria-label="Filter appointments by status"
-              value={appointmentFilter}
-              onChange={(e) => setAppointmentFilter(e.target.value)}
-              className="h-9 px-2.5 text-xs font-medium bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-slate-900 dark:text-slate-100 cursor-pointer"
+              className="inline-flex flex-wrap rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-0.5"
             >
-              <option value="All">All ({appointments.length})</option>
-              <option value="Confirmed">Confirmed ({totalConfirmed})</option>
-              <option value="Completed">Completed ({totalCompleted})</option>
-              <option value="Cancelled">Cancelled</option>
-            </select>
+              {(["All", "Confirmed", "Completed", "Cancelled"] as const).map((status) => {
+                const active = appointmentFilter === status;
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setAppointmentFilter(status)}
+                    className={`relative min-h-[34px] px-2.5 text-xs font-semibold rounded transition-colors duration-200 cursor-pointer ${
+                      active
+                        ? "text-slate-900 dark:text-slate-50"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                    }`}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="admin-appt-filter-pill"
+                        transition={SHARED_PILL_SPRING}
+                        className="absolute inset-0 rounded bg-white dark:bg-slate-800 shadow-xs"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <span className="relative z-10">{status}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
+
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={`${appointmentFilter}-${searchQuery.trim()}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={TAB_PANEL_TRANSITION}
+          >
 
         {/* Mobile Appointments Ledger Cards */}
         <div className="md:hidden space-y-3">
@@ -485,7 +514,9 @@ export default function AdminDashboardView() {
             </tbody>
           </table>
         </div>
-      </div>
+          </motion.div>
+        </AnimatePresence>
+      </RevealSection>
     </div>
   );
 }

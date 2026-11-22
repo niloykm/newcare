@@ -8,7 +8,10 @@ import { useStore, RoleType } from "@/store/useStore";
 import PatientDashboardView from "@/components/dashboard/PatientDashboardView";
 import DoctorDashboardView from "@/components/dashboard/DoctorDashboardView";
 import AdminDashboardView from "@/components/dashboard/AdminDashboardView";
-import { CLINICAL_EASE, SHARED_PILL_SPRING } from "@/components/MotionPrimitives";
+import {
+  SHARED_PILL_SPRING,
+  TAB_PANEL_TRANSITION,
+} from "@/components/MotionPrimitives";
 
 function TabParamSync({ onTab }: { onTab: (tab: RoleType) => void }) {
   const searchParams = useSearchParams();
@@ -103,10 +106,10 @@ export default function DashboardPage() {
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={TAB_PANEL_TRANSITION}
           >
             {activeTab === "patient" && <PatientDashboardView />}
             {activeTab === "doctor" && <DoctorDashboardView />}

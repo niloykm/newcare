@@ -6,6 +6,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useStore, StoredAppointment } from "@/store/useStore";
+import { RevealSection, RevealStagger } from "@/components/MotionPrimitives";
 
 export default function DoctorDashboardView() {
   const {
@@ -120,37 +121,45 @@ export default function DoctorDashboardView() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        <div className="card card-interactive p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Waiting in Queue</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            {todayConfirmed.length}
-          </p>
-        </div>
-        <div className="card card-interactive p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Completed Visits</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            {todayCompleted.length}
-          </p>
-        </div>
-        <div className="card card-interactive p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Consultation Fee</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            ${currentDoctor.consultationFee}
-          </p>
-        </div>
-        <div className="card card-interactive p-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Patient Rating</span>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
-            {currentDoctor.rating.toFixed(1)}
-            <span className="text-xs font-normal text-slate-500 ml-1">
-              ({currentDoctor.reviewsCount})
-            </span>
-          </p>
-        </div>
+        <RevealStagger index={0}>
+          <div className="card card-interactive p-4">
+            <span className="text-xs text-slate-500 dark:text-slate-400">Waiting in Queue</span>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
+              {todayConfirmed.length}
+            </p>
+          </div>
+        </RevealStagger>
+        <RevealStagger index={1}>
+          <div className="card card-interactive p-4">
+            <span className="text-xs text-slate-500 dark:text-slate-400">Completed Visits</span>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
+              {todayCompleted.length}
+            </p>
+          </div>
+        </RevealStagger>
+        <RevealStagger index={2}>
+          <div className="card card-interactive p-4">
+            <span className="text-xs text-slate-500 dark:text-slate-400">Consultation Fee</span>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
+              ${currentDoctor.consultationFee}
+            </p>
+          </div>
+        </RevealStagger>
+        <RevealStagger index={3}>
+          <div className="card card-interactive p-4">
+            <span className="text-xs text-slate-500 dark:text-slate-400">Patient Rating</span>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums mt-1">
+              {currentDoctor.rating.toFixed(1)}
+              <span className="text-xs font-normal text-slate-500 ml-1">
+                ({currentDoctor.reviewsCount})
+              </span>
+            </p>
+          </div>
+        </RevealStagger>
       </div>
 
       {/* Consultation Queue */}
-      <div className="card p-5 sm:p-6">
+      <RevealSection className="card p-5 sm:p-6">
         <div className="mb-4">
           <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">
             Patient Consultation Queue
@@ -409,7 +418,7 @@ export default function DoctorDashboardView() {
             </tbody>
           </table>
         </div>
-      </div>
+      </RevealSection>
 
       {/* Radix Dialog: Clinical Notes */}
       <Dialog.Root

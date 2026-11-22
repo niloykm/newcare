@@ -4,12 +4,16 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { Calendar, Clock, Download, MapPin, QrCode, Video, X } from "lucide-react";
 import api from "@/lib/api";
 import { useStore, StoredAppointment } from "@/store/useStore";
-import { SHARED_PILL_SPRING } from "@/components/MotionPrimitives";
+import {
+  RevealStagger,
+  SHARED_PILL_SPRING,
+  TAB_PANEL_TRANSITION,
+} from "@/components/MotionPrimitives";
 
 interface AppointmentItem {
   _id: string;
@@ -235,158 +239,171 @@ export default function MyAppointmentsPage() {
               <div key={n} className="card p-5 h-24 animate-pulse" />
             ))}
           </div>
-        ) : filteredAppointments.length === 0 ? (
-          <div className="card p-10 text-center max-w-md mx-auto my-8">
-            <Calendar className="w-8 h-8 text-slate-400 mx-auto mb-3" aria-hidden="true" />
-            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50 mb-1">
-              {statusFilter === "All"
-                ? "No appointments scheduled"
-                : `No ${statusFilter.toLowerCase()} appointments`}
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-              Browse our specialist directory to schedule an in-clinic or telehealth visit.
-            </p>
-            <Link href="/doctors" className="btn-primary">
-              Browse Specialists
-            </Link>
-          </div>
         ) : (
-          <div className="space-y-3.5">
-            {filteredAppointments.map((appt) => {
-              const isCancelled = appt.cancelled;
-              const isCompleted = appt.isCompleted;
-              const isConfirming = confirmCancelId === appt._id;
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={statusFilter}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={TAB_PANEL_TRANSITION}
+            >
+              {filteredAppointments.length === 0 ? (
+                <div className="card p-10 text-center max-w-md mx-auto my-8">
+                  <Calendar className="w-8 h-8 text-slate-400 mx-auto mb-3" aria-hidden="true" />
+                  <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50 mb-1">
+                    {statusFilter === "All"
+                      ? "No appointments scheduled"
+                      : `No ${statusFilter.toLowerCase()} appointments`}
+                  </h2>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+                    Browse our specialist directory to schedule an in-clinic or telehealth visit.
+                  </p>
+                  <Link href="/doctors" className="btn-primary">
+                    Browse Specialists
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3.5">
+                  {filteredAppointments.map((appt, idx) => {
+                    const isCancelled = appt.cancelled;
+                    const isCompleted = appt.isCompleted;
+                    const isConfirming = confirmCancelId === appt._id;
 
-              return (
-                <article
-                  key={appt._id}
-                  className="card card-interactive p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
-                >
-                  <div className="flex items-start gap-4 min-w-0">
-                    <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 shrink-0">
-                      <Image
-                        src={appt.docData?.image || "/assets/doc6.png"}
-                        alt={appt.docData?.name || "Physician"}
-                        fill
-                        sizes="56px"
-                        className="object-cover object-top"
-                        unoptimized
-                      />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 truncate">
-                          {appt.docData?.name || "Attending Physician"}
-                        </h2>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">
-                          {appt.docData?.speciality}
-                        </span>
-                        <span
-                          className={`badge-clinical ${
-                            isCancelled
-                              ? "badge-danger"
-                              : isCompleted
-                                ? "badge-verified"
-                                : "badge-info"
-                          }`}
+                    return (
+                      <RevealStagger key={appt._id} index={idx}>
+                        <article
+                          className="card card-interactive p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
                         >
-                          {isCancelled
-                            ? "Cancelled"
-                            : isCompleted
-                              ? "Completed"
-                              : "Confirmed"}
-                        </span>
-                      </div>
+                          <div className="flex items-start gap-4 min-w-0">
+                            <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 shrink-0">
+                              <Image
+                                src={appt.docData?.image || "/assets/doc6.png"}
+                                alt={appt.docData?.name || "Physician"}
+                                fill
+                                sizes="56px"
+                                className="object-cover object-top"
+                                unoptimized
+                              />
+                            </div>
 
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
-                        <span className="inline-flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
-                          <span className="font-medium text-slate-800 dark:text-slate-200 tabular-nums">
-                            {formatSlotDate(appt.slotDate)}
-                          </span>
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-                          <span className="font-medium text-slate-800 dark:text-slate-200 tabular-nums">
-                            {appt.slotTime}
-                          </span>
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
-                          <span className="truncate max-w-[220px]">
-                            {appt.docData?.address?.line1 || "NewCare Clinic"}
-                          </span>
-                        </span>
-                        <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
-                          ${appt.docData?.fees || appt.amount}
-                        </span>
-                      </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 truncate">
+                                  {appt.docData?.name || "Attending Physician"}
+                                </h2>
+                                <span className="text-xs text-slate-500 dark:text-slate-400">
+                                  {appt.docData?.speciality}
+                                </span>
+                                <span
+                                  className={`badge-clinical ${
+                                    isCancelled
+                                      ? "badge-danger"
+                                      : isCompleted
+                                        ? "badge-verified"
+                                        : "badge-info"
+                                  }`}
+                                >
+                                  {isCancelled
+                                    ? "Cancelled"
+                                    : isCompleted
+                                      ? "Completed"
+                                      : "Confirmed"}
+                                </span>
+                              </div>
 
-                      {appt.appointmentType === "online" &&
-                        appt.onlineInfo?.meetingLink &&
-                        !isCancelled && (
-                          <div className="mt-2 text-xs">
-                            <span className="inline-flex items-center gap-1.5 font-medium text-teal-700 dark:text-teal-400">
-                              <Video className="w-3.5 h-3.5" aria-hidden="true" />
-                              <span>Telehealth Visit Ready</span>
-                            </span>
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
+                                  <span className="font-medium text-slate-800 dark:text-slate-200 tabular-nums">
+                                    {formatSlotDate(appt.slotDate)}
+                                  </span>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+                                  <span className="font-medium text-slate-800 dark:text-slate-200 tabular-nums">
+                                    {appt.slotTime}
+                                  </span>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                  <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
+                                  <span className="truncate max-w-[220px]">
+                                    {appt.docData?.address?.line1 || "NewCare Clinic"}
+                                  </span>
+                                </span>
+                                <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+                                  ${appt.docData?.fees || appt.amount}
+                                </span>
+                              </div>
+
+                              {appt.appointmentType === "online" &&
+                                appt.onlineInfo?.meetingLink &&
+                                !isCancelled && (
+                                  <div className="mt-2 text-xs">
+                                    <span className="inline-flex items-center gap-1.5 font-medium text-teal-700 dark:text-teal-400">
+                                      <Video className="w-3.5 h-3.5" aria-hidden="true" />
+                                      <span>Telehealth Visit Ready</span>
+                                    </span>
+                                  </div>
+                                )}
+                            </div>
                           </div>
-                        )}
-                    </div>
-                  </div>
 
-                  <div className="flex flex-wrap items-center gap-2 shrink-0 justify-end pt-3 md:pt-0 border-t md:border-t-0 border-slate-200 dark:border-slate-800">
-                    {!isCancelled && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedPass(appt)}
-                        className="btn-secondary text-xs px-3"
-                      >
-                        <QrCode className="w-3.5 h-3.5" aria-hidden="true" />
-                        <span>View Pass</span>
-                      </button>
-                    )}
+                          <div className="flex flex-wrap items-center gap-2 shrink-0 justify-end pt-3 md:pt-0 border-t md:border-t-0 border-slate-200 dark:border-slate-800">
+                            {!isCancelled && (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedPass(appt)}
+                                className="btn-secondary text-xs px-3"
+                              >
+                                <QrCode className="w-3.5 h-3.5" aria-hidden="true" />
+                                <span>View Pass</span>
+                              </button>
+                            )}
 
-                    {isCancelled && (
-                      <Link href="/doctors" className="btn-secondary text-xs px-3">
-                        Rebook Visit
-                      </Link>
-                    )}
+                            {isCancelled && (
+                              <Link href="/doctors" className="btn-secondary text-xs px-3">
+                                Rebook Visit
+                              </Link>
+                            )}
 
-                    {!isCancelled && !isCompleted && (
-                      isConfirming ? (
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleConfirmCancel(appt._id)}
-                            className="min-h-[44px] px-3 rounded-md bg-red-700 hover:bg-red-800 text-white text-xs font-semibold cursor-pointer"
-                          >
-                            Confirm Cancel
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setConfirmCancelId(null)}
-                            className="btn-secondary text-xs px-2.5"
-                          >
-                            Keep
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setConfirmCancelId(appt._id)}
-                          className="btn-secondary text-xs px-3 text-red-700 dark:text-red-400"
-                        >
-                          Cancel
-                        </button>
-                      )
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                            {!isCancelled && !isCompleted && (
+                              isConfirming ? (
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleConfirmCancel(appt._id)}
+                                    className="min-h-[44px] px-3 rounded-md bg-red-700 hover:bg-red-800 text-white text-xs font-semibold cursor-pointer"
+                                  >
+                                    Confirm Cancel
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setConfirmCancelId(null)}
+                                    className="btn-secondary text-xs px-2.5"
+                                  >
+                                    Keep
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmCancelId(appt._id)}
+                                  className="btn-secondary text-xs px-3 text-red-700 dark:text-red-400"
+                                >
+                                  Cancel
+                                </button>
+                              )
+                            )}
+                          </div>
+                        </article>
+                      </RevealStagger>
+                    );
+                  })}
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         )}
       </section>
 

@@ -21,7 +21,11 @@ import {
   validatePhone,
   validateRequiredText,
 } from "@/lib/validation";
-import { CLINICAL_EASE, Reveal } from "@/components/MotionPrimitives";
+import {
+  CLINICAL_EASE,
+  RevealSection,
+  RevealStagger,
+} from "@/components/MotionPrimitives";
 
 type ContactField = "name" | "email" | "phone" | "message";
 
@@ -151,14 +155,14 @@ export default function ContactPage() {
           {/* Coordination Office Info */}
           <div className="md:col-span-5 flex flex-col justify-between gap-4">
             <div className="space-y-4">
-              <Reveal>
+              <RevealSection>
                 <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50">
                   Coordination Office
                 </h2>
-              </Reveal>
+              </RevealSection>
               <div className="space-y-3">
                 {contactDetails.map(({ icon: Icon, label, value, sub, isEmail }, idx) => (
-                  <Reveal key={label} delay={idx * 0.05}>
+                  <RevealStagger key={label} index={idx}>
                     <div className="card card-interactive p-4 flex items-start gap-3">
                       <span className="w-9 h-9 rounded-md bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-900 flex items-center justify-center text-teal-700 dark:text-teal-400 shrink-0">
                         <Icon className="w-4 h-4" aria-hidden="true" />
@@ -220,12 +224,12 @@ export default function ContactPage() {
                         </p>
                       </div>
                     </div>
-                  </Reveal>
+                  </RevealStagger>
                 ))}
               </div>
             </div>
 
-            <Reveal delay={0.14} className="space-y-3">
+            <RevealSection delay={0.18} className="space-y-3">
               <div className="card card-interactive p-4 space-y-2">
                 <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
                   Looking for immediate pricing or specialist slots?
@@ -258,11 +262,11 @@ export default function ContactPage() {
                 For life-threatening medical emergencies, please call 911 or go to the
                 nearest emergency department immediately.
               </p>
-            </Reveal>
+            </RevealSection>
           </div>
 
           {/* Intake Form */}
-          <Reveal delay={0.08} className="md:col-span-7 flex">
+          <RevealSection delay={0.1} className="md:col-span-7 flex">
             <div className="card p-6 w-full flex flex-col">
               <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50 mb-1">
                 Request RN Callback or Care Plan Review
@@ -494,7 +498,7 @@ export default function ContactPage() {
                 )}
               </AnimatePresence>
             </div>
-          </Reveal>
+          </RevealSection>
         </div>
       </section>
     </div>
