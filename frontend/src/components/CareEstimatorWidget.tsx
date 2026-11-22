@@ -19,6 +19,7 @@ import {
   validatePhone,
   validateRequiredText,
 } from "@/lib/validation";
+import { CLINICAL_EASE, SHARED_PILL_SPRING } from "@/components/MotionPrimitives";
 
 export { CARE_SERVICES } from "@/lib/careData";
 
@@ -148,9 +149,18 @@ export default function CareEstimatorWidget({
             Configure service level, shift length, and weekly schedule for an immediate written rate.
           </p>
         </div>
-        <span className="text-xs font-medium text-teal-700 dark:text-teal-400 tabular-nums shrink-0">
-          {currentRegion.availableCount} clinicians in {currentRegion.zip}
-        </span>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={currentRegion.zip}
+            initial={{ opacity: 0, y: 3 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -3 }}
+            transition={{ duration: 0.18, ease: CLINICAL_EASE }}
+            className="text-xs font-medium text-teal-700 dark:text-teal-400 tabular-nums shrink-0"
+          >
+            {currentRegion.availableCount} clinicians in {currentRegion.zip}
+          </motion.span>
+        </AnimatePresence>
       </div>
 
       {/* Controls Grid */}
@@ -174,9 +184,18 @@ export default function CareEstimatorWidget({
               </option>
             ))}
           </select>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-            Staffed by {currentService.clinicians}
-          </p>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.p
+              key={currentService.id}
+              initial={{ opacity: 0, y: 3 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -3 }}
+              transition={{ duration: 0.18, ease: CLINICAL_EASE }}
+              className="text-xs text-slate-500 dark:text-slate-400 mt-1.5"
+            >
+              Staffed by {currentService.clinicians}
+            </motion.p>
+          </AnimatePresence>
         </div>
 
         <div>
@@ -198,9 +217,18 @@ export default function CareEstimatorWidget({
               </option>
             ))}
           </select>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-            In-home RN intake included for this zone
-          </p>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.p
+              key={`${currentRegion.zip}-helper`}
+              initial={{ opacity: 0, y: 3 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -3 }}
+              transition={{ duration: 0.18, ease: CLINICAL_EASE }}
+              className="text-xs text-slate-500 dark:text-slate-400 mt-1.5"
+            >
+              In-home RN intake included · {currentRegion.dispatchWindow} dispatch
+            </motion.p>
+          </AnimatePresence>
         </div>
 
         {/* Shift Length */}
@@ -226,7 +254,7 @@ export default function CareEstimatorWidget({
                   {active && (
                     <motion.span
                       layoutId="estimator-shift-pill"
-                      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                      transition={SHARED_PILL_SPRING}
                       className="absolute inset-0 bg-teal-700 dark:bg-teal-500"
                       aria-hidden="true"
                     />
@@ -261,7 +289,7 @@ export default function CareEstimatorWidget({
                   {active && (
                     <motion.span
                       layoutId="estimator-freq-pill"
-                      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                      transition={SHARED_PILL_SPRING}
                       className="absolute inset-0 bg-teal-700 dark:bg-teal-500"
                       aria-hidden="true"
                     />
@@ -288,7 +316,7 @@ export default function CareEstimatorWidget({
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.18, ease: CLINICAL_EASE }}
                   className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 tabular-nums inline-block"
                 >
                   ${shiftCost}
@@ -298,11 +326,31 @@ export default function CareEstimatorWidget({
                 per {isLiveIn ? "24h live-in day" : `${currentShift.hours}-hour shift`}
               </span>
             </div>
-            {currentFreq.multiplier > 1 && (
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 tabular-nums">
-                ${estimatedWeeklyTotal.toLocaleString()}/wk · {currentFreq.multiplier} shifts
-              </p>
-            )}
+            <AnimatePresence mode="wait" initial={false}>
+              {currentFreq.multiplier > 1 ? (
+                <motion.p
+                  key={`${estimatedWeeklyTotal}-${currentFreq.multiplier}`}
+                  initial={{ opacity: 0, y: 3 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -3 }}
+                  transition={{ duration: 0.18, ease: CLINICAL_EASE }}
+                  className="text-xs text-slate-600 dark:text-slate-400 mt-1 tabular-nums"
+                >
+                  ${estimatedWeeklyTotal.toLocaleString()}/wk · {currentFreq.multiplier} shifts
+                </motion.p>
+              ) : (
+                <motion.p
+                  key="single-shift"
+                  initial={{ opacity: 0, y: 3 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -3 }}
+                  transition={{ duration: 0.18, ease: CLINICAL_EASE }}
+                  className="text-xs text-slate-600 dark:text-slate-400 mt-1 tabular-nums"
+                >
+                  Single scheduled shift · No ongoing minimum
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">

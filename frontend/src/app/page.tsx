@@ -20,6 +20,7 @@ import {
 } from "@/lib/careData";
 import DoctorCard from "@/components/DoctorCard";
 import CareEstimatorWidget from "@/components/CareEstimatorWidget";
+import { CLINICAL_EASE, Reveal } from "@/components/MotionPrimitives";
 
 export default function Home() {
   const [featuredDoctors, setFeaturedDoctors] = useState<DoctorProfile[]>(
@@ -98,34 +99,62 @@ export default function Home() {
     window.dispatchEvent(new CustomEvent("newcare:focus-estimator"));
   };
 
+  const handleViewCareRates = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    window.history.replaceState(null, "", "/#services");
+    const el = document.getElementById("services");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <div className="bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-slate-100">
       {/* 1. Focused Hero + Streamlined Interactive Care Estimator */}
       <section className="bg-white dark:bg-[#11161d] border-b border-slate-200 dark:border-slate-800 py-14 md:py-20">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-              className="lg:col-span-5 space-y-6 lg:pt-2"
-            >
-              <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400">
+            <div className="lg:col-span-5 space-y-6 lg:pt-2">
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.22, ease: CLINICAL_EASE }}
+                className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400"
+              >
                 Greater New York &amp; Tri-State Home Care
-              </p>
+              </motion.p>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-[2.65rem] font-semibold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.15]">
+              <motion.h1
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.24, delay: 0.04, ease: CLINICAL_EASE }}
+                className="text-3xl sm:text-4xl lg:text-[2.65rem] font-semibold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.15]"
+              >
                 In-home nursing and specialist care, coordinated by RNs
-              </h1>
+              </motion.h1>
 
-              <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.24, delay: 0.08, ease: CLINICAL_EASE }}
+                className="text-base text-slate-600 dark:text-slate-300 leading-relaxed"
+              >
                 Licensed nurses, certified caregivers, and board-certified physicians
                 working from one shared care plan. Transparent hourly rates, W-2 vetted
                 staff, and RN oversight without lock-in contracts.
-              </p>
+              </motion.p>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
-                <a href="#services" className="group btn-primary px-5">
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.22, delay: 0.12, ease: CLINICAL_EASE }}
+                className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1"
+              >
+                <a
+                  href="#services"
+                  onClick={handleViewCareRates}
+                  className="group btn-primary px-5"
+                >
                   <span>View Care Rates</span>
                   <ArrowRight
                     className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
@@ -135,9 +164,14 @@ export default function Home() {
                 <Link href="/doctors" className="btn-secondary px-5">
                   Browse Specialists
                 </Link>
-              </div>
+              </motion.div>
 
-              <ul className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2.5 text-sm text-slate-600 dark:text-slate-300">
+              <motion.ul
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.22, delay: 0.16, ease: CLINICAL_EASE }}
+                className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2.5 text-sm text-slate-600 dark:text-slate-300"
+              >
                 <li className="flex items-start gap-2.5">
                   <Check
                     className="w-4 h-4 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
@@ -159,14 +193,14 @@ export default function Home() {
                   />
                   <span>Itemized CMS-1500 invoices for Long-Term Care Insurance</span>
                 </li>
-              </ul>
-            </motion.div>
+              </motion.ul>
+            </div>
 
             <motion.div
               id="estimator"
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.26, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.26, delay: 0.1, ease: CLINICAL_EASE }}
               className={`lg:col-span-7 scroll-mt-24 rounded-lg transition-shadow duration-200 ${
                 estimatorHighlighted
                   ? "ring-2 ring-teal-700/40 dark:ring-teal-400/50 ring-offset-2 ring-offset-white dark:ring-offset-[#11161d]"
@@ -188,7 +222,7 @@ export default function Home() {
         className="py-16 md:py-24 border-b border-slate-200 dark:border-slate-800 scroll-mt-24"
       >
         <div className="container">
-          <div className="max-w-2xl mb-10">
+          <Reveal className="max-w-2xl mb-10">
             <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400 mb-2">
               Services &amp; Pricing
             </p>
@@ -199,41 +233,119 @@ export default function Home() {
               Every in-home plan includes an RN clinical intake, written care schedule,
               and Family Portal shift charting with zero surprise fees.
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {CARE_SERVICES.map((service) => (
-              <div
-                key={service.id}
-                className="card card-interactive p-6 flex flex-col justify-between"
-              >
+            {CARE_SERVICES.map((service, idx) => (
+              <Reveal key={service.id} delay={idx * 0.04} className="flex">
+                <div className="card card-interactive p-6 flex flex-col justify-between w-full">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 text-xs mb-3">
+                      <span className="font-semibold text-teal-700 dark:text-teal-400">
+                        {service.category}
+                      </span>
+                      <span className="text-slate-500 dark:text-slate-400">
+                        {service.clinicians}
+                      </span>
+                    </div>
+
+                    <h3 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50 mb-2">
+                      {service.name}
+                    </h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-5">
+                      {service.description}
+                    </p>
+
+                    <ul className="space-y-2 mb-6 text-xs text-slate-700 dark:text-slate-300">
+                      {service.protocols.map((proto) => (
+                        <li key={proto} className="flex items-start gap-2">
+                          <Check
+                            className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
+                            aria-hidden="true"
+                          />
+                          <span>{proto}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <div className="flex items-baseline justify-between gap-2 mb-4">
+                      <div>
+                        <span className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 tabular-nums">
+                          ${service.hourlyRate}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {" "}
+                          / hour
+                        </span>
+                      </div>
+                      {service.dailyLiveInRate && (
+                        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                          ${service.dailyLiveInRate}/24h live-in
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSelectServiceForEstimator(service.id)}
+                      className="group btn-secondary w-full text-sm"
+                    >
+                      <span>Estimate This Care</span>
+                      <ArrowRight
+                        className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+
+            {/* 6th Card: Board-Certified Physician Consultations */}
+            <Reveal delay={CARE_SERVICES.length * 0.04} className="flex">
+              <div className="card card-interactive p-6 flex flex-col justify-between w-full">
                 <div>
                   <div className="flex items-center justify-between gap-2 text-xs mb-3">
                     <span className="font-semibold text-teal-700 dark:text-teal-400">
-                      {service.category}
+                      Specialist Medicine
                     </span>
                     <span className="text-slate-500 dark:text-slate-400">
-                      {service.clinicians}
+                      ABMS Board-Certified MDs &amp; DOs
                     </span>
                   </div>
 
                   <h3 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50 mb-2">
-                    {service.name}
+                    Physician Consults &amp; Telehealth
                   </h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-5">
-                    {service.description}
+                    Direct in-clinic or video appointments for diagnosis, discharge
+                    follow-ups, prescriptions, and specialist care plans.
                   </p>
 
                   <ul className="space-y-2 mb-6 text-xs text-slate-700 dark:text-slate-300">
-                    {service.protocols.map((proto) => (
-                      <li key={proto} className="flex items-start gap-2">
-                        <Check
-                          className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
-                          aria-hidden="true"
-                        />
-                        <span>{proto}</span>
-                      </li>
-                    ))}
+                    <li className="flex items-start gap-2">
+                      <Check
+                        className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
+                        aria-hidden="true"
+                      />
+                      <span>NY State Medical License &amp; ABMS verified</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check
+                        className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
+                        aria-hidden="true"
+                      />
+                      <span>Encrypted HD telehealth or Manhattan clinic visit</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check
+                        className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
+                        aria-hidden="true"
+                      />
+                      <span>Synchronized with your NewCare Patient Portal</span>
+                    </li>
                   </ul>
                 </div>
 
@@ -241,105 +353,28 @@ export default function Home() {
                   <div className="flex items-baseline justify-between gap-2 mb-4">
                     <div>
                       <span className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 tabular-nums">
-                        ${service.hourlyRate}
+                        $45–$85
                       </span>
                       <span className="text-xs text-slate-500 dark:text-slate-400">
                         {" "}
-                        / hour
+                        / visit
                       </span>
                     </div>
-                    {service.dailyLiveInRate && (
-                      <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
-                        ${service.dailyLiveInRate}/24h live-in
-                      </span>
-                    )}
+                    <span className="text-xs font-medium text-teal-700 dark:text-teal-400">
+                      Same-day slots
+                    </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleSelectServiceForEstimator(service.id)}
-                    className="group btn-secondary w-full text-sm"
-                  >
-                    <span>Estimate This Care</span>
+                  <Link href="/doctors" className="group btn-primary w-full text-sm">
+                    <span>Browse Specialists</span>
                     <ArrowRight
                       className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
                       aria-hidden="true"
                     />
-                  </button>
+                  </Link>
                 </div>
               </div>
-            ))}
-
-            {/* 6th Card: Board-Certified Physician Consultations */}
-            <div className="card card-interactive p-6 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between gap-2 text-xs mb-3">
-                  <span className="font-semibold text-teal-700 dark:text-teal-400">
-                    Specialist Medicine
-                  </span>
-                  <span className="text-slate-500 dark:text-slate-400">
-                    ABMS Board-Certified MDs &amp; DOs
-                  </span>
-                </div>
-
-                <h3 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50 mb-2">
-                  Physician Consults &amp; Telehealth
-                </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-5">
-                  Direct in-clinic or video appointments for diagnosis, discharge
-                  follow-ups, prescriptions, and specialist care plans.
-                </p>
-
-                <ul className="space-y-2 mb-6 text-xs text-slate-700 dark:text-slate-300">
-                  <li className="flex items-start gap-2">
-                    <Check
-                      className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
-                      aria-hidden="true"
-                    />
-                    <span>NY State Medical License &amp; ABMS verified</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check
-                      className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
-                      aria-hidden="true"
-                    />
-                    <span>Encrypted HD telehealth or Manhattan clinic visit</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check
-                      className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
-                      aria-hidden="true"
-                    />
-                    <span>Synchronized with your NewCare Patient Portal</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-                <div className="flex items-baseline justify-between gap-2 mb-4">
-                  <div>
-                    <span className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 tabular-nums">
-                      $45–$85
-                    </span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                      {" "}
-                      / visit
-                    </span>
-                  </div>
-                  <span className="text-xs font-medium text-teal-700 dark:text-teal-400">
-                    Same-day slots
-                  </span>
-                </div>
-
-                <Link href="/doctors" className="group btn-primary w-full text-sm">
-                  <span>Browse Specialists</span>
-                  <ArrowRight
-                    className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
-                    aria-hidden="true"
-                  />
-                </Link>
-              </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
@@ -352,7 +387,7 @@ export default function Home() {
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             {/* Left: 3-Step Workflow */}
-            <div className="lg:col-span-6">
+            <Reveal className="lg:col-span-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400 mb-2">
                 How Care Starts
               </p>
@@ -385,10 +420,10 @@ export default function Home() {
                   </li>
                 ))}
               </ol>
-            </div>
+            </Reveal>
 
             {/* Right: Clinical Vetting & Safety Ledger */}
-            <div className="lg:col-span-6">
+            <Reveal delay={0.08} className="lg:col-span-6">
               <div className="card card-interactive rounded-lg bg-slate-50 dark:bg-[#0b0f14] p-6 sm:p-8">
                 <div className="flex items-center gap-2.5 mb-2">
                   <ShieldCheck
@@ -430,7 +465,7 @@ export default function Home() {
                   </Link>
                 </div>
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
@@ -438,7 +473,7 @@ export default function Home() {
       {/* 4. Featured Board-Certified Specialists */}
       <section className="py-16 md:py-24 border-b border-slate-200 dark:border-slate-800">
         <div className="container">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+          <Reveal className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400 mb-2">
                 Physician Network
@@ -461,11 +496,13 @@ export default function Home() {
                 aria-hidden="true"
               />
             </Link>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {featuredDoctors.map((doctor) => (
-              <DoctorCard key={doctor.id || doctor._id} doctor={doctor} />
+            {featuredDoctors.map((doctor, idx) => (
+              <Reveal key={doctor.id || doctor._id} delay={idx * 0.05}>
+                <DoctorCard doctor={doctor} />
+              </Reveal>
             ))}
           </div>
         </div>
@@ -475,7 +512,7 @@ export default function Home() {
       <section className="bg-white dark:bg-[#11161d] py-16 md:py-24">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-            <div className="lg:col-span-4 space-y-4">
+            <Reveal className="lg:col-span-4 space-y-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400">
                 Common Questions
               </p>
@@ -495,9 +532,9 @@ export default function Home() {
                   />
                 </Link>
               </div>
-            </div>
+            </Reveal>
 
-            <div className="lg:col-span-8 divide-y divide-slate-200 dark:divide-slate-800 border-y border-slate-200 dark:border-slate-800">
+            <Reveal delay={0.06} className="lg:col-span-8 divide-y divide-slate-200 dark:divide-slate-800 border-y border-slate-200 dark:border-slate-800">
               {CLINICAL_FAQS.map((item) => {
                 const isOpen = openFaqId === item.id;
                 const panelId = `faq-panel-${item.id}`;
@@ -512,7 +549,7 @@ export default function Home() {
                     >
                       <span>{item.question}</span>
                       <ChevronDown
-                        className={`w-4 h-4 shrink-0 text-slate-500 transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                        className={`w-4 h-4 shrink-0 text-slate-500 transition-transform duration-240 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                           isOpen ? "rotate-180 text-teal-700 dark:text-teal-400" : ""
                         }`}
                         aria-hidden="true"
@@ -526,7 +563,7 @@ export default function Home() {
                           initial={{ opacity: 0, y: -6 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -4 }}
-                          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                          transition={{ duration: 0.24, ease: CLINICAL_EASE }}
                           className="pb-5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed pr-8"
                         >
                           {item.answer}
@@ -536,7 +573,7 @@ export default function Home() {
                   </div>
                 );
               })}
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>

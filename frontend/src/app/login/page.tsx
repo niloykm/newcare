@@ -18,6 +18,7 @@ import {
   Activity,
 } from "lucide-react";
 import api from "@/lib/api";
+import { CLINICAL_EASE, SHARED_PILL_SPRING } from "@/components/MotionPrimitives";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -280,7 +281,7 @@ function LoginForm() {
                         {active && (
                           <motion.span
                             layoutId="auth-mode-pill"
-                            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                            transition={SHARED_PILL_SPRING}
                             className="absolute inset-0 rounded bg-white dark:bg-slate-800 shadow-xs"
                             aria-hidden="true"
                           />

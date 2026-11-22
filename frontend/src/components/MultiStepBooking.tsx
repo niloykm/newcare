@@ -26,6 +26,7 @@ import {
   validatePhone,
   validateRequiredText,
 } from "@/lib/validation";
+import { CLINICAL_EASE, SHARED_PILL_SPRING } from "@/components/MotionPrimitives";
 
 interface MultiStepBookingProps {
   doctor: DoctorProfile;
@@ -404,15 +405,23 @@ export default function MultiStepBooking({ doctor }: MultiStepBookingProps) {
                       type="button"
                       aria-pressed={isSelected}
                       onClick={() => setSelectedDayIndex(index)}
-                      className={`min-h-[64px] py-2 px-1.5 rounded-md border text-center transition-[transform,translate,scale,background-color,border-color,color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] flex flex-col items-center justify-center cursor-pointer ${
+                      className={`relative overflow-hidden min-h-[64px] py-2 px-1.5 rounded-md border text-center transition-[transform,translate,scale,border-color,color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] flex flex-col items-center justify-center cursor-pointer ${
                         isSelected
-                          ? "bg-teal-700 dark:bg-teal-400 border-teal-700 dark:border-teal-400 text-white dark:text-slate-950 shadow-xs"
+                          ? "border-teal-700 dark:border-teal-400 text-white dark:text-slate-950 shadow-xs"
                           : "bg-white dark:bg-[#11161d] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-teal-600/60 dark:hover:border-teal-400/60"
                       }`}
                     >
-                      <span className="text-[11px] font-medium opacity-80">{d.dayName}</span>
-                      <span className="text-base font-semibold tabular-nums">{d.dayNumber}</span>
-                      <span className="text-[10px] opacity-80">{d.month}</span>
+                      {isSelected && (
+                        <motion.span
+                          layoutId="booking-date-pill"
+                          transition={SHARED_PILL_SPRING}
+                          className="absolute inset-0 bg-teal-700 dark:bg-teal-400"
+                          aria-hidden="true"
+                        />
+                      )}
+                      <span className="relative z-10 text-[11px] font-medium opacity-80">{d.dayName}</span>
+                      <span className="relative z-10 text-base font-semibold tabular-nums">{d.dayNumber}</span>
+                      <span className="relative z-10 text-[10px] opacity-80">{d.month}</span>
                     </button>
                   );
                 })}
@@ -432,14 +441,22 @@ export default function MultiStepBooking({ doctor }: MultiStepBookingProps) {
                       type="button"
                       aria-pressed={isSelected}
                       onClick={() => setSelectedSlot(slot)}
-                      className={`min-h-[44px] px-3 rounded-md border text-xs font-semibold tabular-nums transition-[transform,translate,scale,background-color,border-color,color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] flex items-center justify-center gap-1.5 cursor-pointer ${
+                      className={`relative overflow-hidden min-h-[44px] px-3 rounded-md border text-xs font-semibold tabular-nums transition-[transform,translate,scale,border-color,color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] flex items-center justify-center gap-1.5 cursor-pointer ${
                         isSelected
-                          ? "bg-teal-700 dark:bg-teal-400 border-teal-700 dark:border-teal-400 text-white dark:text-slate-950 shadow-xs"
+                          ? "border-teal-700 dark:border-teal-400 text-white dark:text-slate-950 shadow-xs"
                           : "bg-white dark:bg-[#11161d] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-teal-600/60 dark:hover:border-teal-400/60"
                       }`}
                     >
-                      <Clock className="w-3.5 h-3.5 opacity-75" aria-hidden="true" />
-                      <span>{slot}</span>
+                      {isSelected && (
+                        <motion.span
+                          layoutId="booking-slot-pill"
+                          transition={SHARED_PILL_SPRING}
+                          className="absolute inset-0 bg-teal-700 dark:bg-teal-400"
+                          aria-hidden="true"
+                        />
+                      )}
+                      <Clock className="relative z-10 w-3.5 h-3.5 opacity-75" aria-hidden="true" />
+                      <span className="relative z-10">{slot}</span>
                     </button>
                   );
                 })}

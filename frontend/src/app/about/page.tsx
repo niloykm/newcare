@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { VETTING_STANDARDS } from "@/lib/careData";
+import { Reveal } from "@/components/MotionPrimitives";
 
 export default function AboutPage() {
   const principles = [
@@ -45,7 +46,7 @@ export default function AboutPage() {
       {/* Main Content */}
       <section className="container max-w-4xl pt-12 space-y-14">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
-          <div className="md:col-span-6 space-y-4">
+          <Reveal className="md:col-span-6 space-y-4">
             <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
               Built for families managing real transitions of care
             </h2>
@@ -71,55 +72,61 @@ export default function AboutPage() {
                 Contact Intake Desk
               </Link>
             </div>
-          </div>
+          </Reveal>
 
-          <div className="md:col-span-6 card card-interactive p-6">
-            <div className="flex items-center gap-2 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
-              <ShieldCheck
-                className="w-5 h-5 text-teal-700 dark:text-teal-400 shrink-0"
-                aria-hidden="true"
-              />
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                Clinical Vetting Checklist
-              </h2>
+          <Reveal delay={0.08} className="md:col-span-6">
+            <div className="card card-interactive p-6">
+              <div className="flex items-center gap-2 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
+                <ShieldCheck
+                  className="w-5 h-5 text-teal-700 dark:text-teal-400 shrink-0"
+                  aria-hidden="true"
+                />
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                  Clinical Vetting Checklist
+                </h2>
+              </div>
+
+              <ul className="space-y-3">
+                {VETTING_STANDARDS.map((item) => (
+                  <li key={item.label} className="flex items-start gap-2.5 text-sm">
+                    <Check
+                      className="w-4 h-4 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">
+                        {item.label}
+                      </p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                        {item.detail}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
-
-            <ul className="space-y-3">
-              {VETTING_STANDARDS.map((item) => (
-                <li key={item.label} className="flex items-start gap-2.5 text-sm">
-                  <Check
-                    className="w-4 h-4 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
-                    aria-hidden="true"
-                  />
-                  <div>
-                    <p className="font-semibold text-slate-900 dark:text-slate-100">
-                      {item.label}
-                    </p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                      {item.detail}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+          </Reveal>
         </div>
 
         {/* Core Principles */}
         <div className="pt-10 border-t border-slate-200 dark:border-slate-800">
-          <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 mb-6">
-            Operating Principles
-          </h2>
+          <Reveal>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 mb-6">
+              Operating Principles
+            </h2>
+          </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {principles.map((p) => (
-              <div key={p.title} className="card card-interactive p-5">
-                <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                  {p.title}
-                </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {p.description}
-                </p>
-              </div>
+            {principles.map((p, idx) => (
+              <Reveal key={p.title} delay={idx * 0.05} className="flex">
+                <div className="card card-interactive p-5 w-full">
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                    {p.title}
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {p.description}
+                  </p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>

@@ -20,6 +20,7 @@ import {
   normalizeApiDoctor,
 } from "@/data/doctorsData";
 import DoctorCard from "@/components/DoctorCard";
+import { SHARED_PILL_SPRING } from "@/components/MotionPrimitives";
 
 const SPECIALTY_OPTIONS = [
   "All Specialties",
@@ -274,7 +275,7 @@ export default function DoctorsPage() {
                       {active && (
                         <motion.span
                           layoutId="consult-format-pill"
-                          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                          transition={SHARED_PILL_SPRING}
                           className="absolute inset-0 rounded bg-white dark:bg-slate-800 shadow-xs"
                           aria-hidden="true"
                         />

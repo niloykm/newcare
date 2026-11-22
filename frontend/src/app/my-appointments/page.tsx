@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { Calendar, Clock, Download, MapPin, QrCode, Video, X } from "lucide-react";
 import api from "@/lib/api";
 import { useStore, StoredAppointment } from "@/store/useStore";
+import { SHARED_PILL_SPRING } from "@/components/MotionPrimitives";
 
 interface AppointmentItem {
   _id: string;
@@ -214,7 +215,7 @@ export default function MyAppointmentsPage() {
                   {active && (
                     <motion.span
                       layoutId="appointments-filter-pill"
-                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                      transition={SHARED_PILL_SPRING}
                       className="absolute inset-0 rounded bg-white dark:bg-slate-800 shadow-xs"
                       aria-hidden="true"
                     />

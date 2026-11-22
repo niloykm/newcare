@@ -17,6 +17,7 @@ import {
   Activity,
 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
+import { SHARED_PILL_SPRING } from "./MotionPrimitives";
 import toast from "react-hot-toast";
 
 interface UserProfile {
@@ -159,7 +160,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Navigation (5 concise links with sliding underline) */}
+          {/* Desktop Navigation (5 concise links with shared-element active underline) */}
           <div className="hidden md:flex items-center gap-7">
             {NAV_LINKS.map((link) => {
               const active = isLinkActive(link.match);
@@ -167,19 +168,27 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  data-active={active ? "true" : "false"}
+                  aria-current={active ? "page" : undefined}
                   onClick={
                     link.href === "/#services"
                       ? (e) => handleHomeAnchorClick(e, "services")
                       : undefined
                   }
-                  className={`nav-underline text-sm font-medium transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                  className={`relative py-1 text-sm font-medium transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                     active
                       ? "text-teal-700 dark:text-teal-400 font-semibold"
-                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                      : "nav-underline text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
-                  {link.label}
+                  <span>{link.label}</span>
+                  {active && (
+                    <motion.span
+                      layoutId="nav-active-underline"
+                      transition={SHARED_PILL_SPRING}
+                      className="absolute left-0 right-0 -bottom-[2px] h-[2px] rounded-full bg-teal-700 dark:bg-teal-400"
+                      aria-hidden="true"
+                    />
+                  )}
                 </Link>
               );
             })}

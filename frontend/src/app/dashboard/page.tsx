@@ -8,6 +8,7 @@ import { useStore, RoleType } from "@/store/useStore";
 import PatientDashboardView from "@/components/dashboard/PatientDashboardView";
 import DoctorDashboardView from "@/components/dashboard/DoctorDashboardView";
 import AdminDashboardView from "@/components/dashboard/AdminDashboardView";
+import { CLINICAL_EASE, SHARED_PILL_SPRING } from "@/components/MotionPrimitives";
 
 function TabParamSync({ onTab }: { onTab: (tab: RoleType) => void }) {
   const searchParams = useSearchParams();
@@ -86,7 +87,7 @@ export default function DashboardPage() {
                   {isActive && (
                     <motion.span
                       layoutId="portal-tab-pill"
-                      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                      transition={SHARED_PILL_SPRING}
                       className="absolute inset-0 rounded bg-teal-700 dark:bg-teal-400"
                       aria-hidden="true"
                     />
