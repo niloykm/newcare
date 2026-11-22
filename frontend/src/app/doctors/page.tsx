@@ -2,13 +2,22 @@
 
 import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 import {
-  Search, Filter, X, Stethoscope, Video, MapPin,
-  CheckCircle2, SlidersHorizontal, RefreshCw, Calendar, Clock
+  Search,
+  X,
+  Stethoscope,
+  Video,
+  MapPin,
+  RefreshCw,
 } from "lucide-react";
 import api from "@/lib/api";
-import { FALLBACK_DOCTORS, DoctorProfile, matchesSpecialty } from "@/data/doctorsData";
+import {
+  ApiDoctorRecord,
+  DoctorProfile,
+  FALLBACK_DOCTORS,
+  matchesSpecialty,
+  normalizeApiDoctor,
+} from "@/data/doctorsData";
 import DoctorCard from "@/components/DoctorCard";
 
 const SPECIALTY_OPTIONS = [
@@ -26,7 +35,12 @@ const SPECIALTY_OPTIONS = [
 function SearchParamsSync({
   onParams,
 }: {
-  onParams: (params: { specialty?: string; search?: string; type?: string; available?: string }) => void;
+  onParams: (params: {
+    specialty?: string;
+    search?: string;
+    type?: string;
+    available?: string;
+  }) => void;
 }) {
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -40,120 +54,90 @@ function SearchParamsSync({
   return null;
 }
 
-/* Layout-accurate skeleton loader matching exact dimensions of DoctorCard row */
-function DoctorRowSkeleton() {
-  return (
-    <div className="card p-4 sm:p-5 flex flex-col gap-3 animate-pulse">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-neutral-200 dark:bg-neutral-800 shrink-0" />
-          <div className="space-y-2 flex-1">
-            <div className="h-5 w-48 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
-            <div className="h-3.5 w-64 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
-            <div className="h-3 w-40 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-20 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
-          <div className="h-9 w-32 bg-neutral-200 dark:bg-neutral-800 rounded-lg" />
-        </div>
-      </div>
-      <div className="h-8 w-full bg-neutral-100 dark:bg-neutral-800/60 rounded-lg" />
-    </div>
-  );
-}
-
 export default function DoctorsPage() {
   const [doctors, setDoctors] = useState<DoctorProfile[]>(FALLBACK_DOCTORS);
-  const [loading, setLoading] = useState(false);
-
-  // Filters
   const [search, setSearch] = useState("");
   const [specialty, setSpecialty] = useState("All Specialties");
-  const [consultType, setConsultType] = useState<string>("all");
+  const [consultType, setConsultType] = useState<"all" | "video" | "in-person">("all");
   const [availableTodayOnly, setAvailableTodayOnly] = useState(false);
   const [sortBy, setSortBy] = useState("rating-desc");
 
-  const handleParamsSync = useCallback((params: { specialty?: string; search?: string; type?: string; available?: string }) => {
-    if (params.specialty) setSpecialty(params.specialty);
-    if (params.search) setSearch(params.search);
-    if (params.type) setConsultType(params.type);
-    if (params.available === "today") setAvailableTodayOnly(true);
-  }, []);
+  const handleParamsSync = useCallback(
+    (params: {
+      specialty?: string;
+      search?: string;
+      type?: string;
+      available?: string;
+    }) => {
+      if (params.specialty) setSpecialty(params.specialty);
+      if (params.search) setSearch(params.search);
+      if (params.type === "video" || params.type === "in-person") {
+        setConsultType(params.type);
+      }
+      if (params.available === "today") setAvailableTodayOnly(true);
+    },
+    []
+  );
 
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const res = await api.get("/api/doctor/list");
+        const res = await api.get<{ success?: boolean; doctors?: ApiDoctorRecord[] }>(
+          "/api/doctor/list"
+        );
         if (res.data?.success && Array.isArray(res.data.doctors) && res.data.doctors.length > 0) {
-          const apiList = res.data.doctors.map((d: any) => {
-            const fallbackMatch = FALLBACK_DOCTORS.find((f) => f.id === d._id || f._id === d._id);
-            return {
-              ...fallbackMatch,
-              ...d,
-              id: d._id || d.id || fallbackMatch?.id,
-              specialty: d.speciality || d.specialty || fallbackMatch?.specialty || "General Physician",
-              degree: d.degree || fallbackMatch?.degree || "MBBS, MD",
-              experienceYears: d.experience || fallbackMatch?.experienceYears || 6,
-              consultationFee: d.fees || fallbackMatch?.consultationFee || 50,
-              avatarUrl: d.image || fallbackMatch?.avatarUrl || "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=600",
-              isAvailableToday: d.available !== false,
-              hospitalName: fallbackMatch?.hospitalName || "NewCare Medical Center",
-              rating: fallbackMatch?.rating || 4.9,
-              reviewsCount: fallbackMatch?.reviewsCount || 120,
-              availableSlots: fallbackMatch?.availableSlots || ["09:30 AM", "11:00 AM", "02:30 PM", "04:30 PM"],
-            };
+          const normalized = res.data.doctors.map((raw, idx) => {
+            const match =
+              FALLBACK_DOCTORS.find((f) => f.id === raw._id || f.id === raw.id) ||
+              FALLBACK_DOCTORS[idx % FALLBACK_DOCTORS.length];
+            return normalizeApiDoctor(raw, match);
           });
-          setDoctors(apiList);
+          setDoctors(normalized);
         }
       } catch {
-        // Fallback data already active
+        // Fallback profiles already populated
       }
     };
     fetchDoctors();
   }, []);
 
-  // Client-side filtering & sorting
   const filteredDoctors = useMemo(() => {
     return doctors
       .filter((doc) => {
         if (specialty !== "All Specialties" && !matchesSpecialty(doc.specialty, specialty)) {
           return false;
         }
-
         if (availableTodayOnly && !doc.isAvailableToday && !doc.available) {
           return false;
         }
-
         if (consultType === "video") {
           const types = doc.consultationTypes || ["HD Video Consultation", "In-Clinic Visit"];
           if (!types.some((t) => t.toLowerCase().includes("video"))) return false;
         } else if (consultType === "in-person") {
           const types = doc.consultationTypes || ["In-Clinic Visit"];
-          if (!types.some((t) => t.toLowerCase().includes("clinic") || t.toLowerCase().includes("person"))) return false;
+          if (!types.some((t) => t.toLowerCase().includes("clinic"))) return false;
         }
-
         if (search.trim()) {
           const q = search.trim().toLowerCase();
-          const nameMatch = doc.name.toLowerCase().includes(q);
-          const specMatch = doc.specialty.toLowerCase().includes(q);
-          const degreeMatch = (doc.degree || "").toLowerCase().includes(q);
-          const hospMatch = (doc.hospitalName || "").toLowerCase().includes(q);
-          if (!nameMatch && !specMatch && !degreeMatch && !hospMatch) {
-            return false;
-          }
+          const haystack = `${doc.name} ${doc.specialty} ${doc.degree} ${doc.hospitalName}`.toLowerCase();
+          if (!haystack.includes(q)) return false;
         }
-
         return true;
       })
       .sort((a, b) => {
-        if (sortBy === "rating-desc") return (b.rating || 0) - (a.rating || 0);
-        if (sortBy === "experience-desc") return (b.experienceYears || 0) - (a.experienceYears || 0);
-        if (sortBy === "fee-asc") return (a.consultationFee || 0) - (b.consultationFee || 0);
-        if (sortBy === "fee-desc") return (b.consultationFee || 0) - (a.consultationFee || 0);
+        if (sortBy === "rating-desc") return b.rating - a.rating;
+        if (sortBy === "experience-desc") return b.experienceYears - a.experienceYears;
+        if (sortBy === "fee-asc") return a.consultationFee - b.consultationFee;
+        if (sortBy === "fee-desc") return b.consultationFee - a.consultationFee;
         return 0;
       });
   }, [doctors, specialty, availableTodayOnly, consultType, search, sortBy]);
+
+  const hasActiveFilters =
+    specialty !== "All Specialties" ||
+    consultType !== "all" ||
+    availableTodayOnly ||
+    search.trim().length > 0;
 
   const handleResetFilters = () => {
     setSpecialty("All Specialties");
@@ -164,162 +148,160 @@ export default function DoctorsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 pb-16">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-slate-100 pb-20">
       <Suspense fallback={null}>
         <SearchParamsSync onParams={handleParamsSync} />
       </Suspense>
 
-      {/* Directory Header Bar */}
-      <div className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 py-6 sm:py-8">
+      {/* Header */}
+      <section className="bg-white dark:bg-[#11161d] border-b border-slate-200 dark:border-slate-800 py-10 md:py-12">
         <div className="container">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 mb-2">
-                <span>Clinical Practitioner Directory</span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
-                Accredited Medical Specialists
+              <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400 mb-2">
+                Physician Network
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                Board-Certified Specialist Directory
               </h1>
-              <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
-                Showing <span className="font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">{filteredDoctors.length}</span> verified physicians ready for consultation
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1.5">
+                Showing{" "}
+                <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+                  {filteredDoctors.length}
+                </span>{" "}
+                NY-licensed physicians available for in-clinic and telehealth visits.
               </p>
             </div>
 
-            {/* Keyword Search Input */}
             <div className="w-full md:w-80">
-              <label htmlFor="search-clinician" className="block text-xs font-semibold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-1">
-                Filter by Keyword
+              <label
+                htmlFor="search-clinician"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+              >
+                Search Specialists
               </label>
               <div className="relative flex items-center">
-                <Search className="w-4 h-4 text-neutral-400 absolute left-3 pointer-events-none" />
+                <Search
+                  className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none"
+                  aria-hidden="true"
+                />
                 <input
                   id="search-clinician"
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Doctor name, hospital, credential..."
-                  className="w-full h-10 pl-9 pr-8 text-xs sm:text-sm bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100 focus:outline-none"
+                  placeholder="Name, specialty, or clinic..."
+                  className="input pl-9 pr-9"
                 />
                 {search && (
                   <button
+                    type="button"
                     onClick={() => setSearch("")}
                     aria-label="Clear search"
-                    className="absolute right-2.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 p-0.5"
+                    className="absolute right-2.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" aria-hidden="true" />
                   </button>
                 )}
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Structural Filter Toolbar */}
-      <div className="bg-white dark:bg-neutral-900/90 border-b border-neutral-200 dark:border-neutral-800 py-3 sticky top-0 z-30 shadow-xs">
+      {/* Filter Bar */}
+      <div className="bg-white/95 dark:bg-[#11161d]/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 py-3.5 sticky top-16 z-30">
         <div className="container">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            {/* Filter Controls */}
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Specialty selector */}
-              <div>
-                <select
-                  value={specialty}
-                  onChange={(e) => setSpecialty(e.target.value)}
-                  aria-label="Filter by specialty"
-                  className="h-9 px-3 text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100 focus:outline-none cursor-pointer"
-                >
-                  {SPECIALTY_OPTIONS.map((spec) => (
-                    <option key={spec} value={spec} className="bg-white dark:bg-neutral-900">
-                      {spec}
-                    </option>
-                  ))}
-                </select>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <select
+                value={specialty}
+                onChange={(e) => setSpecialty(e.target.value)}
+                aria-label="Filter by specialty"
+                className="min-h-[40px] px-3 text-xs font-semibold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 cursor-pointer"
+              >
+                {SPECIALTY_OPTIONS.map((spec) => (
+                  <option key={spec} value={spec}>
+                    {spec}
+                  </option>
+                ))}
+              </select>
+
+              <div
+                role="group"
+                aria-label="Consultation format"
+                className="inline-flex rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-0.5"
+              >
+                {(
+                  [
+                    { id: "all", label: "All Formats" },
+                    { id: "video", label: "Telehealth", icon: Video },
+                    { id: "in-person", label: "In-Clinic", icon: MapPin },
+                  ] as const
+                ).map((item) => {
+                  const active = consultType === item.id;
+                  const Icon = "icon" in item ? item.icon : null;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setConsultType(item.id)}
+                      className={`min-h-[36px] inline-flex items-center gap-1.5 px-3 text-xs font-semibold rounded transition-colors cursor-pointer ${
+                        active
+                          ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-50 shadow-xs"
+                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                      }`}
+                    >
+                      {Icon && <Icon className="w-3.5 h-3.5" aria-hidden="true" />}
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Consultation Format Chips */}
-              <div className="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setConsultType("all")}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
-                    consultType === "all"
-                      ? "bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-xs"
-                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
-                  }`}
-                >
-                  All Formats
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConsultType("video")}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
-                    consultType === "video"
-                      ? "bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-xs"
-                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
-                  }`}
-                >
-                  <Video className="w-3.5 h-3.5" />
-                  <span>Telehealth</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConsultType("in-person")}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
-                    consultType === "in-person"
-                      ? "bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-xs"
-                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
-                  }`}
-                >
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>In-Clinic</span>
-                </button>
-              </div>
-
-              {/* Available Today Toggle */}
               <button
                 type="button"
-                onClick={() => setAvailableTodayOnly(!availableTodayOnly)}
-                className={`inline-flex items-center gap-1.5 h-9 px-3 text-xs font-semibold rounded-lg border transition-colors ${
+                aria-pressed={availableTodayOnly}
+                onClick={() => setAvailableTodayOnly((prev) => !prev)}
+                className={`min-h-[40px] inline-flex items-center gap-2 px-3 text-xs font-semibold rounded-md border transition-colors cursor-pointer ${
                   availableTodayOnly
-                    ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
-                    : "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                    ? "bg-teal-50 dark:bg-teal-950/60 border-teal-300 dark:border-teal-800 text-teal-800 dark:text-teal-300"
+                    : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <span
                   className={`w-2 h-2 rounded-full ${
-                    availableTodayOnly ? "bg-emerald-600 dark:bg-emerald-400" : "bg-neutral-400"
+                    availableTodayOnly ? "bg-teal-700 dark:bg-teal-400" : "bg-slate-400"
                   }`}
                 />
                 <span>Available Today</span>
               </button>
             </div>
 
-            {/* Sort & Reset Actions */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 hidden sm:inline">
-                Sort by:
-              </span>
+              <label htmlFor="sort-doctors" className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                Sort:
+              </label>
               <select
+                id="sort-doctors"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                aria-label="Sort doctors"
-                className="h-9 px-3 text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100 focus:outline-none cursor-pointer"
+                className="min-h-[40px] px-3 text-xs font-semibold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 cursor-pointer"
               >
-                <option value="rating-desc" className="bg-white dark:bg-neutral-900">Highest Rated (★ 5.0)</option>
-                <option value="experience-desc" className="bg-white dark:bg-neutral-900">Most Experienced</option>
-                <option value="fee-asc" className="bg-white dark:bg-neutral-900">Fee: Low to High</option>
-                <option value="fee-desc" className="bg-white dark:bg-neutral-900">Fee: High to Low</option>
+                <option value="rating-desc">Highest Rated</option>
+                <option value="experience-desc">Most Experienced</option>
+                <option value="fee-asc">Fee: Low to High</option>
+                <option value="fee-desc">Fee: High to Low</option>
               </select>
 
-              {(specialty !== "All Specialties" || consultType !== "all" || availableTodayOnly || search) && (
+              {hasActiveFilters && (
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="inline-flex items-center gap-1 h-9 px-2.5 text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 border border-neutral-200 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 transition-colors"
-                  title="Reset all active filters"
+                  className="min-h-[40px] inline-flex items-center gap-1.5 px-3 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 cursor-pointer"
                 >
-                  <RefreshCw className="w-3 h-3" />
+                  <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Reset</span>
                 </button>
               )}
@@ -328,53 +310,31 @@ export default function DoctorsPage() {
         </div>
       </div>
 
-      {/* Main List Container */}
-      <main className="container pt-6">
-        {loading ? (
-          <div className="flex flex-col gap-3">
-            <DoctorRowSkeleton />
-            <DoctorRowSkeleton />
-            <DoctorRowSkeleton />
-          </div>
-        ) : filteredDoctors.length === 0 ? (
-          /* Purposeful Zero-State with Recovery Actions */
-          <div className="card p-8 sm:p-12 text-center max-w-lg mx-auto my-8">
-            <div className="w-12 h-12 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-500 mx-auto mb-4">
-              <Stethoscope className="w-6 h-6" />
+      {/* Directory Grid */}
+      <section className="container pt-8">
+        {filteredDoctors.length === 0 ? (
+          <div className="card p-10 text-center max-w-lg mx-auto my-10">
+            <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 mx-auto mb-4">
+              <Stethoscope className="w-6 h-6" aria-hidden="true" />
             </div>
-            <h2 className="text-base sm:text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-1.5">
-              No Doctors Match Current Filter Criteria
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-1.5">
+              No specialists match your filters
             </h2>
-            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-6 leading-relaxed">
-              We couldn&apos;t find any doctors matching your selected criteria
-              {specialty !== "All Specialties" && <span> for <strong>{specialty}</strong></span>}
-              {availableTodayOnly && <span> with immediate same-day availability</span>}.
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+              Try clearing one or more filters to see available board-certified physicians.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="btn-primary text-xs px-4 py-2"
-              >
-                Clear All Filters
-              </button>
-              <button
-                type="button"
-                onClick={() => setAvailableTodayOnly(false)}
-                className="btn-secondary text-xs px-4 py-2"
-              >
-                View Next Available Dates
-              </button>
-            </div>
+            <button type="button" onClick={handleResetFilters} className="btn-primary">
+              Clear All Filters
+            </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {filteredDoctors.map((doctor) => (
               <DoctorCard key={doctor.id || doctor._id} doctor={doctor} />
             ))}
           </div>
         )}
-      </main>
+      </section>
     </div>
   );
 }

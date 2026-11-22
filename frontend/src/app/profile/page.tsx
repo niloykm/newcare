@@ -1,10 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import axios from "axios";
 import toast from "react-hot-toast";
-import { User, Phone, MapPin, Mail, Calendar, Sparkles, UploadCloud, Edit3, Save } from "lucide-react";
+import {
+  User,
+  Phone,
+  MapPin,
+  Mail,
+  Calendar,
+  UploadCloud,
+  Edit3,
+  Save,
+} from "lucide-react";
 import api from "@/lib/api";
 
 interface UserData {
@@ -29,45 +39,44 @@ export default function ProfilePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const res = await api.get("/api/user/get-profile");
       if (res.data.success) {
-        const u = res.data.userData;
+        const u = res.data.userData as UserData;
         if (!u.address) {
           u.address = { line1: "", line2: "" };
         } else if (typeof u.address === "string") {
           try {
-            u.address = JSON.parse(u.address);
+            u.address = JSON.parse(u.address) as { line1: string; line2: string };
           } catch {
-            u.address = { line1: u.address, line2: "" };
+            u.address = { line1: String(u.address), line2: "" };
           }
         }
         setUserData(u);
-        localStorage.setItem("userData", JSON.stringify({
-          name: u.name,
-          email: u.email,
-          image: u.image || "",
-        }));
+        localStorage.setItem(
+          "userData",
+          JSON.stringify({ name: u.name, email: u.email, image: u.image || "" })
+        );
         window.dispatchEvent(new Event("authChange"));
       } else {
-        toast.error(res.data.message || "Failed to load profile data");
+        toast.error(res.data.message || "Failed to load profile.");
       }
-    } catch (err: any) {
-      toast.error("Failed to connect to server");
+    } catch {
+      toast.error("Please sign in to view your profile.");
       router.push("/login");
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+    const file = e.target.files?.[0];
+    if (file) {
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
@@ -80,8 +89,11 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append("name", userData.name || "");
       formData.append("phone", userData.phone || "");
-      formData.append("address", JSON.stringify(userData.address || { line1: "", line2: "" }));
-      formData.append("gender", userData.gender || "Male");
+      formData.append(
+        "address",
+        JSON.stringify(userData.address || { line1: "", line2: "" })
+      );
+      formData.append("gender", userData.gender || "Female");
       formData.append("dob", userData.dob || "");
       if (selectedFile) {
         formData.append("image", selectedFile);
@@ -92,11 +104,10 @@ export default function ProfilePage() {
       });
 
       if (res.data.success) {
-        toast.success("Profile updated successfully!");
+        toast.success("Profile updated.");
         setIsEdit(false);
         setSelectedFile(null);
         setPreviewUrl(null);
-        // Update localStorage userData cache with updated info
         const updatedUser = {
           name: userData.name,
           email: userData.email,
@@ -106,10 +117,13 @@ export default function ProfilePage() {
         window.dispatchEvent(new Event("authChange"));
         fetchProfile();
       } else {
-        toast.error(res.data.message || "Failed to update profile");
+        toast.error(res.data.message || "Failed to update profile.");
       }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to save profile. Please check size/format.");
+    } catch (err: unknown) {
+      const msg = axios.isAxiosError<{ message?: string }>(err)
+        ? err.response?.data?.message || "Failed to save profile."
+        : "Failed to save profile.";
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -117,79 +131,84 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div className="pulse-dot" style={{ width: 12, height: 12, borderRadius: "50%", background: "var(--primary)" }} />
+      <div className="min-h-[60vh] flex items-center justify-center text-sm text-slate-500">
+        Loading profile...
       </div>
     );
   }
 
   if (!userData) {
     return (
-      <div style={{ minHeight: "80vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem" }}>
-        <p style={{ color: "var(--text-secondary)" }}>Please log in to view your profile</p>
-        <button onClick={() => router.push("/login")} className="btn-primary">Go to Login</button>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Sign in to access your patient profile.
+        </p>
+        <button type="button" onClick={() => router.push("/login")} className="btn-primary">
+          Go to Sign In
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 py-8 pb-16">
-      <div className="container max-w-3xl">
-        {/* Profile Card Header */}
-        <div className="card p-6 mb-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-            {/* Profile image picker */}
-            <div className="relative">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 relative bg-neutral-100 dark:bg-neutral-900">
-                <Image
-                  src={previewUrl || userData.image || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop"}
-                  alt="User photo"
-                  fill
-                  className="object-cover"
-                  unoptimized
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-slate-100 py-10 pb-20">
+      <div className="container max-w-3xl space-y-6">
+        <div className="card p-6 flex flex-col sm:flex-row items-center sm:items-start gap-5">
+          <div className="relative shrink-0">
+            <div className="w-20 h-20 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 relative bg-slate-100 dark:bg-slate-900">
+              <Image
+                src={previewUrl || userData.image || "/assets/profile_pic.png"}
+                alt={userData.name}
+                fill
+                sizes="80px"
+                className="object-cover object-top"
+                unoptimized
+              />
+            </div>
+            {isEdit && (
+              <label
+                htmlFor="profile-avatar-upload"
+                className="absolute -bottom-1.5 -right-1.5 bg-teal-700 hover:bg-teal-800 text-white w-8 h-8 rounded-md flex items-center justify-center cursor-pointer border-2 border-white dark:border-[#11161d] transition-colors"
+                title="Upload profile photo"
+              >
+                <UploadCloud className="w-4 h-4" aria-hidden="true" />
+                <input
+                  type="file"
+                  id="profile-avatar-upload"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
                 />
-              </div>
-              {isEdit && (
-                <label
-                  htmlFor="fileInput"
-                  className="absolute -bottom-1 -right-1 bg-sky-600 hover:bg-sky-700 text-white w-7 h-7 rounded-md flex items-center justify-center cursor-pointer shadow-xs border border-white dark:border-neutral-900 transition-colors"
-                  title="Upload avatar"
-                >
-                  <UploadCloud size={14} />
-                  <input
-                    type="file"
-                    id="fileInput"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                  />
-                </label>
-              )}
-            </div>
+              </label>
+            )}
+          </div>
 
-            <div className="flex-1 text-center sm:text-left min-w-0">
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 mb-1.5">
-                <span>Patient Account</span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 truncate">
-                {userData.name}
-              </h1>
-              <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
-                Synchronized personal intake & healthcare record details
-              </p>
-            </div>
+          <div className="flex-1 text-center sm:text-left min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400">
+              Patient Profile
+            </p>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 truncate mt-0.5">
+              {userData.name}
+            </h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
+              Personal contact details used for appointments and in-home care coordination.
+            </p>
           </div>
         </div>
 
-        {/* Content card */}
-        <div className="card p-6 sm:p-8">
+        <div className="card p-6 sm:p-7">
           {isEdit ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              {/* Edit Mode */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "6px" }}>Full Name</label>
+                  <label
+                    htmlFor="profile-name"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Full Name
+                  </label>
                   <input
+                    id="profile-name"
                     type="text"
                     value={userData.name}
                     onChange={(e) => setUserData({ ...userData, name: e.target.value })}
@@ -197,31 +216,48 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "6px" }}>Phone Number</label>
+                  <label
+                    htmlFor="profile-phone"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Phone Number
+                  </label>
                   <input
-                    type="text"
+                    id="profile-phone"
+                    type="tel"
                     value={userData.phone || ""}
                     onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
                     className="input"
-                    placeholder="e.g. +1 (555) 019-2834"
+                    placeholder="(212) 555-0192"
                   />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "6px" }}>Gender</label>
-                  <select
-                    value={userData.gender || "Male"}
-                    onChange={(e) => setUserData({ ...userData, gender: e.target.value })}
-                    className="input"
-                    style={{ background: "var(--bg-secondary)", cursor: "pointer" }}
+                  <label
+                    htmlFor="profile-gender"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
                   >
-                    <option value="Male">Male</option>
+                    Gender
+                  </label>
+                  <select
+                    id="profile-gender"
+                    value={userData.gender || "Female"}
+                    onChange={(e) => setUserData({ ...userData, gender: e.target.value })}
+                    className="input cursor-pointer"
+                  >
                     <option value="Female">Female</option>
+                    <option value="Male">Male</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "6px" }}>Date of Birth</label>
+                  <label
+                    htmlFor="profile-dob"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Date of Birth
+                  </label>
                   <input
+                    id="profile-dob"
                     type="date"
                     value={userData.dob || ""}
                     onChange={(e) => setUserData({ ...userData, dob: e.target.value })}
@@ -230,36 +266,54 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "6px" }}>Address Line 1</label>
-                <input
-                  type="text"
-                  value={userData.address.line1 || ""}
-                  onChange={(e) => setUserData({
-                    ...userData,
-                    address: { ...userData.address, line1: e.target.value }
-                  })}
-                  className="input"
-                  placeholder="Street address, P.O. box"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="profile-line1"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Street Address
+                  </label>
+                  <input
+                    id="profile-line1"
+                    type="text"
+                    value={userData.address.line1 || ""}
+                    onChange={(e) =>
+                      setUserData({
+                        ...userData,
+                        address: { ...userData.address, line1: e.target.value },
+                      })
+                    }
+                    className="input"
+                    placeholder="Street address"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="profile-line2"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Apartment / City / ZIP
+                  </label>
+                  <input
+                    id="profile-line2"
+                    type="text"
+                    value={userData.address.line2 || ""}
+                    onChange={(e) =>
+                      setUserData({
+                        ...userData,
+                        address: { ...userData.address, line2: e.target.value },
+                      })
+                    }
+                    className="input"
+                    placeholder="Apt, City, NY ZIP"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "6px" }}>Address Line 2</label>
-                <input
-                  type="text"
-                  value={userData.address.line2 || ""}
-                  onChange={(e) => setUserData({
-                    ...userData,
-                    address: { ...userData.address, line2: e.target.value }
-                  })}
-                  className="input"
-                  placeholder="Apartment, suite, unit, building, floor, etc."
-                />
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "1rem" }}>
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                 <button
+                  type="button"
                   onClick={() => {
                     setIsEdit(false);
                     setSelectedFile(null);
@@ -271,79 +325,92 @@ export default function ProfilePage() {
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={handleSave}
                   className="btn-primary"
                   disabled={saving}
-                  style={{ opacity: saving ? 0.7 : 1 }}
                 >
-                  <Save size={16} /> {saving ? "Saving..." : "Save Changes"}
+                  <Save className="w-4 h-4" aria-hidden="true" />
+                  <span>{saving ? "Saving..." : "Save Changes"}</span>
                 </button>
               </div>
             </div>
           ) : (
             <div>
-              {/* View Mode */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "2.5rem" }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div>
-                  <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text)", borderBottom: "1px solid var(--border)", paddingBottom: "8px", marginBottom: "1rem" }}>Contact Details</h3>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <Mail size={16} style={{ color: "var(--primary)" }} />
+                  <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 pb-2 mb-4 border-b border-slate-200 dark:border-slate-800">
+                    Contact Details
+                  </h2>
+                  <dl className="space-y-4 text-sm">
+                    <div className="flex items-start gap-3">
+                      <Mail className="w-4 h-4 text-teal-700 dark:text-teal-400 mt-0.5 shrink-0" aria-hidden="true" />
                       <div>
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Email Address</p>
-                        <p style={{ fontSize: "0.875rem", color: "var(--text)", fontWeight: 500 }}>{userData.email}</p>
+                        <dt className="text-xs text-slate-500 dark:text-slate-400">Email</dt>
+                        <dd className="font-medium text-slate-900 dark:text-slate-100">{userData.email}</dd>
                       </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <Phone size={16} style={{ color: "var(--primary)" }} />
+                    <div className="flex items-start gap-3">
+                      <Phone className="w-4 h-4 text-teal-700 dark:text-teal-400 mt-0.5 shrink-0" aria-hidden="true" />
                       <div>
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Phone Number</p>
-                        <p style={{ fontSize: "0.875rem", color: "var(--text)", fontWeight: 500 }}>{userData.phone || "Not provided"}</p>
+                        <dt className="text-xs text-slate-500 dark:text-slate-400">Phone</dt>
+                        <dd className="font-medium text-slate-900 dark:text-slate-100 tabular-nums">
+                          {userData.phone || "Not provided"}
+                        </dd>
                       </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
-                      <MapPin size={16} style={{ color: "var(--primary)", marginTop: "4px" }} />
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-4 h-4 text-teal-700 dark:text-teal-400 mt-0.5 shrink-0" aria-hidden="true" />
                       <div>
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Address</p>
-                        <p style={{ fontSize: "0.875rem", color: "var(--text)", fontWeight: 500, lineHeight: 1.4 }}>
+                        <dt className="text-xs text-slate-500 dark:text-slate-400">Address</dt>
+                        <dd className="font-medium text-slate-900 dark:text-slate-100">
                           {userData.address.line1 ? (
                             <>
                               {userData.address.line1}
-                              {userData.address.line2 && <><br />{userData.address.line2}</>}
+                              {userData.address.line2 && (
+                                <span className="block">{userData.address.line2}</span>
+                              )}
                             </>
                           ) : (
                             "Not provided"
                           )}
-                        </p>
+                        </dd>
                       </div>
                     </div>
-                  </div>
+                  </dl>
                 </div>
 
                 <div>
-                  <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text)", borderBottom: "1px solid var(--border)", paddingBottom: "8px", marginBottom: "1rem" }}>Personal Information</h3>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <User size={16} style={{ color: "var(--primary)" }} />
+                  <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 pb-2 mb-4 border-b border-slate-200 dark:border-slate-800">
+                    Personal Information
+                  </h2>
+                  <dl className="space-y-4 text-sm">
+                    <div className="flex items-start gap-3">
+                      <User className="w-4 h-4 text-teal-700 dark:text-teal-400 mt-0.5 shrink-0" aria-hidden="true" />
                       <div>
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Gender</p>
-                        <p style={{ fontSize: "0.875rem", color: "var(--text)", fontWeight: 500 }}>{userData.gender || "Not specified"}</p>
+                        <dt className="text-xs text-slate-500 dark:text-slate-400">Gender</dt>
+                        <dd className="font-medium text-slate-900 dark:text-slate-100">
+                          {userData.gender || "Not specified"}
+                        </dd>
                       </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <Calendar size={16} style={{ color: "var(--primary)" }} />
+                    <div className="flex items-start gap-3">
+                      <Calendar className="w-4 h-4 text-teal-700 dark:text-teal-400 mt-0.5 shrink-0" aria-hidden="true" />
                       <div>
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Date of Birth</p>
-                        <p style={{ fontSize: "0.875rem", color: "var(--text)", fontWeight: 500 }}>{userData.dob || "Not provided"}</p>
+                        <dt className="text-xs text-slate-500 dark:text-slate-400">Date of Birth</dt>
+                        <dd className="font-medium text-slate-900 dark:text-slate-100 tabular-nums">
+                          {userData.dob || "Not provided"}
+                        </dd>
                       </div>
                     </div>
-                  </div>
+                  </dl>
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "2rem", borderTop: "1px solid var(--border)", paddingTop: "1.5rem" }}>
-                <button onClick={() => setIsEdit(true)} className="btn-primary">
-                  <Edit3 size={16} /> Edit Profile
+              <div className="flex justify-end mt-6 pt-5 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" onClick={() => setIsEdit(true)} className="btn-primary">
+                  <Edit3 className="w-4 h-4" aria-hidden="true" />
+                  <span>Edit Profile</span>
                 </button>
               </div>
             </div>

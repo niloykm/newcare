@@ -1,152 +1,126 @@
 "use client";
 
 import Link from "next/link";
-import { ShieldCheck, Award, Heart, Users, CheckCircle2, ArrowRight, FileCheck, Phone, Check } from "lucide-react";
+import { ArrowRight, Check, ShieldCheck } from "lucide-react";
+import { VETTING_STANDARDS } from "@/lib/careData";
 
 export default function AboutPage() {
-  const stats = [
-    { label: "FBI Fingerprint Cleared", value: "100%" },
-    { label: "Caregiver Applicant Acceptance", value: "4.8%" },
-    { label: "Supervisory RN Coverage", value: "24/7" },
-    { label: "Liability & Bond Coverage", value: "$2M" },
-  ];
-
-  const values = [
+  const principles = [
     {
-      icon: ShieldCheck,
       title: "Primary-Source Credential Verification",
-      desc: "Every nurse, caregiver, and physician in our registry is verified directly against official State Boards of Nursing and State Medical Licensing Registries prior to assignment.",
+      description:
+        "Every nurse, home health aide, and attending physician is verified directly against New York State licensing registries and ABMS board records prior to scheduling.",
     },
     {
-      icon: Heart,
-      title: "Patient & Family Focused Transparency",
-      desc: "Transparent hourly rates with zero surprise medical bills or binding multi-month contracts. Transparent electronic daily care logs accessible on the Family Portal.",
+      title: "Transparent Rates & Shared Charting",
+      description:
+        "Families receive written hourly or live-in pricing upfront with zero multi-month contracts, plus electronic shift notes and vitals inside the Patient Portal.",
     },
     {
-      icon: Award,
-      title: "Supervised Clinical Care Standards",
-      desc: "Caregivers operate under active supervisory Registered Nurse protocols with regular in-home audits, structured medication checklists, and infection control compliance.",
+      title: "Continuous RN Supervision",
+      description:
+        "In-home care plans are authored and periodically audited by supervisory Registered Nurses with clear escalation pathways to board-certified physicians.",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 pb-16">
-      {/* Clinical Header */}
-      <div className="bg-white dark:bg-neutral-900 border-b border-slate-200 dark:border-zinc-800 py-10 sm:py-14">
-        <div className="container max-w-4xl text-center">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-teal-50 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 mb-3">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Clinical Governance & Care Standards</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50 mb-3">
-            Verified In-Home Care & Clinical Nursing
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-slate-100 pb-20">
+      {/* Header */}
+      <section className="bg-white dark:bg-[#11161d] border-b border-slate-200 dark:border-slate-800 py-14 md:py-20">
+        <div className="container max-w-4xl">
+          <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400 mb-3">
+            About NewCare
+          </p>
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 leading-tight mb-4">
+            Clinical governance for in-home care and specialist medicine
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 max-w-2xl mx-auto leading-relaxed">
-            NewCare is a clinical home health and caregiving platform providing vetted in-home nurses, certified companions, and board-certified medical specialists across Greater New York and the Tri-State area.
+          <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
+            NewCare coordinates RN-supervised in-home nursing, dementia and post-surgical
+            caregiving, and board-certified physician consultations across Greater New York
+            and the Tri-State area.
           </p>
         </div>
-      </div>
+      </section>
 
-      {/* Main Narrative & Real Clinical Verification UI Artifact */}
-      <div className="container max-w-4xl pt-10 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mb-12">
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50">
-              Transforming Home Care with Clinical Oversight
+      {/* Main Content */}
+      <section className="container max-w-4xl pt-12 space-y-14">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
+          <div className="md:col-span-6 space-y-4">
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+              Built for families managing real transitions of care
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 leading-relaxed">
-              Finding trustworthy care for an aging parent, recovering family member, or medically complex child shouldn't depend on unvetted online registries or opaque agencies.
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Arranging safe home support after an orthopedic surgery, hospitalization, or
+              memory-care diagnosis should not require navigating unvetted marketplaces or
+              opaque agency contracts.
             </p>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 leading-relaxed">
-              NewCare bridges the gap with W-2 bonded care professionals, strict primary-source state licensing validation, FBI fingerprinting, and real-time electronic shift charting directed by supervisory Registered Nurses.
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Every NewCare clinician is W-2 employed, bonded, background-screened, and
+              connected to our supervisory nursing desk so your household and your doctors
+              always share an accurate care record.
             </p>
-            <div className="pt-2 flex flex-wrap gap-2">
-              <Link href="/#services" className="btn-primary text-xs sm:text-sm px-4 py-2 font-semibold">
-                <span>View Care Services & Rates</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link href="/#services" className="btn-primary text-sm">
+                <span>View Care Services</span>
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </Link>
-              <a href="tel:18001234567" className="btn-secondary text-xs sm:text-sm px-4 py-2 font-semibold">
-                <Phone className="w-3.5 h-3.5 mr-1" />
-                <span>Call 24/7 Dispatch</span>
-              </a>
+              <Link href="/contact" className="btn-secondary text-sm">
+                Contact Intake Desk
+              </Link>
             </div>
           </div>
 
-          {/* Real Functional UI Artifact: Clinical Vetting Protocol Ledger */}
-          <div className="card p-5 bg-white dark:bg-neutral-900 border-slate-200 dark:border-zinc-800 shadow-sm space-y-3">
-            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-zinc-800">
-              <div className="flex items-center gap-2">
-                <FileCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-zinc-50">
-                  NewCare Vetting Protocol #NC-892
-                </span>
-              </div>
-              <span className="badge-clinical badge-verified text-[10px]">
-                Active Standard
-              </span>
+          <div className="md:col-span-6 card p-6">
+            <div className="flex items-center gap-2 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
+              <ShieldCheck
+                className="w-5 h-5 text-teal-700 dark:text-teal-400 shrink-0"
+                aria-hidden="true"
+              />
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                Clinical Vetting Checklist
+              </h2>
             </div>
 
-            <div className="space-y-2 text-xs">
-              {[
-                { label: "FBI Fingerprint Background", status: "100% Cleared", pass: true },
-                { label: "Primary-Source License Validation", status: "State Board Confirmed", pass: true },
-                { label: "OIG / HHS Exclusion Screening", status: "Zero Sanctions", pass: true },
-                { label: "Practical Skills Simulation", status: "In-Person Pass", pass: true },
-                { label: "Communicable Disease (TB/HepB)", status: "Screened & Verified", pass: true },
-                { label: "Professional Malpractice Coverage", status: "$2M Policy Active", pass: true },
-              ].map(({ label, status }) => (
-                <div key={label} className="p-2 rounded bg-slate-50 dark:bg-zinc-800/60 border border-slate-100 dark:border-zinc-800 flex items-center justify-between">
-                  <span className="text-slate-700 dark:text-zinc-300 font-medium">{label}</span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                    <Check className="w-3 h-3 stroke-[2]" />
-                    {status}
-                  </span>
-                </div>
+            <ul className="space-y-3">
+              {VETTING_STANDARDS.map((item) => (
+                <li key={item.label} className="flex items-start gap-2.5 text-sm">
+                  <Check
+                    className="w-4 h-4 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5"
+                    aria-hidden="true"
+                  />
+                  <div>
+                    <p className="font-semibold text-slate-900 dark:text-slate-100">
+                      {item.label}
+                    </p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                      {item.detail}
+                    </p>
+                  </div>
+                </li>
               ))}
-            </div>
-
-            <p className="text-[11px] text-slate-500 dark:text-zinc-400 pt-1 italic">
-              Caregiver credential ledger updated automatically across all active shifts.
-            </p>
+            </ul>
           </div>
         </div>
 
-        {/* Clinical Metrics */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-12">
-          {stats.map(({ label, value }) => (
-            <div key={label} className="card p-4 text-center bg-white dark:bg-neutral-900 border-slate-200 dark:border-zinc-800">
-              <div className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50 tabular-nums">
-                {value}
-              </div>
-              <div className="text-xs font-medium text-slate-500 dark:text-zinc-400 mt-1">
-                {label}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Core Clinical Values */}
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-zinc-50 mb-4">
-            Our Core Clinical Principles
+        {/* Core Principles */}
+        <div className="pt-10 border-t border-slate-200 dark:border-slate-800">
+          <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 mb-6">
+            Operating Principles
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {values.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="card p-4 bg-white dark:bg-neutral-900 border-slate-200 dark:border-zinc-800">
-                <div className="w-8 h-8 rounded-md bg-teal-50 dark:bg-teal-950/60 flex items-center justify-center text-teal-700 dark:text-teal-400 mb-3 border border-teal-200 dark:border-teal-800">
-                  <Icon className="w-4 h-4 stroke-[1.5]" />
-                </div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-100 mb-1.5">
-                  {title}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {principles.map((p) => (
+              <div key={p.title} className="card p-5">
+                <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  {p.title}
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
-                  {desc}
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {p.description}
                 </p>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

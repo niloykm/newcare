@@ -1,169 +1,173 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('NewCare Healthcare & Caregiver Overhaul - Clinical Standards', () => {
+const CORE_ROUTES = [
+  "/",
+  "/doctors",
+  "/doctors/doc-1",
+  "/dashboard",
+  "/about",
+  "/contact",
+  "/login",
+];
 
-  test('1. Value Proposition & Hero Section Verification', async ({ page }) => {
-    await page.goto('/');
+test.describe("NewCare Clinical Overhaul — UI, Accessibility & Engineering QA", () => {
+  test("1. Clean Header, Zero Floating Widgets & Coherent US Identity across routes", async ({
+    page,
+  }) => {
+    const consoleErrors: string[] = [];
+    const pageErrors: string[] = [];
 
-    // Clinical Trust Indicators (Above the fold)
-    await expect(page.getByText('100% Background-Checked Caregivers • Licensed Clinical RNs')).toBeVisible();
+    page.on("console", (msg) => {
+      if (msg.type() === "error") consoleErrors.push(msg.text());
+    });
+    page.on("pageerror", (err) => pageErrors.push(err.message));
 
-    // Utility-driven Headline & Subheadline
-    await expect(page.locator('h1')).toContainText('Verified In-Home Care & Professional Nursing Support');
-    await expect(page.getByText('dispatched directly to your residence')).toBeVisible();
+    for (const route of CORE_ROUTES) {
+      await page.goto(route, { waitUntil: "domcontentloaded" });
+      await expect(page.locator("main")).toHaveCount(1);
 
-    // Dual action buttons
-    await expect(page.getByRole('link', { name: 'Book Care Today' }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: 'How We Vet Caregivers' }).first()).toBeVisible();
+      // No floating Role Switcher widget
+      await expect(page.locator('aside[aria-label="Role Switcher"]')).toHaveCount(0);
 
-    // Clinical microcopy guarantees
-    await expect(page.getByText('On-demand dispatch available in under 4 hours')).toBeVisible();
-    await expect(page.getByText('Zero multi-month lock-in contracts')).toBeVisible();
+      // Zero broken/placeholder hrefs
+      const badLinks = await page.evaluate(() => {
+        const anchors = Array.from(document.querySelectorAll("a"));
+        return anchors
+          .map((a) => a.getAttribute("href") || "")
+          .filter(
+            (href) =>
+              href === "#" ||
+              href.includes("about:invalid") ||
+              href.includes("18001234567")
+          );
+      });
+      expect(badLinks, `Invalid hrefs found on ${route}`).toEqual([]);
+
+      // Zero contradictory credentials or fake phone numbers in visible text
+      const bodyText = await page.evaluate(() => document.body.innerText);
+      expect(bodyText, `BMDC leak on ${route}`).not.toMatch(/\bBMDC\b/);
+      expect(bodyText, `MBBS leak on ${route}`).not.toMatch(/\bMBBS\b/);
+      expect(bodyText, `FCPS leak on ${route}`).not.toMatch(/\bFCPS\b/);
+      expect(bodyText, `Fake hotline leak on ${route}`).not.toContain("(800) 123-4567");
+      expect(bodyText, `John Doe leak on ${route}`).not.toContain("John Doe");
+    }
+
+    // Filter out expected network-offline errors from external API backend if unreachable in local test
+    const criticalConsoleErrors = consoleErrors.filter(
+      (msg) => !msg.includes("newcarebackend.vercel.app") && !msg.includes("ERR_NAME_NOT_RESOLVED")
+    );
+    expect(criticalConsoleErrors).toEqual([]);
+    expect(pageErrors).toEqual([]);
   });
 
-  test('2. Interactive Care Estimation & Booking Preview Widget', async ({ page }) => {
-    await page.goto('/');
+  test("2. Interactive Care Estimator, Service Card Linking & Radix Assessment Dialog", async ({
+    page,
+  }) => {
+    await page.goto("/");
 
-    // Check Estimator is present in Hero
-    await expect(page.getByRole('heading', { name: 'Interactive Care Estimation & Booking' })).toBeVisible();
+    // Clicking a service card button selects that service in the estimator
+    const servicesSection = page.locator("#services");
+    await servicesSection.getByRole("button", { name: "Estimate This Care" }).nth(1).click();
+    await expect(page.locator("#care-service-select")).toHaveValue("elderly-dementia");
 
-    // Test Service Selector change
-    const careSelect = page.locator('#care-service-select');
-    await expect(careSelect).toBeVisible();
-    await careSelect.selectOption('elderly-dementia');
+    // 8-hour shift at $32/hr = $256
+    await expect(page.locator("#estimator").getByText("$256")).toBeVisible();
 
-    // Verify rate updates ($32/hr * 8h = $256)
-    await expect(page.getByText('$256')).toBeVisible();
+    // Switch to 12-Hour Shift -> $384
+    await page.getByRole("button", { name: "12-Hour Shift" }).click();
+    await expect(page.locator("#estimator").getByText("$384")).toBeVisible();
 
-    // Open Assessment Modal
-    await page.getByRole('button', { name: 'Schedule Free Assessment' }).click();
-    await expect(page.locator('#modal-title')).toBeVisible();
+    // Open Radix Assessment Dialog
+    await page.getByRole("button", { name: "Request RN Assessment" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
 
-    // Fill intake form
-    await page.fill('#patient-name-input', 'Martha Washington');
-    await page.fill('#phone-input', '(555) 234-5678');
-    await page.getByRole('button', { name: 'Submit Care Request' }).click();
+    // Submit empty form to test field-level validation
+    await dialog.getByRole("button", { name: "Submit Care Request" }).click();
+    await expect(dialog.locator("#patient-name-input")).toHaveAttribute("aria-invalid", "true");
+    await expect(dialog.locator("#phone-input")).toHaveAttribute("aria-invalid", "true");
 
-    // Confirm reference code is generated
-    await expect(page.getByText('Care Inquiry Dispatched')).toBeVisible();
-    await expect(page.getByText(/NC-CARE-/).first()).toBeVisible();
+    // Fill valid values and submit
+    await dialog.locator("#patient-name-input").fill("Eleanor Vance");
+    await dialog.locator("#phone-input").fill("(212) 555-0192");
+    await dialog.getByRole("button", { name: "Submit Care Request" }).click();
+
+    await expect(dialog.getByText(/NC-CARE-/)).toBeVisible();
+    await dialog.getByRole("button", { name: "Done" }).click();
+    await expect(dialog).toBeHidden();
   });
 
-  test('3. Trust Bar & Clinical Compliance Verification', async ({ page }) => {
-    await page.goto('/');
+  test("3. Interactive Clinical FAQ & Dark Mode Theme Sync", async ({ page }) => {
+    await page.goto("/");
 
-    // Check Trust Metrics
-    await expect(page.getByText('FBI Background Cleared')).toBeVisible();
-    await expect(page.getByText('Urgent Dispatch Window')).toBeVisible();
-    await expect(page.getByText('Supervisory RN Coverage')).toBeVisible();
-    await expect(page.getByText('Liability & Bond Coverage')).toBeVisible();
+    // First FAQ open by default
+    await expect(page.getByText(/within 3 to 4 hours/)).toBeVisible();
 
-    // Compliance strip
-    await expect(page.getByText('State Licensed Home Care Services Agency (LHCSA) Compliant')).toBeVisible();
-    await expect(page.getByText('HIPAA-Compliant Electronic Charting')).toBeVisible();
-  });
-
-  test('4. Core Care Services & Transparent Rates Section', async ({ page }) => {
-    await page.goto('/#services');
-
-    await expect(page.getByRole('heading', { name: 'Core In-Home Care Services & Transparent Rates' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Skilled Nursing (RN / LPN)' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Elderly & Dementia Companion Care' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Post-Surgical & Orthopedic Recovery' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Pediatric Specialized Care' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '24/7 Dedicated Live-In Care' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Physician Consults & Telehealth' })).toBeVisible();
-
-    // Check pricing labels
-    await expect(page.locator('#services').getByText('$48').first()).toBeVisible();
-    await expect(page.locator('#services').getByText('$32').first()).toBeVisible();
-  });
-
-  test('5. 3-Step Coordination Process & Safety Protocols', async ({ page }) => {
-    await page.goto('/#process');
-
-    await expect(page.getByRole('heading', { name: '3-Step Care Coordination Process' })).toBeVisible();
-    await expect(page.getByText('STEP 01')).toBeVisible();
-    await expect(page.getByText('STEP 02')).toBeVisible();
-    await expect(page.getByText('STEP 03')).toBeVisible();
-
-    // Safety section
-    await expect(page.getByRole('heading', { name: 'Caregiver Qualifications & Safety Standards' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Primary-Source License Validation' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Level-2 Criminal & FBI Fingerprinting' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'In-Person Clinical Competency Testing' })).toBeVisible();
-  });
-
-  test('6. Family Reviews & Interactive FAQ', async ({ page }) => {
-    await page.goto('/');
-
-    await expect(page.getByRole('heading', { name: 'Verified Patient & Family Experiences' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Frequently Asked Clinical Questions' })).toBeVisible();
-
-    // First FAQ is open by default
-    await expect(page.getByText('3 to 4 hours across Greater New York')).toBeVisible();
-
-    // Test clicking second FAQ to expand it
-    const secondFaq = page.getByRole('button', { name: 'Can our family meet or interview the caregiver before care begins?' });
-    await expect(secondFaq).toBeVisible();
+    // Open second FAQ
+    const secondFaq = page.getByRole("button", {
+      name: "Can our family meet the assigned caregiver before the first shift?",
+    });
     await secondFaq.click();
-    await expect(page.getByText('prior to shift commencement')).toBeVisible();
+    await expect(secondFaq).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByText(/brief phone or video introduction/)).toBeVisible();
+
+    // Toggle theme and verify Tailwind v4 dark mode updates surface colors
+    const themeToggle = page.getByRole("button", { name: /Switch to dark theme/i });
+    await themeToggle.click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+    await expect
+      .poll(() =>
+        page.evaluate(() => window.getComputedStyle(document.body).backgroundColor)
+      )
+      .toBe("rgb(11, 15, 20)");
   });
 
-  test('7. High-Contrast Booking CTA Banner & Navigation', async ({ page }) => {
-    await page.goto('/');
+  test("4. Specialist Directory, 3-Step Booking & Portals Sync", async ({ page }) => {
+    await page.goto("/doctors");
+    await expect(
+      page.getByRole("heading", { name: "Board-Certified Specialist Directory" })
+    ).toBeVisible();
 
-    // Banner verification
-    await expect(page.getByRole('heading', { name: 'Need Verified In-Home Care for a Loved One Today?' })).toBeVisible();
-    await expect(page.getByText('(800) 123-4567').first()).toBeVisible();
+    // Filter to Cardiologist
+    await page.getByLabel("Filter by specialty").selectOption("Cardiologist");
+    await expect(page.getByText("Dr. Sarah Jenkins")).toBeVisible();
 
-    // Navbar Triage strip
-    await expect(page.getByText('24/7 Nurse Triage & Dispatch:').first()).toBeVisible();
+    // Navigate to booking
+    await page.getByRole("link", { name: "Book Visit" }).first().click();
+    await expect(page).toHaveURL(/\/doctors\/doc-1/);
+
+    // Complete 3-step booking
+    await page.getByRole("button", { name: "Continue to Patient Info" }).click();
+    await page.getByRole("button", { name: "Confirm Appointment" }).click();
+    await expect(page.getByRole("heading", { name: "Appointment Confirmed" })).toBeVisible();
+
+    // Check Portals tabs
+    await page.goto("/dashboard");
+    await page.getByRole("tab", { name: "Physician Desk" }).click();
+    await expect(page.getByText("Patient Consultation Queue")).toBeVisible();
+    await page.getByRole("tab", { name: "Clinic Admin" }).click();
+    await expect(page.getByText("NY License Verified").first()).toBeVisible();
   });
 
-  test('8. Responsive Breakpoint: 390px Mobile Inspection', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/');
+  test("5. Responsive QA: 1440x900 Desktop & 390x844 Mobile — Zero Overflow", async ({
+    page,
+  }) => {
+    const viewports = [
+      { name: "desktop", width: 1440, height: 900 },
+      { name: "mobile", width: 390, height: 844 },
+    ];
 
-    // Check headline wraps cleanly
-    await expect(page.locator('h1')).toBeVisible();
-
-    // Check estimator inputs work on mobile
-    const careSelect = page.locator('#care-service-select');
-    await expect(careSelect).toBeVisible();
-
-    // Check emergency phone link is visible and clickable
-    const phoneLink = page.locator('a[href="tel:18001234567"]').first();
-    await expect(phoneLink).toBeVisible();
-
-    // Ensure zero horizontal overflow
-    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-    const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
-    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 2);
+    for (const vp of viewports) {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      for (const route of ["/", "/doctors", "/dashboard", "/about", "/contact"]) {
+        await page.goto(route, { waitUntil: "domcontentloaded" });
+        await page.waitForTimeout(200);
+        const overflow = await page.evaluate(
+          () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+        );
+        expect(overflow, `Horizontal overflow on ${route} at ${vp.name}`).toBeLessThanOrEqual(1);
+      }
+    }
   });
-
-  test('9. Responsive Breakpoint: 768px Tablet Inspection', async ({ page }) => {
-    await page.setViewportSize({ width: 768, height: 1024 });
-    await page.goto('/');
-
-    await expect(page.locator('h1')).toBeVisible();
-    await expect(page.locator('#services')).toBeVisible();
-
-    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-    const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
-    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 2);
-  });
-
-  test('10. Responsive Breakpoint: 1440px Desktop Inspection', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/');
-
-    await expect(page.locator('h1')).toBeVisible();
-    await expect(page.locator('#services')).toBeVisible();
-
-    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-    const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
-    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 2);
-  });
-
 });

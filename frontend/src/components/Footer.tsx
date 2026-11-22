@@ -1,142 +1,167 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, Phone, MapPin, ShieldCheck, Activity, FileCheck, CheckCircle2 } from "lucide-react";
+import { Activity, Mail, MapPin } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 dark:bg-black text-slate-300 dark:text-zinc-400 border-t border-slate-800 pt-12 pb-8 text-xs">
-      <div className="container">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-          {/* Brand & Accreditation */}
-          <div className="space-y-3">
-            <Link href="/" className="flex items-center gap-2 group text-white">
-              <div className="w-7 h-7 rounded-md bg-teal-500 text-slate-950 flex items-center justify-center font-bold text-sm">
-                <Activity className="w-4 h-4 stroke-[2]" />
-              </div>
-              <span className="text-base font-bold tracking-tight text-white">
+    <footer className="bg-white dark:bg-[#11161d] border-t border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
+      <div className="container py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 pb-10 border-b border-slate-200 dark:border-slate-800">
+          {/* Column 1: Brand & Care Services */}
+          <div className="space-y-4">
+            <Link href="/" className="inline-flex items-center gap-2.5">
+              <span className="w-7 h-7 rounded-md bg-teal-700 dark:bg-teal-400 text-white dark:text-slate-950 flex items-center justify-center">
+                <Activity className="w-4 h-4 stroke-[2.2]" aria-hidden="true" />
+              </span>
+              <span className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-50">
                 NewCare
               </span>
             </Link>
-            <p className="text-xs text-slate-400 dark:text-zinc-400 leading-relaxed max-w-xs">
-              Clinic-grade in-home caregiving, skilled clinical nursing, and synchronized physician consultations. 100% FBI background screened and supervisory RN directed.
+            <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400 max-w-xs">
+              RN-supervised in-home nursing, caregiving, and board-certified physician
+              consultations across Greater New York and the Tri-State area.
             </p>
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-teal-400">
-              <ShieldCheck className="w-4 h-4" />
-              <span>LHCSA Compliant • Licensed & Bonded</span>
-            </div>
-          </div>
-
-          {/* Core Care Services */}
-          <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-white dark:text-zinc-200 mb-3">
-              Care Services & Rates
-            </h4>
-            <ul className="space-y-2 text-xs text-slate-400 dark:text-zinc-400">
+            <ul className="space-y-2 text-sm pt-1">
               <li>
-                <Link href="/#services" className="hover:text-white transition-colors">
-                  Skilled Nursing (RN / LPN) — from $48/hr
+                <Link
+                  href="/#services"
+                  className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
+                >
+                  Care Services &amp; Transparent Rates
                 </Link>
               </li>
               <li>
-                <Link href="/#services" className="hover:text-white transition-colors">
-                  Elderly & Dementia Care — from $32/hr
+                <Link
+                  href="/#estimator"
+                  className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
+                >
+                  Interactive Care Estimator
                 </Link>
               </li>
               <li>
-                <Link href="/#services" className="hover:text-white transition-colors">
-                  Post-Surgical Orthopedic Care — from $42/hr
-                </Link>
-              </li>
-              <li>
-                <Link href="/#services" className="hover:text-white transition-colors">
-                  Pediatric Complex Care — from $45/hr
-                </Link>
-              </li>
-              <li>
-                <Link href="/#services" className="hover:text-white transition-colors">
-                  24/7 Dedicated Live-In — from $340/day
+                <Link
+                  href="/doctors"
+                  className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
+                >
+                  Board-Certified Specialist Directory
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Clinical Portals & Directory */}
+          {/* Column 2: Clinical Portals */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-white dark:text-zinc-200 mb-3">
-              Platform & Dashboards
-            </h4>
-            <ul className="space-y-2 text-xs text-slate-400 dark:text-zinc-400">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-100 mb-4">
+              Clinical Portals
+            </h3>
+            <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/doctors" className="hover:text-white transition-colors">
-                  Specialist Doctor Directory
+                <Link
+                  href="/dashboard"
+                  className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
+                >
+                  Operations Console
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard/patient" className="hover:text-white transition-colors">
-                  Family Care Portal
+                <Link
+                  href="/dashboard/patient"
+                  className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
+                >
+                  Patient &amp; Family Portal
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard/doctor" className="hover:text-white transition-colors">
+                <Link
+                  href="/dashboard/doctor"
+                  className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
+                >
                   Physician Clinical Desk
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard/admin" className="hover:text-white transition-colors">
-                  Clinic Administration & Vetting
+                <Link
+                  href="/dashboard/admin"
+                  className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
+                >
+                  Clinic Administration
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-white transition-colors">
-                  Clinical Standards & Protocols
+                <Link
+                  href="/my-appointments"
+                  className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
+                >
+                  My Appointments
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Emergency Triage & Coordinates */}
+          {/* Column 3: Practice & Intake */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-white dark:text-zinc-200 mb-3">
-              24/7 Clinical Dispatch
-            </h4>
-            <div className="space-y-2.5 text-xs text-slate-400 dark:text-zinc-400">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-100 mb-4">
+              Practice &amp; Intake
+            </h3>
+            <ul className="space-y-2.5 text-sm mb-5">
+              <li>
+                <Link
+                  href="/about"
+                  className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
+                >
+                  About &amp; Clinical Governance
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/contact"
+                  className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
+                >
+                  Contact Care Coordination Desk
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/login"
+                  className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
+                >
+                  Patient Account Sign In
+                </Link>
+              </li>
+            </ul>
+
+            <div className="space-y-2 text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                <a href="tel:18001234567" className="text-white hover:text-teal-400 font-semibold tabular-nums">
-                  +1 (800) 123-4567
-                </a>
+                <Mail className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400 shrink-0" aria-hidden="true" />
+                <span>intake@newcare.health</span>
               </div>
               <div className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>dispatch@newcare.health</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>42 Health Plaza, Manhattan, NY 10001</span>
-              </div>
-              <div className="pt-2 text-[11px] text-slate-500">
-                <span>Emergency Nurse Triage Response &lt; 2 minutes</span>
+                <MapPin className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400 shrink-0" aria-hidden="true" />
+                <span>Midtown East, Manhattan, New York, NY</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Divider & Legal / Compliance Notice */}
-        <div className="border-t border-slate-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+        <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
           <p>
-            © {new Date().getFullYear()} NewCare Health Technologies, Inc. All rights reserved. LHCSA Licensed Home Care Services Agency protocols compliant.
+            © {new Date().getFullYear()}{" "}NewCare Health Services. NYS LHCSA-aligned
+            home care &amp; HIPAA-compliant clinical charting.
           </p>
           <div className="flex items-center gap-4">
-            <Link href="/about" className="hover:text-slate-300 transition-colors">
-              Clinical Vetting Policy
+            <Link
+              href="/about"
+              className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+            >
+              Vetting Standards
             </Link>
-            <span className="text-slate-700">•</span>
-            <Link href="/contact" className="hover:text-slate-300 transition-colors">
-              Support & Intake
+            <Link
+              href="/contact"
+              className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+            >
+              Intake &amp; Support
             </Link>
-            <span className="text-slate-700">•</span>
-            <span className="text-slate-400">HIPAA Compliant & Bonded</span>
           </div>
         </div>
       </div>

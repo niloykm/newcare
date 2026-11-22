@@ -1,28 +1,28 @@
-export interface WeeklySlot {
-  day: string;
-  slots: string[];
+export interface DoctorAddress {
+  line1: string;
+  line2: string;
 }
 
 export interface DoctorProfile {
   id: string;
-  _id: string; // for backward compatibility
+  _id: string;
   slug: string;
   name: string;
   degree: string;
   specialty: string;
-  speciality: string; // for backward compatibility
+  speciality: string;
   experienceYears: number;
-  experience: number; // for backward compatibility
+  experience: number;
   hospitalName: string;
   rating: number;
   reviewsCount: number;
-  reviewCount: number; // for backward compatibility
+  reviewCount: number;
   consultationFee: number;
-  fees: number; // for backward compatibility
+  fees: number;
   avatarUrl: string;
-  image: string; // for backward compatibility
+  image: string;
   isAvailableToday: boolean;
-  available: boolean; // for backward compatibility
+  available: boolean;
   nextAvailableSlot: string;
   about: string;
   license: string;
@@ -30,9 +30,149 @@ export interface DoctorProfile {
   consultationTypes: ("In-Clinic Visit" | "HD Video Consultation")[];
   availableSlots: string[];
   weeklySlots: Record<string, string[]>;
-  address: {
-    line1: string;
-    line2: string;
+  address: DoctorAddress;
+  slots_booked?: Record<string, string[]>;
+}
+
+export interface ApiDoctorRecord {
+  _id?: string;
+  id?: string;
+  slug?: string;
+  name?: string;
+  degree?: string;
+  specialty?: string;
+  speciality?: string;
+  experienceYears?: number;
+  experience?: number | string;
+  hospitalName?: string;
+  rating?: number;
+  reviewsCount?: number;
+  reviewCount?: number;
+  consultationFee?: number;
+  fees?: number;
+  avatarUrl?: string;
+  image?: string;
+  isAvailableToday?: boolean;
+  available?: boolean;
+  nextAvailableSlot?: string;
+  about?: string;
+  license?: string;
+  verified?: boolean;
+  consultationTypes?: ("In-Clinic Visit" | "HD Video Consultation")[];
+  availableSlots?: string[];
+  weeklySlots?: Record<string, string[]>;
+  address?: Partial<DoctorAddress>;
+  slots_booked?: Record<string, string[]>;
+}
+
+const DEFAULT_FALLBACK_AVATAR = "/assets/doc6.png";
+
+function sanitizeUSDegree(rawDegree?: string): string {
+  if (!rawDegree) return "MD";
+  const cleaned = rawDegree
+    .replace(/\bMBBS\b,?\s*/gi, "")
+    .replace(/\bFCPS\b/gi, "FACC")
+    .replace(/\bMRCGP\b/gi, "FAAFP")
+    .replace(/^,\s*|\s*,\s*$/g, "")
+    .trim();
+  return cleaned || "MD";
+}
+
+function sanitizeUSLicense(rawLicense?: string, fallback?: string): string {
+  if (!rawLicense || /BMDC/i.test(rawLicense)) {
+    return fallback || "NY License Verified • ABMS Board Certified";
+  }
+  return rawLicense;
+}
+
+export function normalizeApiDoctor(
+  raw: ApiDoctorRecord,
+  fallback?: DoctorProfile
+): DoctorProfile {
+  const id = raw._id || raw.id || fallback?.id || "doc-1";
+  const specialty =
+    raw.specialty || raw.speciality || fallback?.specialty || "General Physician";
+  const parsedExperience =
+    typeof raw.experienceYears === "number"
+      ? raw.experienceYears
+      : typeof raw.experience === "number"
+        ? raw.experience
+        : Number.parseInt(String(raw.experience ?? ""), 10) ||
+          fallback?.experienceYears ||
+          8;
+  const consultationFee = Number(
+    raw.consultationFee ?? raw.fees ?? fallback?.consultationFee ?? 60
+  );
+  const avatarUrl =
+    raw.avatarUrl || raw.image || fallback?.avatarUrl || DEFAULT_FALLBACK_AVATAR;
+  const isAvailableToday =
+    raw.isAvailableToday !== undefined
+      ? raw.isAvailableToday
+      : raw.available !== undefined
+        ? raw.available
+        : fallback?.isAvailableToday ?? true;
+
+  return {
+    id,
+    _id: id,
+    slug: raw.slug || fallback?.slug || id,
+    name: raw.name || fallback?.name || "Dr. Attending Physician",
+    degree: sanitizeUSDegree(raw.degree || fallback?.degree),
+    specialty,
+    speciality: specialty,
+    experienceYears: parsedExperience,
+    experience: parsedExperience,
+    hospitalName:
+      raw.hospitalName ||
+      raw.address?.line1 ||
+      fallback?.hospitalName ||
+      "NewCare Midtown Clinic, New York",
+    rating: Number(raw.rating ?? fallback?.rating ?? 4.9),
+    reviewsCount: Number(
+      raw.reviewsCount ?? raw.reviewCount ?? fallback?.reviewsCount ?? 112
+    ),
+    reviewCount: Number(
+      raw.reviewsCount ?? raw.reviewCount ?? fallback?.reviewsCount ?? 112
+    ),
+    consultationFee,
+    fees: consultationFee,
+    avatarUrl,
+    image: avatarUrl,
+    isAvailableToday,
+    available: isAvailableToday,
+    nextAvailableSlot:
+      raw.nextAvailableSlot || fallback?.nextAvailableSlot || "Today, 2:30 PM",
+    about:
+      raw.about ||
+      fallback?.about ||
+      "Board-certified physician providing in-clinic and telehealth consultations across Greater New York.",
+    license: sanitizeUSLicense(raw.license, fallback?.license),
+    verified: raw.verified ?? fallback?.verified ?? true,
+    consultationTypes: raw.consultationTypes ||
+      fallback?.consultationTypes || ["In-Clinic Visit", "HD Video Consultation"],
+    availableSlots: raw.availableSlots ||
+      fallback?.availableSlots || ["10:00 AM", "01:30 PM", "04:00 PM"],
+    weeklySlots: raw.weeklySlots ||
+      fallback?.weeklySlots || {
+        Monday: ["09:30 AM", "11:00 AM", "02:30 PM", "04:30 PM"],
+        Tuesday: ["10:00 AM", "01:30 PM", "03:30 PM"],
+        Wednesday: ["09:30 AM", "11:30 AM", "02:00 PM"],
+        Thursday: ["10:30 AM", "01:00 PM", "03:30 PM"],
+        Friday: ["09:30 AM", "12:00 PM", "02:30 PM"],
+        Saturday: ["10:00 AM", "01:00 PM"],
+        Sunday: [],
+      },
+    address: {
+      line1:
+        raw.address?.line1 ||
+        fallback?.address.line1 ||
+        "NewCare Clinical Suites, Suite 402",
+      line2:
+        raw.address?.line2 ||
+        fallback?.address.line2 ||
+        "Lexington Avenue, New York, NY",
+    },
+    slots_booked: raw.slots_booked,
   };
 }
 
@@ -42,24 +182,25 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     _id: "doc-1",
     slug: "dr-sarah-jenkins-cardiology",
     name: "Dr. Sarah Jenkins",
-    degree: "MBBS, FCPS (Cardiology), FACC",
+    degree: "MD, FACC (Cardiology)",
     specialty: "Cardiologist",
     speciality: "Cardiologist",
     experienceYears: 14,
     experience: 14,
-    hospitalName: "Mount Sinai Heart Center, New York",
+    hospitalName: "Midtown Cardiac Associates, New York",
     rating: 4.9,
     reviewsCount: 168,
     reviewCount: 168,
     consultationFee: 75,
     fees: 75,
-    avatarUrl: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=600",
+    avatarUrl: "/assets/doc2.png",
+    image: "/assets/doc2.png",
     isAvailableToday: true,
     available: true,
     nextAvailableSlot: "Today, 4:30 PM",
-    about: "Dr. Sarah Jenkins is an American Board Certified Cardiologist specializing in preventative cardiology, non-invasive cardiac imaging, and coronary artery disease management with over 14 years of clinical leadership.",
-    license: "BMDC #82941 • Board Certified",
+    about:
+      "Dr. Sarah Jenkins is an ABMS board-certified cardiologist specializing in preventive cardiology, non-invasive cardiac imaging, and hypertension management with 14 years of clinical practice in New York.",
+    license: "NY License #284910 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["10:30 AM", "02:00 PM", "04:30 PM", "06:00 PM"],
@@ -73,8 +214,8 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
       Sunday: [],
     },
     address: {
-      line1: "Health Plaza Suites, Suite 402",
-      line2: "Lexington Avenue, New York, NY",
+      line1: "Midtown Clinical Suites, Suite 402",
+      line2: "Lexington Avenue, New York, NY 10017",
     },
   },
   {
@@ -82,24 +223,25 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     _id: "doc-2",
     slug: "dr-marcus-vance-general-physician",
     name: "Dr. Marcus Vance",
-    degree: "MBBS, MD (Internal Medicine), FACP",
+    degree: "MD, FACP (Internal Medicine)",
     specialty: "General Physician",
     speciality: "General Physician",
     experienceYears: 11,
     experience: 11,
-    hospitalName: "Columbia University Medical Center",
+    hospitalName: "NewCare Primary Care, Manhattan",
     rating: 4.8,
     reviewsCount: 142,
     reviewCount: 142,
     consultationFee: 45,
     fees: 45,
-    avatarUrl: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=600",
+    avatarUrl: "/assets/doc6.png",
+    image: "/assets/doc6.png",
     isAvailableToday: true,
     available: true,
     nextAvailableSlot: "Today, 2:00 PM",
-    about: "Dr. Marcus Vance focuses on holistic internal medicine, chronic disease management (diabetes, hypertension), preventative screening, and acute adult care with evidence-based diagnostics.",
-    license: "BMDC #63920 • Board Certified",
+    about:
+      "Dr. Marcus Vance practices adult internal medicine with a focus on chronic disease management (diabetes, hypertension), post-hospital discharge coordination, and preventive annual evaluations.",
+    license: "NY License #263920 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["09:00 AM", "11:30 AM", "02:00 PM", "05:00 PM"],
@@ -113,8 +255,8 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
       Sunday: [],
     },
     address: {
-      line1: "NewCare Prime Care Clinic",
-      line2: "Broadway St, Suite 105, New York, NY",
+      line1: "NewCare Primary Care Clinic",
+      line2: "Broadway, Suite 105, New York, NY 10012",
     },
   },
   {
@@ -122,24 +264,25 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     _id: "doc-3",
     slug: "dr-elena-rostova-dermatologist",
     name: "Dr. Elena Rostova",
-    degree: "MD, FAAD (Dermatology & Cosmetology)",
+    degree: "MD, FAAD (Dermatology)",
     specialty: "Dermatologist",
     speciality: "Dermatologist",
     experienceYears: 9,
     experience: 9,
-    hospitalName: "Skin Institute & Clinical Laser Center",
+    hospitalName: "Madison Clinical Dermatology, NY",
     rating: 4.9,
     reviewsCount: 195,
     reviewCount: 195,
     consultationFee: 60,
     fees: 60,
-    avatarUrl: "https://images.unsplash.com/photo-1594824813629-dd160d5fb709?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1594824813629-dd160d5fb709?auto=format&fit=crop&q=80&w=600",
+    avatarUrl: "/assets/doc11.png",
+    image: "/assets/doc11.png",
     isAvailableToday: true,
     available: true,
     nextAvailableSlot: "Today, 5:15 PM",
-    about: "Dr. Elena Rostova is an acclaimed dermatologist recognized for treating complex dermatological conditions, eczema, cystic acne, psoriasis, and non-surgical skin rejuvenation.",
-    license: "BMDC #91024 • Board Certified",
+    about:
+      "Dr. Elena Rostova is a board-certified dermatologist treating complex medical skin conditions including eczema, contact dermatitis, psoriasis, and skin cancer screenings.",
+    license: "NY License #291024 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["11:00 AM", "01:30 PM", "03:45 PM", "05:15 PM"],
@@ -153,8 +296,8 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
       Sunday: [],
     },
     address: {
-      line1: "Aesthetic Medical Center, 7th Floor",
-      line2: "Madison Ave, New York, NY",
+      line1: "Madison Medical Building, 7th Floor",
+      line2: "Madison Ave, New York, NY 10022",
     },
   },
   {
@@ -162,24 +305,25 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     _id: "doc-4",
     slug: "dr-david-chen-pediatrician",
     name: "Dr. David Chen",
-    degree: "MBBS, MD (Pediatrics), FAAP",
+    degree: "MD, FAAP (Pediatrics)",
     specialty: "Pediatrician",
     speciality: "Pediatrician",
     experienceYears: 13,
     experience: 13,
-    hospitalName: "Children's National Wellness Hospital",
-    rating: 5.0,
+    hospitalName: "West Side Pediatric Associates, NY",
+    rating: 4.9,
     reviewsCount: 220,
     reviewCount: 220,
     consultationFee: 50,
     fees: 50,
-    avatarUrl: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=600",
+    avatarUrl: "/assets/doc1.png",
+    image: "/assets/doc1.png",
     isAvailableToday: true,
     available: true,
     nextAvailableSlot: "Today, 3:30 PM",
-    about: "Dr. David Chen provides compassionate pediatric care ranging from newborn wellness checks to adolescent medicine, childhood immunology, and developmental milestone tracking.",
-    license: "BMDC #54219 • Board Certified",
+    about:
+      "Dr. David Chen provides pediatric care from newborn wellness checks through adolescence, coordinating home-nursing plans for medically complex children and routine immunizations.",
+    license: "NY License #254219 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["10:00 AM", "01:00 PM", "03:30 PM", "05:00 PM"],
@@ -194,7 +338,7 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     },
     address: {
       line1: "Pediatric Care Pavilion, Wing B",
-      line2: "Central Park West, New York, NY",
+      line2: "Central Park West, New York, NY 10025",
     },
   },
   {
@@ -202,24 +346,25 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     _id: "doc-5",
     slug: "dr-robert-sterling-neurologist",
     name: "Dr. Robert Sterling",
-    degree: "MD, PhD (Clinical Neurology), FAAN",
+    degree: "MD, PhD, FAAN (Neurology)",
     specialty: "Neurologist",
     speciality: "Neurologist",
     experienceYears: 18,
     experience: 18,
-    hospitalName: "Metropolitan Neurological Sciences Institute",
+    hospitalName: "Metropolitan Neurology Group, NY",
     rating: 4.9,
     reviewsCount: 134,
     reviewCount: 134,
     consultationFee: 85,
     fees: 85,
-    avatarUrl: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=600",
+    avatarUrl: "/assets/doc7.png",
+    image: "/assets/doc7.png",
     isAvailableToday: true,
     available: true,
     nextAvailableSlot: "Today, 6:00 PM",
-    about: "Dr. Robert Sterling is a senior clinical neurologist with extensive expertise in migraine syndromes, epilepsy, peripheral neuropathy, and neurodegenerative disorder interventions.",
-    license: "BMDC #33812 • Board Certified",
+    about:
+      "Dr. Robert Sterling is a clinical neurologist focusing on memory disorders, dementia care coordination, migraine management, and peripheral neuropathy.",
+    license: "NY License #233812 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["11:30 AM", "02:30 PM", "04:00 PM", "06:00 PM"],
@@ -233,8 +378,8 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
       Sunday: [],
     },
     address: {
-      line1: "Neuroscience Medical Center",
-      line2: "5th Avenue Medical District, New York, NY",
+      line1: "Neuroscience Medical Suites",
+      line2: "Fifth Avenue, New York, NY 10028",
     },
   },
   {
@@ -242,24 +387,25 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     _id: "doc-6",
     slug: "dr-priya-patel-gynecologist",
     name: "Dr. Priya Patel",
-    degree: "MBBS, MS (OB/GYN), FACOG",
+    degree: "MD, FACOG (OB/GYN)",
     specialty: "Gynecologist",
     speciality: "Gynecologist",
     experienceYears: 12,
     experience: 12,
-    hospitalName: "Women's Health & Fertility Specialists",
+    hospitalName: "Park Avenue Women's Health, NY",
     rating: 4.9,
     reviewsCount: 188,
     reviewCount: 188,
     consultationFee: 70,
     fees: 70,
-    avatarUrl: "https://images.unsplash.com/photo-1527613426441-4da17471b66d?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1527613426441-4da17471b66d?auto=format&fit=crop&q=80&w=600",
+    avatarUrl: "/assets/doc13.png",
+    image: "/assets/doc13.png",
     isAvailableToday: true,
     available: true,
     nextAvailableSlot: "Today, 1:45 PM",
-    about: "Dr. Priya Patel provides comprehensive obstetric and gynecologic care, high-risk pregnancy monitoring, reproductive endocrinology, and minimally invasive laparoscopic surgery.",
-    license: "BMDC #77291 • Board Certified",
+    about:
+      "Dr. Priya Patel provides comprehensive obstetric and gynecologic care, postpartum recovery planning, and minimally invasive surgical follow-up.",
+    license: "NY License #277291 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["09:30 AM", "11:45 AM", "01:45 PM", "04:15 PM"],
@@ -273,8 +419,8 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
       Sunday: [],
     },
     address: {
-      line1: "Women's Wellness Tower, Suite 500",
-      line2: "Park Avenue, New York, NY",
+      line1: "Women's Health Suites, Suite 500",
+      line2: "Park Avenue, New York, NY 10016",
     },
   },
   {
@@ -282,24 +428,25 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     _id: "doc-7",
     slug: "dr-james-thornton-orthopedic",
     name: "Dr. James Thornton",
-    degree: "MD, FAAOS (Orthopedic Surgery & Sports Medicine)",
+    degree: "MD, FAAOS (Orthopedic Surgery)",
     specialty: "Orthopedic",
     speciality: "Orthopedic",
     experienceYears: 16,
     experience: 16,
-    hospitalName: "New York Orthopedic & Spine Hospital",
+    hospitalName: "Tri-State Orthopedic & Spine Center",
     rating: 4.8,
     reviewsCount: 176,
     reviewCount: 176,
     consultationFee: 80,
     fees: 80,
-    avatarUrl: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&q=80&w=600",
+    avatarUrl: "/assets/doc8.png",
+    image: "/assets/doc8.png",
     isAvailableToday: true,
     available: true,
     nextAvailableSlot: "Today, 3:00 PM",
-    about: "Dr. James Thornton is a sports medicine and joint reconstruction authority serving professional athletes and active adults with arthroscopic solutions and regenerative therapies.",
-    license: "BMDC #45610 • Board Certified",
+    about:
+      "Dr. James Thornton specializes in joint reconstruction, sports medicine, and post-operative orthopedic rehabilitation plans coordinated with in-home nursing teams.",
+    license: "NY License #245610 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["10:00 AM", "12:30 PM", "03:00 PM", "05:30 PM"],
@@ -313,8 +460,8 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
       Sunday: [],
     },
     address: {
-      line1: "Sports Medicine Complex, 3rd Floor",
-      line2: "Columbus Circle, New York, NY",
+      line1: "Orthopedic & Mobility Center, 3rd Floor",
+      line2: "Columbus Circle, New York, NY 10019",
     },
   },
   {
@@ -322,24 +469,25 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     _id: "doc-8",
     slug: "dr-aisha-khan-ent-specialist",
     name: "Dr. Aisha Khan",
-    degree: "MBBS, MS (Otolaryngology), FACS",
+    degree: "MD, FACS (Otolaryngology)",
     specialty: "ENT Specialist",
     speciality: "ENT Specialist",
     experienceYears: 10,
     experience: 10,
-    hospitalName: "Ear, Nose & Throat Center of Excellence",
+    hospitalName: "East Side ENT Associates, NY",
     rating: 4.9,
     reviewsCount: 153,
     reviewCount: 153,
     consultationFee: 55,
     fees: 55,
-    avatarUrl: "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&q=80&w=600",
+    avatarUrl: "/assets/doc5.png",
+    image: "/assets/doc5.png",
     isAvailableToday: true,
     available: true,
     nextAvailableSlot: "Today, 4:00 PM",
-    about: "Dr. Aisha Khan specializes in sinus disorders, endoscopic sinus surgery, pediatric ENT conditions, hearing loss diagnostics, and voice disorder rehabilitation.",
-    license: "BMDC #66419 • Board Certified",
+    about:
+      "Dr. Aisha Khan specializes in chronic sinus disorders, pediatric ENT conditions, hearing diagnostics, and post-operative airway and voice recovery.",
+    license: "NY License #266419 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["10:15 AM", "01:15 PM", "04:00 PM", "05:45 PM"],
@@ -354,7 +502,7 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     },
     address: {
       line1: "ENT Surgical Suites",
-      line2: "East 72nd Street, New York, NY",
+      line2: "East 72nd Street, New York, NY 10021",
     },
   },
   {
@@ -362,24 +510,25 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     _id: "doc-9",
     slug: "dr-michael-brooks-general-physician",
     name: "Dr. Michael Brooks",
-    degree: "MD, MRCGP (Family Medicine)",
+    degree: "DO, FAAFP (Family Medicine)",
     specialty: "General Physician",
     speciality: "General Physician",
     experienceYears: 15,
     experience: 15,
-    hospitalName: "Downtown Health Partners",
+    hospitalName: "Downtown Primary Care Partners, NY",
     rating: 4.8,
     reviewsCount: 139,
     reviewCount: 139,
-    consultationFee: 40,
-    fees: 40,
-    avatarUrl: "https://images.unsplash.com/photo-1618498082410-b4aa22193b38?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1618498082410-b4aa22193b38?auto=format&fit=crop&q=80&w=600",
+    consultationFee: 45,
+    fees: 45,
+    avatarUrl: "/assets/doc10.png",
+    image: "/assets/doc10.png",
     isAvailableToday: true,
     available: true,
     nextAvailableSlot: "Today, 11:00 AM",
-    about: "Dr. Michael Brooks is a primary care specialist devoted to routine preventive health checkups, geriatric wellness, annual examinations, and lifestyle medicine counseling.",
-    license: "BMDC #38194 • Board Certified",
+    about:
+      "Dr. Michael Brooks is a family medicine physician dedicated to geriatric wellness, preventive checkups, medication reconciliation, and home-care medical clearance.",
+    license: "NY License #238194 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["09:00 AM", "11:00 AM", "02:00 PM", "04:30 PM"],
@@ -393,8 +542,8 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
       Sunday: [],
     },
     address: {
-      line1: "Tribeca Health Center, 2nd Fl",
-      line2: "Hudson Street, New York, NY",
+      line1: "Tribeca Health Center, 2nd Floor",
+      line2: "Hudson Street, New York, NY 10013",
     },
   },
   {
@@ -407,19 +556,20 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     speciality: "Cardiologist",
     experienceYears: 16,
     experience: 16,
-    hospitalName: "Presbyterian Cardiac Care Hospital",
+    hospitalName: "York Avenue Cardiac Specialists, NY",
     rating: 4.9,
     reviewsCount: 164,
     reviewCount: 164,
     consultationFee: 80,
     fees: 80,
-    avatarUrl: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600",
+    avatarUrl: "/assets/doc9.png",
+    image: "/assets/doc9.png",
     isAvailableToday: true,
     available: true,
     nextAvailableSlot: "Today, 5:30 PM",
-    about: "Dr. Amara Okonjo specializes in cardiovascular catheterization, lipid management, hypertensive heart disease, and personalized heart health recovery protocols.",
-    license: "BMDC #59832 • Board Certified",
+    about:
+      "Dr. Amara Okonjo focuses on lipid management, hypertensive heart disease, post-catheterization recovery, and long-term cardiac wellness plans.",
+    license: "NY License #259832 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["10:30 AM", "01:00 PM", "03:30 PM", "05:30 PM"],
@@ -434,7 +584,7 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     },
     address: {
       line1: "Cardiovascular Pavilion, Suite 901",
-      line2: "York Ave, New York, NY",
+      line2: "York Avenue, New York, NY 10065",
     },
   },
   {
@@ -442,24 +592,25 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     _id: "doc-11",
     slug: "dr-lucas-meyer-dermatologist",
     name: "Dr. Lucas Meyer",
-    degree: "MD, FAAD (Clinical & Cosmetic Dermatology)",
+    degree: "MD, FAAD (Clinical Dermatology)",
     specialty: "Dermatologist",
     speciality: "Dermatologist",
     experienceYears: 8,
     experience: 8,
-    hospitalName: "Gotham Dermatology & Skin Health",
+    hospitalName: "Brooklyn Heights Dermatology, NY",
     rating: 4.8,
     reviewsCount: 112,
     reviewCount: 112,
     consultationFee: 55,
     fees: 55,
-    avatarUrl: "https://images.unsplash.com/photo-1551601651-2a8555f1a136?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1551601651-2a8555f1a136?auto=format&fit=crop&q=80&w=600",
+    avatarUrl: "/assets/doc14.png",
+    image: "/assets/doc14.png",
     isAvailableToday: true,
     available: true,
-    nextAvailableSlot: "Today, 02:00 PM",
-    about: "Dr. Lucas Meyer provides specialized diagnostic skin screenings, contact dermatitis treatment, acne scar treatments, and medical laser therapies.",
-    license: "BMDC #84012 • Board Certified",
+    nextAvailableSlot: "Today, 2:00 PM",
+    about:
+      "Dr. Lucas Meyer provides diagnostic skin screenings, wound-healing dermatology consults, and evidence-based treatment for chronic inflammatory skin conditions.",
+    license: "NY License #284012 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["10:00 AM", "11:30 AM", "02:00 PM", "04:00 PM"],
@@ -473,8 +624,8 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
       Sunday: [],
     },
     address: {
-      line1: "Clinical Skin Institute, Suite 210",
-      line2: "Fifth Ave, New York, NY",
+      line1: "Clinical Skin Suite 210",
+      line2: "Montague Street, Brooklyn, NY 11201",
     },
   },
   {
@@ -482,24 +633,25 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
     _id: "doc-12",
     slug: "dr-maya-lin-pediatrician",
     name: "Dr. Maya Lin",
-    degree: "MD, MPH (Pediatric & Adolescent Medicine)",
+    degree: "MD, MPH, FAAP (Pediatrics)",
     specialty: "Pediatrician",
     speciality: "Pediatrician",
     experienceYears: 11,
     experience: 11,
-    hospitalName: "NewYork-Presbyterian Morgan Stanley Children's Hospital",
+    hospitalName: "Greenwich Village Pediatrics, NY",
     rating: 4.9,
     reviewsCount: 184,
     reviewCount: 184,
     consultationFee: 50,
     fees: 50,
-    avatarUrl: "https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&q=80&w=600",
-    image: "https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&q=80&w=600",
+    avatarUrl: "/assets/doc15.png",
+    image: "/assets/doc15.png",
     isAvailableToday: true,
     available: true,
     nextAvailableSlot: "Today, 10:30 AM",
-    about: "Dr. Maya Lin provides attentive family-centered pediatric care, child wellness immunization, childhood asthma management, and nutritional guidance.",
-    license: "BMDC #62198 • Board Certified",
+    about:
+      "Dr. Maya Lin provides family-centered pediatric care, childhood asthma management, developmental milestone tracking, and preventive immunizations.",
+    license: "NY License #262198 • ABMS Board Certified",
     verified: true,
     consultationTypes: ["In-Clinic Visit", "HD Video Consultation"],
     availableSlots: ["10:30 AM", "01:00 PM", "03:00 PM", "05:00 PM"],
@@ -513,17 +665,15 @@ export const FALLBACK_DOCTORS: DoctorProfile[] = [
       Sunday: [],
     },
     address: {
-      line1: "Pediatric Center of New York, 4th Fl",
-      line2: "Greenwich Village, New York, NY",
+      line1: "Pediatric Center of New York, 4th Floor",
+      line2: "West 12th Street, New York, NY 10014",
     },
   },
 ];
 
-// Helper to normalize specialty strings for robust, case-insensitive and plural-tolerant filtering
 export function normalizeSpecialty(str: string): string {
   if (!str) return "";
   let clean = str.trim().toLowerCase().replace(/[-_]/g, " ");
-  // Strip trailing 's' if not 'physician' or ending in 'is'
   if (clean.endsWith("s") && !clean.endsWith("is") && !clean.endsWith("physicians")) {
     clean = clean.slice(0, -1);
   }

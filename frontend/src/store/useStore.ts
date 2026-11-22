@@ -45,28 +45,29 @@ export interface StoredAppointment {
 }
 
 interface StoreState {
-  // Role & Demo Bar
   currentRole: RoleType;
   setCurrentRole: (role: RoleType) => void;
   activeDoctorId: string;
   setActiveDoctorId: (id: string) => void;
 
-  // Doctors
   doctors: DoctorProfile[];
   setDoctors: (doctors: DoctorProfile[]) => void;
   toggleDoctorAvailability: (doctorId: string) => void;
   updateDoctorFee: (doctorId: string, fee: number) => void;
   toggleDoctorVerification: (doctorId: string) => void;
 
-  // Appointments
   appointments: StoredAppointment[];
-  addAppointment: (appointment: Omit<StoredAppointment, "id" | "bookingId" | "createdAt" | "status" | "paymentStatus">) => StoredAppointment;
+  addAppointment: (
+    appointment: Omit<
+      StoredAppointment,
+      "id" | "bookingId" | "createdAt" | "status" | "paymentStatus"
+    >
+  ) => StoredAppointment;
   updateAppointmentStatus: (id: string, status: AppointmentStatus) => void;
   addConsultationNote: (id: string, note: string) => void;
   rescheduleAppointment: (id: string, slotDate: string, slotTime: string) => void;
   cancelAppointment: (id: string) => void;
 
-  // Booking Flow Draft (Step 1 -> 2 -> 3)
   bookingStep: 1 | 2 | 3;
   setBookingStep: (step: 1 | 2 | 3) => void;
   selectedDoctor: DoctorProfile | null;
@@ -85,13 +86,13 @@ interface StoreState {
 }
 
 const DEFAULT_PATIENT: PatientDetails = {
-  name: "Alexander Hayes",
-  email: "alexander.hayes@example.com",
-  phone: "+1 (555) 382-9912",
-  age: 34,
-  gender: "Male",
-  reason: "Annual cardiovascular & blood pressure screening",
-  symptoms: ["Mild Chest Tightness", "Fatigue", "Routine Follow-up"],
+  name: "Hannah Morales",
+  email: "hannah.morales@example.com",
+  phone: "(212) 555-0148",
+  age: 38,
+  gender: "Female",
+  reason: "Annual cardiovascular screening and blood pressure review",
+  symptoms: ["Hypertension", "Routine Annual Review"],
 };
 
 const INITIAL_APPOINTMENTS: StoredAppointment[] = [
@@ -101,24 +102,25 @@ const INITIAL_APPOINTMENTS: StoredAppointment[] = [
     doctorId: "doc-1",
     doctorName: "Dr. Sarah Jenkins",
     doctorSpecialty: "Cardiologist",
-    doctorHospital: "Mount Sinai Heart Center, New York",
-    doctorAvatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=600",
-    doctorDegree: "MBBS, FCPS (Cardiology), FACC",
-    patientName: "Alexander Hayes",
-    patientEmail: "alexander.hayes@example.com",
-    patientPhone: "+1 (555) 382-9912",
-    patientAge: 34,
-    reason: "Preventative cardiac screening & Holter review",
-    symptoms: ["Arrhythmia history", "Preventative Care"],
+    doctorHospital: "Midtown Cardiac Associates, New York",
+    doctorAvatar: "/assets/doc2.png",
+    doctorDegree: "MD, FACC (Cardiology)",
+    patientName: "Hannah Morales",
+    patientEmail: "hannah.morales@example.com",
+    patientPhone: "(212) 555-0148",
+    patientAge: 38,
+    reason: "Preventive cardiac screening & blood pressure review",
+    symptoms: ["Hypertension", "Routine Annual Review"],
     consultationType: "In-Clinic Visit",
-    slotDate: "Today, Oct 31",
+    slotDate: "Today",
     slotTime: "04:30 PM",
     amount: 75,
     status: "Confirmed",
     paymentStatus: "Paid",
-    roomNumber: "Suite 402 - Exam Room 3",
-    qrCodeUrl: "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=NC-8291-NY",
-    createdAt: "2026-10-31T09:15:00Z",
+    roomNumber: "Suite 402 — Exam Room 3",
+    qrCodeUrl:
+      "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=NC-8291-NY",
+    createdAt: "2026-11-18T09:15:00Z",
   },
   {
     id: "appt-102",
@@ -126,24 +128,25 @@ const INITIAL_APPOINTMENTS: StoredAppointment[] = [
     doctorId: "doc-3",
     doctorName: "Dr. Elena Rostova",
     doctorSpecialty: "Dermatologist",
-    doctorHospital: "Skin Institute & Clinical Laser Center",
-    doctorAvatar: "https://images.unsplash.com/photo-1594824813629-dd160d5fb709?auto=format&fit=crop&q=80&w=600",
+    doctorHospital: "Madison Clinical Dermatology, NY",
+    doctorAvatar: "/assets/doc11.png",
     doctorDegree: "MD, FAAD (Dermatology)",
     patientName: "Sophia Martinez",
     patientEmail: "sophia.m@example.com",
-    patientPhone: "+1 (555) 819-2044",
+    patientPhone: "(718) 555-0194",
     patientAge: 29,
-    reason: "Severe allergic contact dermatitis evaluation",
-    symptoms: ["Skin Rash", "Pruritus", "Facial Redness"],
+    reason: "Allergic contact dermatitis evaluation",
+    symptoms: ["Skin Rash / Eczema"],
     consultationType: "HD Video Consultation",
-    slotDate: "Today, Oct 31",
+    slotDate: "Tomorrow",
     slotTime: "05:15 PM",
     amount: 60,
     status: "Confirmed",
     paymentStatus: "Paid",
     meetingLink: "https://meet.newcare.health/room/NC-9943-VD",
-    qrCodeUrl: "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=NC-9943-VD",
-    createdAt: "2026-10-30T14:20:00Z",
+    qrCodeUrl:
+      "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=NC-9943-VD",
+    createdAt: "2026-11-18T14:20:00Z",
   },
   {
     id: "appt-103",
@@ -151,25 +154,27 @@ const INITIAL_APPOINTMENTS: StoredAppointment[] = [
     doctorId: "doc-1",
     doctorName: "Dr. Sarah Jenkins",
     doctorSpecialty: "Cardiologist",
-    doctorHospital: "Mount Sinai Heart Center, New York",
-    doctorAvatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=600",
-    doctorDegree: "MBBS, FCPS (Cardiology), FACC",
+    doctorHospital: "Midtown Cardiac Associates, New York",
+    doctorAvatar: "/assets/doc2.png",
+    doctorDegree: "MD, FACC (Cardiology)",
     patientName: "David K. Reynolds",
     patientEmail: "d.reynolds@example.com",
-    patientPhone: "+1 (555) 744-1100",
+    patientPhone: "(917) 555-0112",
     patientAge: 58,
-    reason: "Post-angioplasty 6-month checkup",
+    reason: "Post-angioplasty 6-month follow-up",
     symptoms: ["Post-Op Follow-up", "Hypertension"],
     consultationType: "In-Clinic Visit",
-    slotDate: "Yesterday, Oct 30",
+    slotDate: "Last Week",
     slotTime: "11:00 AM",
     amount: 75,
     status: "Completed",
     paymentStatus: "Paid",
-    notes: "Patient reported normal exertion capacity. BP 122/78 mmHg. Maintained on current statin regimen.",
-    roomNumber: "Suite 402 - Exam Room 1",
-    qrCodeUrl: "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=NC-3310-CL",
-    createdAt: "2026-10-29T10:00:00Z",
+    notes:
+      "Normal exertion capacity. BP 122/78 mmHg. Maintained on current statin regimen; follow-up in 6 months.",
+    roomNumber: "Suite 402 — Exam Room 1",
+    qrCodeUrl:
+      "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=NC-3310-CL",
+    createdAt: "2026-11-10T10:00:00Z",
   },
   {
     id: "appt-104",
@@ -177,24 +182,25 @@ const INITIAL_APPOINTMENTS: StoredAppointment[] = [
     doctorId: "doc-4",
     doctorName: "Dr. David Chen",
     doctorSpecialty: "Pediatrician",
-    doctorHospital: "Children's National Wellness Hospital",
-    doctorAvatar: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=600",
-    doctorDegree: "MBBS, MD (Pediatrics), FAAP",
-    patientName: "Emma Watson (Child: Leo, 4)",
-    patientEmail: "emma.watson@example.com",
-    patientPhone: "+1 (555) 492-3811",
+    doctorHospital: "West Side Pediatric Associates, NY",
+    doctorAvatar: "/assets/doc1.png",
+    doctorDegree: "MD, FAAP (Pediatrics)",
+    patientName: "Claire Bennett (Child: Leo, 4)",
+    patientEmail: "claire.bennett@example.com",
+    patientPhone: "(646) 555-0177",
     patientAge: 4,
     reason: "Preschool physical & immunization series",
-    symptoms: ["Vaccination", "Growth Check"],
+    symptoms: ["Routine Annual Review"],
     consultationType: "In-Clinic Visit",
-    slotDate: "Oct 28, 2026",
+    slotDate: "2 Weeks Ago",
     slotTime: "03:30 PM",
     amount: 50,
     status: "Completed",
     paymentStatus: "Paid",
-    notes: "Growth velocity in 75th percentile. Administered MMR booster with zero acute adverse reaction.",
-    roomNumber: "Pediatric Wing B, Room 12",
-    createdAt: "2026-10-27T11:45:00Z",
+    notes:
+      "Growth velocity at 75th percentile. MMR booster administered with no adverse reaction.",
+    roomNumber: "Pediatric Wing B — Room 12",
+    createdAt: "2026-11-04T11:45:00Z",
   },
   {
     id: "appt-105",
@@ -202,17 +208,17 @@ const INITIAL_APPOINTMENTS: StoredAppointment[] = [
     doctorId: "doc-2",
     doctorName: "Dr. Marcus Vance",
     doctorSpecialty: "General Physician",
-    doctorHospital: "Columbia University Medical Center",
-    doctorAvatar: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=600",
-    doctorDegree: "MBBS, MD (Internal Medicine)",
-    patientName: "Liam Johnson",
-    patientEmail: "liam.j@example.com",
-    patientPhone: "+1 (555) 233-9011",
+    doctorHospital: "NewCare Primary Care, Manhattan",
+    doctorAvatar: "/assets/doc6.png",
+    doctorDegree: "MD, FACP (Internal Medicine)",
+    patientName: "Liam O'Connor",
+    patientEmail: "liam.oconnor@example.com",
+    patientPhone: "(212) 555-0163",
     patientAge: 42,
-    reason: "Rescheduled work conference conflict",
-    symptoms: ["Annual Physical"],
+    reason: "Rescheduled due to travel",
+    symptoms: ["Routine Annual Review"],
     consultationType: "HD Video Consultation",
-    slotDate: "Oct 25, 2026",
+    slotDate: "Last Month",
     slotTime: "02:00 PM",
     amount: 45,
     status: "Cancelled",
@@ -223,7 +229,7 @@ const INITIAL_APPOINTMENTS: StoredAppointment[] = [
 
 export const useStore = create<StoreState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       currentRole: "patient",
       setCurrentRole: (role) => set({ currentRole: role }),
       activeDoctorId: "doc-1",
@@ -239,7 +245,9 @@ export const useStore = create<StoreState>()(
                   ...d,
                   isAvailableToday: !d.isAvailableToday,
                   available: !d.available,
-                  nextAvailableSlot: !d.isAvailableToday ? "Today, 4:30 PM" : "Tomorrow, 10:00 AM",
+                  nextAvailableSlot: !d.isAvailableToday
+                    ? "Today, 4:30 PM"
+                    : "Tomorrow, 10:00 AM",
                 }
               : d
           ),
@@ -260,7 +268,9 @@ export const useStore = create<StoreState>()(
       appointments: INITIAL_APPOINTMENTS,
       addAppointment: (appointmentData) => {
         const id = `appt-${Date.now()}`;
-        const bookingId = `NC-${Math.floor(1000 + Math.random() * 9000)}-${appointmentData.consultationType.startsWith("HD") ? "VD" : "CL"}`;
+        const bookingId = `NC-${Math.floor(1000 + Math.random() * 9000)}-${
+          appointmentData.consultationType.startsWith("HD") ? "VD" : "CL"
+        }`;
         const newAppt: StoredAppointment = {
           ...appointmentData,
           id,
@@ -274,7 +284,7 @@ export const useStore = create<StoreState>()(
               : undefined,
           roomNumber:
             appointmentData.consultationType === "In-Clinic Visit"
-              ? "Suite 402 - Exam Room 2"
+              ? "Suite 402 — Exam Room 2"
               : undefined,
           createdAt: new Date().toISOString(),
         };
@@ -316,14 +326,13 @@ export const useStore = create<StoreState>()(
           ),
         })),
 
-      // Booking Flow Draft
       bookingStep: 1,
       setBookingStep: (step) => set({ bookingStep: step }),
       selectedDoctor: FALLBACK_DOCTORS[0],
       setSelectedDoctor: (doctor) => set({ selectedDoctor: doctor }),
       consultationType: "In-Clinic Visit",
       setConsultationType: (type) => set({ consultationType: type }),
-      selectedDate: "Today, Oct 31",
+      selectedDate: "Today",
       setSelectedDate: (date) => set({ selectedDate: date }),
       selectedTime: "04:30 PM",
       setSelectedTime: (time) => set({ selectedTime: time }),
@@ -333,19 +342,20 @@ export const useStore = create<StoreState>()(
           patientDetails: { ...state.patientDetails, ...details },
         })),
       recentConfirmedBooking: null,
-      setRecentConfirmedBooking: (booking) => set({ recentConfirmedBooking: booking }),
+      setRecentConfirmedBooking: (booking) =>
+        set({ recentConfirmedBooking: booking }),
       resetBookingDraft: () =>
         set({
           bookingStep: 1,
           recentConfirmedBooking: null,
           consultationType: "In-Clinic Visit",
-          selectedDate: "Today, Oct 31",
+          selectedDate: "Today",
           selectedTime: "04:30 PM",
           patientDetails: DEFAULT_PATIENT,
         }),
     }),
     {
-      name: "newcare-storage-v2",
+      name: "newcare-storage-v3",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         currentRole: state.currentRole,

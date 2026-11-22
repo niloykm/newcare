@@ -18,17 +18,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme") as Theme | null;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initial = stored || (prefersDark ? "dark" : "light");
+    const stored = localStorage.getItem("newcare-theme") as Theme | null;
+    const initial: Theme = stored === "dark" || stored === "light" ? stored : "light";
     setTheme(initial);
     document.documentElement.setAttribute("data-theme", initial);
   }, []);
 
   const toggleTheme = () => {
     setTheme((prev) => {
-      const next = prev === "light" ? "dark" : "light";
-      localStorage.setItem("theme", next);
+      const next: Theme = prev === "light" ? "dark" : "light";
+      localStorage.setItem("newcare-theme", next);
       document.documentElement.setAttribute("data-theme", next);
       return next;
     });
