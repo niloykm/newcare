@@ -106,6 +106,37 @@ export default function Navbar() {
     return pathname === match || pathname.startsWith(`${match}/`);
   };
 
+  const handleHomeAnchorClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: "estimator" | "services"
+  ) => {
+    e.preventDefault();
+    const wasDrawerOpen = mobileOpen;
+    setMobileOpen(false);
+    setDropOpen(false);
+
+    if (pathname === "/") {
+      window.history.replaceState(null, "", `/#${sectionId}`);
+      const scrollTarget = () => {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        if (sectionId === "estimator") {
+          window.dispatchEvent(new CustomEvent("newcare:focus-estimator"));
+        }
+      };
+      if (wasDrawerOpen) {
+        window.setTimeout(scrollTarget, 60);
+      } else {
+        scrollTarget();
+      }
+      return;
+    }
+
+    router.push(`/#${sectionId}`);
+  };
+
   return (
     <header
       className={`sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#11161d]/95 backdrop-blur-sm transition-shadow duration-200 ${
@@ -135,6 +166,11 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  onClick={
+                    link.href === "/#services"
+                      ? (e) => handleHomeAnchorClick(e, "services")
+                      : undefined
+                  }
                   className={`text-sm font-medium transition-colors duration-200 ${
                     active
                       ? "text-teal-700 dark:text-teal-400 font-semibold"
@@ -243,6 +279,7 @@ export default function Navbar() {
 
             <Link
               href="/#estimator"
+              onClick={(e) => handleHomeAnchorClick(e, "estimator")}
               className="btn-primary min-h-[44px] px-4 py-2 text-sm hidden sm:inline-flex"
             >
               Book Care
@@ -272,7 +309,13 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={(e) => {
+                    if (link.href === "/#services") {
+                      handleHomeAnchorClick(e, "services");
+                    } else {
+                      setMobileOpen(false);
+                    }
+                  }}
                   className="min-h-[44px] px-3 flex items-center rounded-md text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
                   {link.label}
@@ -283,7 +326,7 @@ export default function Navbar() {
             <div className="flex flex-col gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
               <Link
                 href="/#estimator"
-                onClick={() => setMobileOpen(false)}
+                onClick={(e) => handleHomeAnchorClick(e, "estimator")}
                 className="btn-primary w-full"
               >
                 Book Care

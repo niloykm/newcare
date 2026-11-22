@@ -1,7 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, MapPin, Clock, Send, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  Clock,
+  Copy,
+  Mail,
+  MapPin,
+  Send,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
 import {
@@ -13,9 +24,12 @@ import {
 
 type ContactField = "name" | "email" | "phone" | "message";
 
+const SMOOTH_EASE = [0.22, 1, 0.36, 1] as const;
+
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
   const [ticketId, setTicketId] = useState("");
   const [errors, setErrors] = useState<FieldErrors<ContactField>>({});
   const [form, setForm] = useState({
@@ -25,6 +39,17 @@ export default function ContactPage() {
     service: "Skilled Nursing (RN / LPN)",
     message: "",
   });
+
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText("intake@newcare.health");
+      setCopiedEmail(true);
+      toast.success("Copied intake@newcare.health", { id: "copy-intake-email" });
+      window.setTimeout(() => setCopiedEmail(false), 1800);
+    } catch {
+      toast.error("Could not copy email address.", { id: "copy-intake-email" });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +63,9 @@ export default function ContactPage() {
 
     if (Object.values(nextErrors).some(Boolean)) {
       setErrors(nextErrors);
-      toast.error("Please review the highlighted fields.");
+      toast.error("Please review the highlighted fields.", {
+        id: "contact-validation",
+      });
       return;
     }
 
@@ -60,7 +87,8 @@ export default function ContactPage() {
 
     setTicketId(code);
     setSent(true);
-    toast.success(`Care inquiry logged (${code}).`);
+    toast.dismiss("contact-validation");
+    toast.success(`Care inquiry logged (${code}).`, { id: "contact-submit" });
   };
 
   const contactDetails = [
@@ -69,18 +97,21 @@ export default function ContactPage() {
       label: "Care Coordination & Intake",
       value: "intake@newcare.health",
       sub: "RN intake review and Long-Term Care Insurance support",
+      isEmail: true,
     },
     {
       icon: MapPin,
       label: "Regional Coordination Office",
       value: "Midtown East, Manhattan, NY 10017",
       sub: "Serving NYC boroughs, Hudson County NJ, and Nassau County",
+      isEmail: false,
     },
     {
       icon: Clock,
       label: "Clinical Intake Coverage",
       value: "Daily RN Triage & Scheduling",
       sub: "Same-day coordination for urgent hospital discharges",
+      isEmail: false,
     },
   ];
 
@@ -103,24 +134,53 @@ export default function ContactPage() {
 
       <section className="container max-w-4xl pt-10">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-          {/* Coordinates */}
+          {/* Coordination Office Info */}
           <div className="md:col-span-5 space-y-4">
             <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50">
               Coordination Office
             </h2>
             <div className="space-y-3">
-              {contactDetails.map(({ icon: Icon, label, value, sub }) => (
+              {contactDetails.map(({ icon: Icon, label, value, sub, isEmail }) => (
                 <div key={label} className="card p-4 flex items-start gap-3">
                   <span className="w-9 h-9 rounded-md bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-900 flex items-center justify-center text-teal-700 dark:text-teal-400 shrink-0">
                     <Icon className="w-4 h-4" aria-hidden="true" />
                   </span>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                       {label}
                     </p>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mt-0.5">
-                      {value}
-                    </p>
+                    {isEmail ? (
+                      <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                        <a
+                          href="mailto:intake@newcare.health"
+                          className="text-sm font-semibold text-teal-700 dark:text-teal-400 hover:underline transition-colors duration-150 break-all"
+                        >
+                          {value}
+                        </a>
+                        <button
+                          type="button"
+                          onClick={handleCopyEmail}
+                          aria-label="Copy intake email address"
+                          className="inline-flex items-center gap-1 min-h-[32px] px-2 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-150 shrink-0 cursor-pointer"
+                        >
+                          {copiedEmail ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" aria-hidden="true" />
+                              <span>Copied</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mt-0.5">
+                        {value}
+                      </p>
+                    )}
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       {sub}
                     </p>
@@ -128,14 +188,37 @@ export default function ContactPage() {
                 </div>
               ))}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pt-2">
+
+            <div className="card p-4 space-y-2.5">
+              <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                Looking for immediate pricing or specialist slots?
+              </p>
+              <div className="flex flex-col gap-2">
+                <Link
+                  href="/#estimator"
+                  className="inline-flex items-center justify-between min-h-[36px] text-xs font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors duration-150"
+                >
+                  <span>Open Interactive Care Estimator</span>
+                  <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                </Link>
+                <Link
+                  href="/doctors"
+                  className="inline-flex items-center justify-between min-h-[36px] text-xs font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors duration-150"
+                >
+                  <span>Browse Board-Certified Specialists</span>
+                  <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pt-1">
               For life-threatening medical emergencies, please call 911 or go to the
               nearest emergency department immediately.
             </p>
           </div>
 
           {/* Intake Form */}
-          <div className="md:col-span-7 card p-6">
+          <div className="md:col-span-7 card p-6 min-h-[540px] flex flex-col">
             <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50 mb-1">
               Request RN Callback or Care Plan Review
             </h2>
@@ -143,176 +226,194 @@ export default function ContactPage() {
               Share your timeline and care requirements; an RN coordinator will follow up promptly.
             </p>
 
-            {sent ? (
-              <div className="p-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-center space-y-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
-                </div>
-                <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">
-                  Inquiry Submitted
-                </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  Reference <span className="font-mono font-semibold">{ticketId}</span> has
-                  been routed to our Registered Nurse intake desk.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSent(false);
-                    setForm({
-                      name: "",
-                      email: "",
-                      phone: "",
-                      service: "Skilled Nursing (RN / LPN)",
-                      message: "",
-                    });
-                  }}
-                  className="btn-secondary text-xs mt-2"
+            <AnimatePresence mode="wait" initial={false}>
+              {sent ? (
+                <motion.div
+                  key="contact-confirmation"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.18, ease: SMOOTH_EASE }}
+                  className="my-auto p-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-center space-y-3"
                 >
-                  Submit Another Inquiry
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} noValidate className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="contact-name"
-                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-                  >
-                    Your Full Name *
-                  </label>
-                  <input
-                    id="contact-name"
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => {
-                      setForm({ ...form, name: e.target.value });
-                      if (errors.name) setErrors({ ...errors, name: undefined });
+                  <div className="w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
+                  </div>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">
+                    Inquiry Submitted
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    Reference <span className="font-mono font-semibold">{ticketId}</span> has
+                    been routed to our Registered Nurse intake desk.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSent(false);
+                      setForm({
+                        name: "",
+                        email: "",
+                        phone: "",
+                        service: "Skilled Nursing (RN / LPN)",
+                        message: "",
+                      });
                     }}
-                    aria-invalid={Boolean(errors.name)}
-                    aria-describedby={errors.name ? "contact-name-error" : undefined}
-                    className="input"
-                    placeholder="e.g. Rachel Miller"
-                  />
-                  {errors.name && (
-                    <p id="contact-name-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
-                      {errors.name}
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    className="btn-secondary text-xs mt-2"
+                  >
+                    Submit Another Inquiry
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.form
+                  key="contact-form"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.18, ease: SMOOTH_EASE }}
+                  onSubmit={handleSubmit}
+                  noValidate
+                  className="space-y-4"
+                >
                   <div>
                     <label
-                      htmlFor="contact-email"
+                      htmlFor="contact-name"
                       className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
                     >
-                      Email Address *
+                      Your Full Name *
                     </label>
                     <input
-                      id="contact-email"
-                      type="email"
-                      value={form.email}
+                      id="contact-name"
+                      type="text"
+                      value={form.name}
                       onChange={(e) => {
-                        setForm({ ...form, email: e.target.value });
-                        if (errors.email) setErrors({ ...errors, email: undefined });
+                        setForm({ ...form, name: e.target.value });
+                        if (errors.name) setErrors({ ...errors, name: undefined });
                       }}
-                      aria-invalid={Boolean(errors.email)}
-                      aria-describedby={errors.email ? "contact-email-error" : undefined}
+                      aria-invalid={Boolean(errors.name)}
+                      aria-describedby={errors.name ? "contact-name-error" : undefined}
                       className="input"
-                      placeholder="rachel@example.com"
+                      placeholder="e.g. Rachel Miller"
                     />
-                    {errors.email && (
-                      <p id="contact-email-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
-                        {errors.email}
+                    {errors.name && (
+                      <p id="contact-name-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
+                        {errors.name}
                       </p>
                     )}
                   </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="contact-email"
+                        className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                      >
+                        Email Address *
+                      </label>
+                      <input
+                        id="contact-email"
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => {
+                          setForm({ ...form, email: e.target.value });
+                          if (errors.email) setErrors({ ...errors, email: undefined });
+                        }}
+                        aria-invalid={Boolean(errors.email)}
+                        aria-describedby={errors.email ? "contact-email-error" : undefined}
+                        className="input"
+                        placeholder="rachel@example.com"
+                      />
+                      {errors.email && (
+                        <p id="contact-email-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="contact-phone"
+                        className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                      >
+                        Callback Phone *
+                      </label>
+                      <input
+                        id="contact-phone"
+                        type="tel"
+                        value={form.phone}
+                        onChange={(e) => {
+                          setForm({ ...form, phone: e.target.value });
+                          if (errors.phone) setErrors({ ...errors, phone: undefined });
+                        }}
+                        aria-invalid={Boolean(errors.phone)}
+                        aria-describedby={errors.phone ? "contact-phone-error" : undefined}
+                        className="input"
+                        placeholder="(212) 480-0192"
+                      />
+                      {errors.phone && (
+                        <p id="contact-phone-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
+                          {errors.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
                   <div>
                     <label
-                      htmlFor="contact-phone"
+                      htmlFor="contact-service"
                       className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
                     >
-                      Callback Phone *
+                      Care Service Needed
                     </label>
-                    <input
-                      id="contact-phone"
-                      type="tel"
-                      value={form.phone}
+                    <select
+                      id="contact-service"
+                      value={form.service}
+                      onChange={(e) => setForm({ ...form, service: e.target.value })}
+                      className="input cursor-pointer"
+                    >
+                      <option value="Skilled Nursing (RN / LPN)">Skilled Nursing (RN / LPN)</option>
+                      <option value="Elderly & Dementia Care">Elderly &amp; Dementia Care</option>
+                      <option value="Post-Surgical & Orthopedic Recovery">
+                        Post-Surgical &amp; Orthopedic Recovery
+                      </option>
+                      <option value="Pediatric Complex Care">Pediatric Complex Care</option>
+                      <option value="24/7 Live-In & Respite Care">24/7 Live-In &amp; Respite Care</option>
+                      <option value="Physician Consultation">Physician Consultation</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="contact-message"
+                      className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                    >
+                      Care Details &amp; Timeline *
+                    </label>
+                    <textarea
+                      id="contact-message"
+                      rows={4}
+                      value={form.message}
                       onChange={(e) => {
-                        setForm({ ...form, phone: e.target.value });
-                        if (errors.phone) setErrors({ ...errors, phone: undefined });
+                        setForm({ ...form, message: e.target.value });
+                        if (errors.message) setErrors({ ...errors, message: undefined });
                       }}
-                      aria-invalid={Boolean(errors.phone)}
-                      aria-describedby={errors.phone ? "contact-phone-error" : undefined}
-                      className="input"
-                      placeholder="(212) 480-0192"
+                      aria-invalid={Boolean(errors.message)}
+                      aria-describedby={errors.message ? "contact-message-error" : undefined}
+                      className="input py-2 resize-y"
+                      placeholder="Share patient care needs, borough/ZIP code, and preferred start timeline..."
                     />
-                    {errors.phone && (
-                      <p id="contact-phone-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
-                        {errors.phone}
+                    {errors.message && (
+                      <p id="contact-message-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
+                        {errors.message}
                       </p>
                     )}
                   </div>
-                </div>
 
-                <div>
-                  <label
-                    htmlFor="contact-service"
-                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-                  >
-                    Care Service Needed
-                  </label>
-                  <select
-                    id="contact-service"
-                    value={form.service}
-                    onChange={(e) => setForm({ ...form, service: e.target.value })}
-                    className="input cursor-pointer"
-                  >
-                    <option value="Skilled Nursing (RN / LPN)">Skilled Nursing (RN / LPN)</option>
-                    <option value="Elderly & Dementia Care">Elderly &amp; Dementia Care</option>
-                    <option value="Post-Surgical & Orthopedic Recovery">
-                      Post-Surgical &amp; Orthopedic Recovery
-                    </option>
-                    <option value="Pediatric Complex Care">Pediatric Complex Care</option>
-                    <option value="24/7 Live-In & Respite Care">24/7 Live-In &amp; Respite Care</option>
-                    <option value="Physician Consultation">Physician Consultation</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="contact-message"
-                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-                  >
-                    Care Details &amp; Timeline *
-                  </label>
-                  <textarea
-                    id="contact-message"
-                    rows={4}
-                    value={form.message}
-                    onChange={(e) => {
-                      setForm({ ...form, message: e.target.value });
-                      if (errors.message) setErrors({ ...errors, message: undefined });
-                    }}
-                    aria-invalid={Boolean(errors.message)}
-                    aria-describedby={errors.message ? "contact-message-error" : undefined}
-                    className="input py-2 resize-y"
-                    placeholder="Share patient care needs, borough/ZIP code, and preferred start timeline..."
-                  />
-                  {errors.message && (
-                    <p id="contact-message-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
-                      {errors.message}
-                    </p>
-                  )}
-                </div>
-
-                <button type="submit" disabled={submitting} className="btn-primary w-full">
-                  <Send className="w-4 h-4" aria-hidden="true" />
-                  <span>{submitting ? "Submitting..." : "Submit Care Inquiry"}</span>
-                </button>
-              </form>
-            )}
+                  <button type="submit" disabled={submitting} className="btn-primary w-full">
+                    <Send className="w-4 h-4" aria-hidden="true" />
+                    <span>{submitting ? "Submitting..." : "Submit Care Inquiry"}</span>
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </section>

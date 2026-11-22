@@ -1,9 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Activity, Mail, MapPin } from "lucide-react";
 
 export default function Footer() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleHomeAnchor = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: "services" | "estimator"
+  ) => {
+    e.preventDefault();
+    if (pathname === "/") {
+      window.history.replaceState(null, "", `/#${sectionId}`);
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      if (sectionId === "estimator") {
+        window.dispatchEvent(new CustomEvent("newcare:focus-estimator"));
+      }
+      return;
+    }
+    router.push(`/#${sectionId}`);
+  };
   return (
     <footer className="bg-white dark:bg-[#11161d] border-t border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
       <div className="container py-12 md:py-16">
@@ -26,6 +48,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#services"
+                  onClick={(e) => handleHomeAnchor(e, "services")}
                   className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
                 >
                   Care Services &amp; Transparent Rates
@@ -34,6 +57,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#estimator"
+                  onClick={(e) => handleHomeAnchor(e, "estimator")}
                   className="hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
                 >
                   Interactive Care Estimator

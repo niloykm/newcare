@@ -33,6 +33,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="light"
+      data-scroll-behavior="smooth"
       className={`${inter.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
@@ -46,6 +47,7 @@ export default function RootLayout({
           </a>
           <Toaster
             position="top-right"
+            containerStyle={{ top: 76, right: 16 }}
             toastOptions={{
               duration: 4000,
               style: {

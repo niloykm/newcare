@@ -27,6 +27,42 @@ export default function Home() {
   const [totalDoctorsCount, setTotalDoctorsCount] = useState<number>(FALLBACK_DOCTORS.length);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("skilled-nursing");
   const [openFaqId, setOpenFaqId] = useState<string | null>(CLINICAL_FAQS[0].id);
+  const [estimatorHighlighted, setEstimatorHighlighted] = useState(false);
+
+  useEffect(() => {
+    let highlightTimer: number | undefined;
+
+    const triggerEstimatorHighlight = () => {
+      setEstimatorHighlighted(true);
+      const selectEl = document.getElementById("care-service-select");
+      if (selectEl instanceof HTMLElement) {
+        selectEl.focus({ preventScroll: true });
+      }
+      window.clearTimeout(highlightTimer);
+      highlightTimer = window.setTimeout(() => setEstimatorHighlighted(false), 1400);
+    };
+
+    const handleHashOnLoad = () => {
+      const hash = window.location.hash.replace(/^#/, "");
+      if (!hash) return;
+      const target = document.getElementById(hash);
+      if (target) {
+        window.requestAnimationFrame(() => {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+          if (hash === "estimator") {
+            triggerEstimatorHighlight();
+          }
+        });
+      }
+    };
+
+    handleHashOnLoad();
+    window.addEventListener("newcare:focus-estimator", triggerEstimatorHighlight);
+    return () => {
+      window.clearTimeout(highlightTimer);
+      window.removeEventListener("newcare:focus-estimator", triggerEstimatorHighlight);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -53,19 +89,18 @@ export default function Home() {
 
   const handleSelectServiceForEstimator = (serviceId: string) => {
     setSelectedServiceId(serviceId);
+    window.history.replaceState(null, "", "/#estimator");
     const el = document.getElementById("estimator");
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+    window.dispatchEvent(new CustomEvent("newcare:focus-estimator"));
   };
 
   return (
     <div className="bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-slate-100">
       {/* 1. Focused Hero + Streamlined Interactive Care Estimator */}
-      <section
-        id="estimator"
-        className="bg-white dark:bg-[#11161d] border-b border-slate-200 dark:border-slate-800 py-14 md:py-20 scroll-mt-16"
-      >
+      <section className="bg-white dark:bg-[#11161d] border-b border-slate-200 dark:border-slate-800 py-14 md:py-20">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
             <div className="lg:col-span-5 space-y-6 lg:pt-2">
@@ -118,7 +153,14 @@ export default function Home() {
               </ul>
             </div>
 
-            <div className="lg:col-span-7">
+            <div
+              id="estimator"
+              className={`lg:col-span-7 scroll-mt-24 rounded-lg transition-shadow duration-200 ${
+                estimatorHighlighted
+                  ? "ring-2 ring-teal-700/40 dark:ring-teal-400/50 ring-offset-2 ring-offset-white dark:ring-offset-[#11161d]"
+                  : ""
+              }`}
+            >
               <CareEstimatorWidget
                 selectedServiceId={selectedServiceId}
                 onServiceChange={setSelectedServiceId}
@@ -131,7 +173,7 @@ export default function Home() {
       {/* 2. Core Services & Transparent Pricing */}
       <section
         id="services"
-        className="py-16 md:py-24 border-b border-slate-200 dark:border-slate-800 scroll-mt-16"
+        className="py-16 md:py-24 border-b border-slate-200 dark:border-slate-800 scroll-mt-24"
       >
         <div className="container">
           <div className="max-w-2xl mb-10">
@@ -287,7 +329,7 @@ export default function Home() {
       {/* 3. Consolidated Care Process & Clinical Safety Standards */}
       <section
         id="standards"
-        className="bg-white dark:bg-[#11161d] py-16 md:py-24 border-b border-slate-200 dark:border-slate-800 scroll-mt-16"
+        className="bg-white dark:bg-[#11161d] py-16 md:py-24 border-b border-slate-200 dark:border-slate-800 scroll-mt-24"
       >
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
