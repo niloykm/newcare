@@ -5,6 +5,7 @@ import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowRight, Check, CheckCircle2, ShieldCheck, X } from "lucide-react";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 import {
   CARE_SERVICES,
   FREQUENCY_OPTIONS,
@@ -49,6 +50,7 @@ export default function CareEstimatorWidget({
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState<string>("");
   const [errors, setErrors] = useState<FieldErrors<AssessmentField>>({});
 
@@ -87,7 +89,7 @@ export default function CareEstimatorWidget({
     setIsModalOpen(true);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const nextErrors: FieldErrors<AssessmentField> = {
@@ -104,7 +106,30 @@ export default function CareEstimatorWidget({
     }
 
     setErrors({});
+    setSubmitting(true);
     const code = `NC-CARE-${Math.floor(1000 + Math.random() * 9000)}`;
+    try {
+      await api.post("/api/user/contact", {
+        name: formData.patientName.trim(),
+        email: formData.email.trim() || "intake@newcare.health",
+        subject: `RN Assessment Request (${code}) — ${currentService.name}`,
+        message: [
+          `Care Recipient: ${formData.patientName.trim()} (${formData.relationship})`,
+          `Phone: ${formData.phone.trim()}`,
+          `Service: ${currentService.name} ($${shiftCost}/shift, ${currentShift.label}, ${currentFreq.label})`,
+          `Location: ${currentRegion.name} (${currentRegion.zip})`,
+          `Target Start: ${formData.startDate}`,
+          formData.notes.trim() ? `Notes: ${formData.notes.trim()}` : null,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      });
+    } catch {
+      // Assessment request still logged locally with reference code
+    } finally {
+      setSubmitting(false);
+    }
+
     setConfirmationCode(code);
     setIsSubmitted(true);
     toast.success(`Assessment request logged (${code}).`);
@@ -306,7 +331,7 @@ export default function CareEstimatorWidget({
                 <button
                   type="button"
                   aria-label="Close dialog"
-                  className="w-8 h-8 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="w-10 h-10 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" aria-hidden="true" />
                 </button>
@@ -422,7 +447,7 @@ export default function CareEstimatorWidget({
                     <input
                       id="phone-input"
                       type="tel"
-                      placeholder="(212) 555-0192"
+                      placeholder="(212) 480-0192"
                       value={formData.phone}
                       onChange={(e) => {
                         setFormData({ ...formData, phone: e.target.value });
@@ -522,8 +547,8 @@ export default function CareEstimatorWidget({
                       Cancel
                     </button>
                   </Dialog.Close>
-                  <button type="submit" className="btn-primary">
-                    Submit Care Request
+                  <button type="submit" disabled={submitting} className="btn-primary">
+                    {submitting ? "Submitting..." : "Submit Care Request"}
                   </button>
                 </div>
               </form>

@@ -58,11 +58,27 @@ export default function DoctorDetailPage({
           "/api/doctor/list"
         );
         if (res.data?.success && Array.isArray(res.data.doctors)) {
-          const apiDoc = res.data.doctors.find(
-            (d) => d._id === docId || d.id === docId
+          const normalizedList = res.data.doctors.map((raw, idx) => {
+            const match =
+              FALLBACK_DOCTORS.find((f) => f.id === raw._id || f.id === raw.id) ||
+              FALLBACK_DOCTORS[idx % FALLBACK_DOCTORS.length];
+            return normalizeApiDoctor(raw, match);
+          });
+          const apiDoc = normalizedList.find(
+            (d) => d._id === docId || d.id === docId || d.slug === docId
           );
           if (apiDoc) {
-            setDoctor(normalizeApiDoctor(apiDoc, found));
+            setDoctor(apiDoc);
+            const sameSpec = normalizedList
+              .filter(
+                (d) =>
+                  d.id !== apiDoc.id &&
+                  d.specialty.toLowerCase() === apiDoc.specialty.toLowerCase()
+              )
+              .slice(0, 2);
+            if (sameSpec.length > 0) {
+              setRelatedDoctors(sameSpec);
+            }
           }
         }
       } catch {

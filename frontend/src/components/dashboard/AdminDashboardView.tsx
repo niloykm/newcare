@@ -105,7 +105,105 @@ export default function AdminDashboardView() {
           </p>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile Practitioner Cards */}
+        <div className="md:hidden space-y-3">
+          {doctors.map((doc) => (
+            <div
+              key={doc.id}
+              className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative w-10 h-10 rounded-md overflow-hidden border border-slate-200 dark:border-slate-800 shrink-0">
+                    <Image
+                      src={doc.avatarUrl || doc.image}
+                      alt={doc.name}
+                      fill
+                      sizes="40px"
+                      className="object-cover object-top"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                      {doc.name}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate">
+                      {doc.specialty} · {doc.degree}
+                    </p>
+                  </div>
+                </div>
+
+                {editingFeeDocId === doc.id ? (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <input
+                      type="number"
+                      min={15}
+                      aria-label={`Consultation fee for ${doc.name}`}
+                      value={feeInput}
+                      onChange={(e) => setFeeInput(Number(e.target.value))}
+                      className="w-16 h-9 px-2 text-xs border border-slate-300 dark:border-slate-700 rounded bg-white dark:bg-slate-900 tabular-nums"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSaveFee(doc.id)}
+                      className="min-h-[36px] px-2.5 rounded bg-teal-700 text-white text-xs font-semibold cursor-pointer"
+                    >
+                      Save
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingFeeDocId(doc.id);
+                      setFeeInput(doc.consultationFee);
+                    }}
+                    aria-label={`Edit fee for ${doc.name}`}
+                    className="min-h-[36px] inline-flex items-center gap-1.5 px-2.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#11161d] text-xs font-semibold text-slate-900 dark:text-slate-100 tabular-nums shrink-0 cursor-pointer"
+                  >
+                    <span>${doc.consultationFee}</span>
+                    <Edit className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    toggleDoctorVerification(doc.id);
+                    toast.success(`Updated verification for ${doc.name}.`);
+                  }}
+                  className={`min-h-[36px] px-3 badge-clinical cursor-pointer ${
+                    doc.verified ? "badge-verified" : "badge-neutral"
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>{doc.verified ? "NY License Verified" : "Pending Review"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    toggleDoctorAvailability(doc.id);
+                    toast.success(`Updated availability for ${doc.name}.`);
+                  }}
+                  className={`min-h-[36px] px-3 text-xs font-semibold rounded-md border cursor-pointer ${
+                    doc.isAvailableToday
+                      ? "bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300"
+                      : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
+                  }`}
+                >
+                  {doc.isAvailableToday ? "Accepting" : "Offline"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Practitioner Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-semibold">
@@ -156,18 +254,18 @@ export default function AdminDashboardView() {
                           aria-label={`Consultation fee for ${doc.name}`}
                           value={feeInput}
                           onChange={(e) => setFeeInput(Number(e.target.value))}
-                          className="w-16 h-8 px-2 text-xs border border-slate-300 dark:border-slate-700 rounded bg-white dark:bg-slate-900 tabular-nums"
+                          className="w-16 h-9 px-2 text-xs border border-slate-300 dark:border-slate-700 rounded bg-white dark:bg-slate-900 tabular-nums"
                         />
                         <button
                           type="button"
                           onClick={() => handleSaveFee(doc.id)}
-                          className="h-8 px-2.5 rounded bg-teal-700 text-white text-xs font-semibold cursor-pointer"
+                          className="min-h-[36px] px-2.5 rounded bg-teal-700 text-white text-xs font-semibold cursor-pointer"
                         >
                           Save
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
                           ${doc.consultationFee}
                         </span>
@@ -178,7 +276,7 @@ export default function AdminDashboardView() {
                             setFeeInput(doc.consultationFee);
                           }}
                           aria-label={`Edit fee for ${doc.name}`}
-                          className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-1 cursor-pointer"
+                          className="w-9 h-9 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                         >
                           <Edit className="w-3.5 h-3.5" aria-hidden="true" />
                         </button>
@@ -192,11 +290,11 @@ export default function AdminDashboardView() {
                         toggleDoctorVerification(doc.id);
                         toast.success(`Updated verification for ${doc.name}.`);
                       }}
-                      className={`badge-clinical cursor-pointer ${
+                      className={`min-h-[34px] px-3 badge-clinical cursor-pointer ${
                         doc.verified ? "badge-verified" : "badge-neutral"
                       }`}
                     >
-                      <ShieldCheck className="w-3 h-3" aria-hidden="true" />
+                      <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>{doc.verified ? "NY License Verified" : "Pending Review"}</span>
                     </button>
                   </td>
@@ -207,7 +305,7 @@ export default function AdminDashboardView() {
                         toggleDoctorAvailability(doc.id);
                         toast.success(`Updated availability for ${doc.name}.`);
                       }}
-                      className={`min-h-[32px] px-2.5 text-xs font-semibold rounded-md border cursor-pointer ${
+                      className={`min-h-[34px] px-3 text-xs font-semibold rounded-md border cursor-pointer ${
                         doc.isAvailableToday
                           ? "bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300"
                           : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
@@ -265,7 +363,62 @@ export default function AdminDashboardView() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile Appointments Ledger Cards */}
+        <div className="md:hidden space-y-3">
+          {filteredAppointments.length === 0 ? (
+            <p className="py-6 text-center text-xs text-slate-500">
+              No appointments match your search or status filter.
+            </p>
+          ) : (
+            filteredAppointments.map((appt) => (
+              <div
+                key={appt.id}
+                className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-2.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs font-semibold text-teal-700 dark:text-teal-400">
+                    {appt.bookingId}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+                    ${appt.amount}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    {appt.patientName}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {appt.doctorName} ({appt.doctorSpecialty})
+                  </p>
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                  <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                    {appt.slotDate}, {appt.slotTime}
+                  </span>
+                  <select
+                    aria-label={`Status for ${appt.bookingId}`}
+                    value={appt.status}
+                    onChange={(e) => {
+                      updateAppointmentStatus(
+                        appt.id,
+                        e.target.value as AppointmentStatus
+                      );
+                      toast.success(`Updated ${appt.bookingId} to ${e.target.value}.`);
+                    }}
+                    className="min-h-[36px] px-2.5 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 cursor-pointer"
+                  >
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Appointments Ledger Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-semibold">
@@ -278,49 +431,57 @@ export default function AdminDashboardView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {filteredAppointments.map((appt) => (
-                <tr key={appt.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/40">
-                  <td className="py-3 px-3 font-mono font-semibold text-slate-900 dark:text-slate-100">
-                    {appt.bookingId}
-                  </td>
-                  <td className="py-3 px-3">
-                    <p className="font-semibold text-slate-900 dark:text-slate-100">
-                      {appt.patientName}
-                    </p>
-                    <p className="text-[11px] text-slate-500">{appt.patientEmail}</p>
-                  </td>
-                  <td className="py-3 px-3">
-                    <p className="font-semibold text-slate-900 dark:text-slate-100">
-                      {appt.doctorName}
-                    </p>
-                    <p className="text-[11px] text-slate-500">{appt.doctorSpecialty}</p>
-                  </td>
-                  <td className="py-3 px-3 text-slate-700 dark:text-slate-300 tabular-nums">
-                    {appt.slotDate}, {appt.slotTime}
-                  </td>
-                  <td className="py-3 px-3 font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
-                    ${appt.amount}
-                  </td>
-                  <td className="py-3 px-3 text-right">
-                    <select
-                      aria-label={`Status for ${appt.bookingId}`}
-                      value={appt.status}
-                      onChange={(e) => {
-                        updateAppointmentStatus(
-                          appt.id,
-                          e.target.value as AppointmentStatus
-                        );
-                        toast.success(`Updated ${appt.bookingId} to ${e.target.value}.`);
-                      }}
-                      className="h-8 px-2 text-xs font-semibold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 cursor-pointer"
-                    >
-                      <option value="Confirmed">Confirmed</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Cancelled">Cancelled</option>
-                    </select>
+              {filteredAppointments.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-500">
+                    No appointments match your search or status filter.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredAppointments.map((appt) => (
+                  <tr key={appt.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/40">
+                    <td className="py-3 px-3 font-mono font-semibold text-slate-900 dark:text-slate-100">
+                      {appt.bookingId}
+                    </td>
+                    <td className="py-3 px-3">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">
+                        {appt.patientName}
+                      </p>
+                      <p className="text-[11px] text-slate-500">{appt.patientEmail}</p>
+                    </td>
+                    <td className="py-3 px-3">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">
+                        {appt.doctorName}
+                      </p>
+                      <p className="text-[11px] text-slate-500">{appt.doctorSpecialty}</p>
+                    </td>
+                    <td className="py-3 px-3 text-slate-700 dark:text-slate-300 tabular-nums">
+                      {appt.slotDate}, {appt.slotTime}
+                    </td>
+                    <td className="py-3 px-3 font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+                      ${appt.amount}
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <select
+                        aria-label={`Status for ${appt.bookingId}`}
+                        value={appt.status}
+                        onChange={(e) => {
+                          updateAppointmentStatus(
+                            appt.id,
+                            e.target.value as AppointmentStatus
+                          );
+                          toast.success(`Updated ${appt.bookingId} to ${e.target.value}.`);
+                        }}
+                        className="min-h-[36px] px-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 cursor-pointer"
+                      >
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

@@ -30,7 +30,11 @@ const SPECIALTY_OPTIONS = [
   "Gynecologist",
   "Orthopedic",
   "ENT Specialist",
+  "Psychiatrist",
+  "Oncologist",
 ];
+
+const PAGE_SIZE = 12;
 
 function SearchParamsSync({
   onParams,
@@ -61,6 +65,7 @@ export default function DoctorsPage() {
   const [consultType, setConsultType] = useState<"all" | "video" | "in-person">("all");
   const [availableTodayOnly, setAvailableTodayOnly] = useState(false);
   const [sortBy, setSortBy] = useState("rating-desc");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleParamsSync = useCallback(
     (params: {
@@ -133,6 +138,17 @@ export default function DoctorsPage() {
       });
   }, [doctors, specialty, availableTodayOnly, consultType, search, sortBy]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredDoctors.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedDoctors = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredDoctors.slice(start, start + PAGE_SIZE);
+  }, [filteredDoctors, safePage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [specialty, consultType, availableTodayOnly, search, sortBy]);
+
   const hasActiveFilters =
     specialty !== "All Specialties" ||
     consultType !== "all" ||
@@ -145,6 +161,7 @@ export default function DoctorsPage() {
     setAvailableTodayOnly(false);
     setSearch("");
     setSortBy("rating-desc");
+    setCurrentPage(1);
   };
 
   return (
@@ -328,11 +345,50 @@ export default function DoctorsPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {filteredDoctors.map((doctor) => (
-              <DoctorCard key={doctor.id || doctor._id} doctor={doctor} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {paginatedDoctors.map((doctor) => (
+                <DoctorCard key={doctor.id || doctor._id} doctor={doctor} />
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <nav
+                aria-label="Specialist directory pagination"
+                className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4"
+              >
+                <p className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                  Showing {(safePage - 1) * PAGE_SIZE + 1}–
+                  {Math.min(safePage * PAGE_SIZE, filteredDoctors.length)} of{" "}
+                  {filteredDoctors.length} specialists (Page {safePage} of {totalPages})
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={safePage <= 1}
+                    onClick={() => {
+                      setCurrentPage((p) => Math.max(1, p - 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="btn-secondary text-xs px-3.5"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    disabled={safePage >= totalPages}
+                    onClick={() => {
+                      setCurrentPage((p) => Math.min(totalPages, p + 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="btn-secondary text-xs px-3.5"
+                  >
+                    Next
+                  </button>
+                </div>
+              </nav>
+            )}
+          </>
         )}
       </section>
     </div>

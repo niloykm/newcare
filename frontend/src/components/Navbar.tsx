@@ -153,7 +153,7 @@ export default function Navbar() {
               type="button"
               onClick={toggleTheme}
               aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
-              className="w-10 h-10 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
+              className="w-11 h-11 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
             >
               {theme === "dark" ? (
                 <Sun className="w-4 h-4" aria-hidden="true" />
@@ -169,7 +169,7 @@ export default function Navbar() {
                   onClick={() => setDropOpen((prev) => !prev)}
                   aria-label="Account menu"
                   aria-expanded={dropOpen}
-                  className="min-h-[40px] flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm font-medium text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
+                  className="min-h-[44px] flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm font-medium text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
                 >
                   <span className="w-6 h-6 rounded bg-teal-700 text-white flex items-center justify-center text-xs font-semibold">
                     {user.name?.trim().charAt(0).toUpperCase() || (
@@ -235,7 +235,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="hidden sm:inline-flex items-center min-h-[40px] px-3 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+                className="hidden sm:inline-flex items-center min-h-[44px] px-3 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
               >
                 Sign In
               </Link>
@@ -243,7 +243,7 @@ export default function Navbar() {
 
             <Link
               href="/#estimator"
-              className="btn-primary min-h-[40px] px-4 py-2 text-sm hidden sm:inline-flex"
+              className="btn-primary min-h-[44px] px-4 py-2 text-sm hidden sm:inline-flex"
             >
               Book Care
             </Link>
@@ -253,7 +253,7 @@ export default function Navbar() {
               onClick={() => setMobileOpen((prev) => !prev)}
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
-              className="md:hidden w-10 h-10 rounded-md border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="md:hidden w-11 h-11 rounded-md border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               {mobileOpen ? (
                 <X className="w-5 h-5" aria-hidden="true" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -31,7 +31,6 @@ interface UserData {
 }
 
 export default function ProfilePage() {
-  const router = useRouter();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEdit, setIsEdit] = useState(false);
@@ -40,6 +39,13 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
 
   const fetchProfile = useCallback(async () => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      setUserData(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await api.get("/api/user/get-profile");
       if (res.data.success) {
@@ -60,15 +66,14 @@ export default function ProfilePage() {
         );
         window.dispatchEvent(new Event("authChange"));
       } else {
-        toast.error(res.data.message || "Failed to load profile.");
+        setUserData(null);
       }
     } catch {
-      toast.error("Please sign in to view your profile.");
-      router.push("/login");
+      setUserData(null);
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     fetchProfile();
@@ -139,13 +144,28 @@ export default function ProfilePage() {
 
   if (!userData) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4">
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          Sign in to access your patient profile.
-        </p>
-        <button type="button" onClick={() => router.push("/login")} className="btn-primary">
-          Go to Sign In
-        </button>
+      <div className="min-h-[65vh] flex items-center justify-center bg-slate-50 dark:bg-[#0b0f14] px-4 py-12">
+        <div className="card p-8 max-w-md w-full text-center space-y-4">
+          <div className="w-12 h-12 rounded-lg bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-900 flex items-center justify-center text-teal-700 dark:text-teal-400 mx-auto">
+            <User className="w-6 h-6" aria-hidden="true" />
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+              Patient Profile
+            </h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1.5">
+              Sign in to view and update your contact details, address, and care coordination preferences.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 pt-2">
+            <Link href="/login" className="btn-primary">
+              Sign In to Your Account
+            </Link>
+            <Link href="/dashboard/patient" className="btn-secondary">
+              Patient Portal
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -228,7 +248,7 @@ export default function ProfilePage() {
                     value={userData.phone || ""}
                     onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
                     className="input"
-                    placeholder="(212) 555-0192"
+                    placeholder="(212) 480-0192"
                   />
                 </div>
                 <div>

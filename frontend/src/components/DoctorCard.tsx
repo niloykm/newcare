@@ -35,6 +35,7 @@ export default function DoctorCard({ doctor, onQuickBookSlot }: DoctorCardProps)
               alt={doctor.name}
               fill
               sizes="72px"
+              loading="eager"
               className="object-cover object-top"
               onError={() => setImgError(true)}
               unoptimized
@@ -116,7 +117,7 @@ export default function DoctorCard({ doctor, onQuickBookSlot }: DoctorCardProps)
                   onQuickBookSlot(doctor, slot);
                 }
               }}
-              className="inline-flex items-center min-h-[32px] px-2.5 py-1 text-xs font-medium tabular-nums rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-teal-700 hover:text-teal-700 dark:hover:border-teal-400 dark:hover:text-teal-300 transition-colors duration-200"
+              className="inline-flex items-center min-h-[36px] px-2.5 py-1.5 text-xs font-medium tabular-nums rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-teal-700 hover:text-teal-700 dark:hover:border-teal-400 dark:hover:text-teal-300 transition-colors duration-200"
             >
               {slot}
             </Link>
@@ -125,7 +126,7 @@ export default function DoctorCard({ doctor, onQuickBookSlot }: DoctorCardProps)
 
         <Link
           href={`/doctors/${id}`}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors"
+          className="inline-flex items-center min-h-[36px] gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors"
         >
           <span>Book Visit</span>
           <ArrowRight className="w-4 h-4" aria-hidden="true" />

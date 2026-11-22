@@ -29,6 +29,15 @@ export default function DoctorDashboardPage() {
           </div>
         </div>
 
+        <div className="mb-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400">
+            Clinical Operations
+          </p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+            Physician Clinical Desk
+          </h1>
+        </div>
+
         <DoctorDashboardView />
       </div>
     </div>

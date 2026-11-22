@@ -48,6 +48,9 @@ test.describe("NewCare Clinical Overhaul — UI, Accessibility & Engineering QA"
       expect(bodyText, `BMDC leak on ${route}`).not.toMatch(/\bBMDC\b/);
       expect(bodyText, `MBBS leak on ${route}`).not.toMatch(/\bMBBS\b/);
       expect(bodyText, `FCPS leak on ${route}`).not.toMatch(/\bFCPS\b/);
+      expect(bodyText, `DNB leak on ${route}`).not.toMatch(/\bDNB\b/);
+      expect(bodyText, `FRCS leak on ${route}`).not.toMatch(/\bFRCS\b/);
+      expect(bodyText, `FRCP leak on ${route}`).not.toMatch(/\bFRCP\b/);
       expect(bodyText, `Fake hotline leak on ${route}`).not.toContain("(800) 123-4567");
       expect(bodyText, `John Doe leak on ${route}`).not.toContain("John Doe");
     }
@@ -131,11 +134,11 @@ test.describe("NewCare Clinical Overhaul — UI, Accessibility & Engineering QA"
 
     // Filter to Cardiologist
     await page.getByLabel("Filter by specialty").selectOption("Cardiologist");
-    await expect(page.getByText("Dr. Sarah Jenkins")).toBeVisible();
+    await expect(page.locator("article").first().getByText("Cardiologist")).toBeVisible();
 
     // Navigate to booking
     await page.getByRole("link", { name: "Book Visit" }).first().click();
-    await expect(page).toHaveURL(/\/doctors\/doc-1/);
+    await expect(page).toHaveURL(/\/doctors\/[^/]+/);
 
     // Complete 3-step booking
     await page.getByRole("button", { name: "Continue to Patient Info" }).click();
@@ -147,7 +150,7 @@ test.describe("NewCare Clinical Overhaul — UI, Accessibility & Engineering QA"
     await page.getByRole("tab", { name: "Physician Desk" }).click();
     await expect(page.getByText("Patient Consultation Queue")).toBeVisible();
     await page.getByRole("tab", { name: "Clinic Admin" }).click();
-    await expect(page.getByText("NY License Verified").first()).toBeVisible();
+    await expect(page.locator("button:visible", { hasText: "NY License Verified" }).first()).toBeVisible();
   });
 
   test("5. Responsive QA: 1440x900 Desktop & 390x844 Mobile — Zero Overflow", async ({

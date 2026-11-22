@@ -350,7 +350,7 @@ function LoginForm() {
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
                       aria-label={showPassword ? "Hide password" : "Show password"}
-                      className="absolute right-2.5 p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+                      className="absolute right-1 w-10 h-10 flex items-center justify-center rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer"
                     >
                       {showPassword ? (
                         <EyeOff className="w-4 h-4" aria-hidden="true" />
@@ -370,7 +370,7 @@ function LoginForm() {
                         setMode("forgot");
                         setForgotStep("request");
                       }}
-                      className="text-xs font-semibold text-teal-700 dark:text-teal-400 hover:underline cursor-pointer"
+                      className="inline-flex items-center min-h-[36px] px-1 text-xs font-semibold text-teal-700 dark:text-teal-400 hover:underline cursor-pointer"
                     >
                       Forgot password?
                     </button>
@@ -525,7 +525,7 @@ function LoginForm() {
                         type="button"
                         onClick={() => setShowNewPassword((prev) => !prev)}
                         aria-label={showNewPassword ? "Hide password" : "Show password"}
-                        className="absolute right-2.5 p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+                        className="absolute right-1 w-10 h-10 flex items-center justify-center rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer"
                       >
                         {showNewPassword ? (
                           <EyeOff className="w-4 h-4" aria-hidden="true" />

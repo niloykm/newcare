@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -89,7 +89,20 @@ export default function MultiStepBooking({ doctor }: MultiStepBookingProps) {
 
   const [patientName, setPatientName] = useState("Hannah Morales");
   const [patientEmail, setPatientEmail] = useState("hannah.morales@example.com");
-  const [patientPhone, setPatientPhone] = useState("(212) 555-0148");
+  const [patientPhone, setPatientPhone] = useState("(212) 480-0148");
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("userData");
+      if (stored) {
+        const parsed = JSON.parse(stored) as { name?: string; email?: string };
+        if (parsed.name?.trim()) setPatientName(parsed.name.trim());
+        if (parsed.email?.trim()) setPatientEmail(parsed.email.trim());
+      }
+    } catch {
+      // Default intake values remain
+    }
+  }, []);
   const [patientAge, setPatientAge] = useState("38");
   const [patientGender, setPatientGender] = useState("Female");
   const [reason, setReason] = useState(
@@ -259,18 +272,18 @@ export default function MultiStepBooking({ doctor }: MultiStepBookingProps) {
       </div>
 
       {/* 3-Step Indicator */}
-      <ol className="grid grid-cols-3 gap-2.5 mb-6">
+      <ol className="grid grid-cols-3 gap-2 sm:gap-2.5 mb-6">
         {[
           { num: 1, label: "Schedule", sub: "Format & time" },
-          { num: 2, label: "Patient Info", sub: "Clinical intake" },
-          { num: 3, label: "Confirmation", sub: "Digital pass" },
+          { num: 2, label: "Intake", sub: "Patient info" },
+          { num: 3, label: "Confirm", sub: "Digital pass" },
         ].map((s) => {
           const isActive = step === s.num;
           const isDone = step > s.num;
           return (
             <li
               key={s.num}
-              className={`p-3 rounded-lg border flex items-center gap-2.5 transition-colors ${
+              className={`p-2.5 sm:p-3 rounded-lg border flex flex-col sm:flex-row items-center text-center sm:text-left gap-1.5 sm:gap-2.5 transition-colors ${
                 isActive
                   ? "bg-white dark:bg-[#11161d] border-teal-700 dark:border-teal-400"
                   : isDone
@@ -290,7 +303,7 @@ export default function MultiStepBooking({ doctor }: MultiStepBookingProps) {
                 {isDone ? <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" /> : s.num}
               </span>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
+                <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
                   {s.label}
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block truncate">

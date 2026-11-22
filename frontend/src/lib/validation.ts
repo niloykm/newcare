@@ -20,7 +20,10 @@ export function validateOptionalEmail(email: string): string | undefined {
 export function validatePhone(phone: string): string | undefined {
   const trimmed = phone.trim();
   if (!trimmed) return "Contact phone number is required.";
-  if (!PHONE_REGEX.test(trimmed)) return "Enter a valid phone number (at least 7 digits).";
+  const digitCount = trimmed.replace(/\D/g, "").length;
+  if (!PHONE_REGEX.test(trimmed) || digitCount < 7 || digitCount > 15) {
+    return "Enter a valid phone number (7–15 digits).";
+  }
   return undefined;
 }
 

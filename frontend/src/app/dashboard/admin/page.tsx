@@ -29,6 +29,15 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
+        <div className="mb-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400">
+            Clinical Operations
+          </p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+            Clinic Administration
+          </h1>
+        </div>
+
         <AdminDashboardView />
       </div>
     </div>

@@ -67,15 +67,100 @@ export interface ApiDoctorRecord {
 
 const DEFAULT_FALLBACK_AVATAR = "/assets/doc6.png";
 
-function sanitizeUSDegree(rawDegree?: string): string {
-  if (!rawDegree) return "MD";
-  const cleaned = rawDegree
-    .replace(/\bMBBS\b,?\s*/gi, "")
-    .replace(/\bFCPS\b/gi, "FACC")
-    .replace(/\bMRCGP\b/gi, "FAAFP")
-    .replace(/^,\s*|\s*,\s*$/g, "")
-    .trim();
-  return cleaned || "MD";
+const NY_CLINICAL_LOCATIONS: Array<{
+  hospitalName: string;
+  address: DoctorAddress;
+}> = [
+  {
+    hospitalName: "Midtown Clinical Associates, New York",
+    address: { line1: "Midtown Clinical Suites, Suite 402", line2: "Lexington Ave, New York, NY 10017" },
+  },
+  {
+    hospitalName: "NewCare Primary Care, Manhattan",
+    address: { line1: "NewCare Primary Care Clinic", line2: "Broadway, Suite 105, New York, NY 10012" },
+  },
+  {
+    hospitalName: "Madison Clinical Center, NY",
+    address: { line1: "Madison Medical Building, 7th Floor", line2: "Madison Ave, New York, NY 10022" },
+  },
+  {
+    hospitalName: "West Side Medical Associates, NY",
+    address: { line1: "Columbus Clinical Building, Suite 210", line2: "Columbus Ave, New York, NY 10024" },
+  },
+  {
+    hospitalName: "Park Avenue Specialty Group, NY",
+    address: { line1: "Park Avenue Clinical Pavilion", line2: "Park Ave, New York, NY 10016" },
+  },
+  {
+    hospitalName: "Brooklyn Heights Medical Pavilion, NY",
+    address: { line1: "Montague Clinical Suite 210", line2: "Montague St, Brooklyn, NY 11201" },
+  },
+  {
+    hospitalName: "Tri-State Clinical Center, Hoboken NJ",
+    address: { line1: "Hudson River Medical Plaza, Suite 300", line2: "Washington St, Hoboken, NJ 07030" },
+  },
+  {
+    hospitalName: "East Side Medical Associates, NY",
+    address: { line1: "York Avenue Clinical Building", line2: "East 68th St, New York, NY 10065" },
+  },
+];
+
+const SPECIALTY_BOARD_MAP: Record<string, string> = {
+  cardiologist: "MD, FACC",
+  "general physician": "MD, FACP",
+  dermatologist: "MD, FAAD",
+  pediatrician: "MD, FAAP",
+  neurologist: "MD, FAAN",
+  gynecologist: "MD, FACOG",
+  orthopedic: "MD, FAAOS",
+  "ent specialist": "MD, FACS",
+  psychiatrist: "MD, FAPA",
+  oncologist: "MD, FACP",
+};
+
+const SPECIALTY_DISPLAY_MAP: Record<string, string> = {
+  "general physician": "General Physician",
+  cardiologist: "Cardiologist",
+  dermatologist: "Dermatologist",
+  pediatrician: "Pediatrician",
+  pediatricians: "Pediatrician",
+  neurologist: "Neurologist",
+  gynecologist: "Gynecologist",
+  orthopedic: "Orthopedic",
+  "ent specialist": "ENT Specialist",
+  psychiatrist: "Psychiatrist",
+  oncologist: "Oncologist",
+};
+
+const NON_NY_LOCATION_REGEX =
+  /(London|Harley|Newgate|Bangalore|Karnataka|MG Road|Dubai|UAE|Singapore|Sydney|Melbourne|Paris|Rivoli|Berlin|Friedrich|Toronto|Vancouver|Hong Kong|Kuala Lumpur|Bukit|São Paulo|Paulista|Edinburgh|Los Angeles|Chicago|Houston|Boston|Oak Street|Medical Plaza|Riverside Drive|Circular Road|George Street|Bay Street|Wentworth|Collins Street|King Street|Main Street)/i;
+
+function formatSpecialtyDisplay(rawSpecialty?: string): string {
+  if (!rawSpecialty) return "General Physician";
+  const key = rawSpecialty.trim().toLowerCase();
+  if (SPECIALTY_DISPLAY_MAP[key]) return SPECIALTY_DISPLAY_MAP[key];
+  return rawSpecialty
+    .trim()
+    .split(/\s+/)
+    .map((w) => (w.length <= 3 ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join(" ");
+}
+
+function sanitizeUSDegree(rawDegree?: string, specialty?: string): string {
+  const specKey = (specialty || "").trim().toLowerCase();
+  const boardDefault = SPECIALTY_BOARD_MAP[specKey] || "MD, FACP";
+  if (!rawDegree) return boardDefault;
+
+  // Replace non-US credentials (MBBS, DNB, FRCS, FRCP, MRCP, DM, MCh, MS, FCPS, MRCGP)
+  const hasNonUS = /\b(MBBS|DNB|FRCS|FRCP|MRCP|DM|MCh|FCPS|MRCGP|MS)\b/i.test(rawDegree);
+  if (hasNonUS) {
+    if (/\bPhD\b/i.test(rawDegree)) return `${boardDefault}, PhD`;
+    if (/\bDO\b/i.test(rawDegree)) return boardDefault.replace(/^MD/, "DO");
+    return boardDefault;
+  }
+
+  const cleaned = rawDegree.replace(/^,\s*|\s*,\s*$/g, "").trim();
+  return cleaned || boardDefault;
 }
 
 function sanitizeUSLicense(rawLicense?: string, fallback?: string): string {
@@ -85,13 +170,56 @@ function sanitizeUSLicense(rawLicense?: string, fallback?: string): string {
   return rawLicense;
 }
 
+function resolveAvatarUrl(rawUrl?: string, fallbackUrl?: string): string {
+  const candidate = rawUrl || fallbackUrl || DEFAULT_FALLBACK_AVATAR;
+  const cloudinaryDocMatch = candidate.match(/newcare_assets\/(doc\d+\.png)$/i);
+  if (cloudinaryDocMatch) {
+    return `/assets/${cloudinaryDocMatch[1]}`;
+  }
+  return candidate;
+}
+
+function pickStableNYLocation(seed: string) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return NY_CLINICAL_LOCATIONS[hash % NY_CLINICAL_LOCATIONS.length];
+}
+
+export function selectFeaturedDoctors(
+  doctors: DoctorProfile[],
+  count = 4
+): DoctorProfile[] {
+  const sorted = [...doctors].sort((a, b) => b.rating - a.rating || b.reviewsCount - a.reviewsCount);
+  const picked: DoctorProfile[] = [];
+  const seenSpecialties = new Set<string>();
+
+  for (const doc of sorted) {
+    const key = doc.specialty.toLowerCase();
+    if (!seenSpecialties.has(key)) {
+      seenSpecialties.add(key);
+      picked.push(doc);
+      if (picked.length === count) return picked;
+    }
+  }
+  for (const doc of sorted) {
+    if (!picked.some((p) => p.id === doc.id)) {
+      picked.push(doc);
+      if (picked.length === count) break;
+    }
+  }
+  return picked;
+}
+
 export function normalizeApiDoctor(
   raw: ApiDoctorRecord,
   fallback?: DoctorProfile
 ): DoctorProfile {
   const id = raw._id || raw.id || fallback?.id || "doc-1";
-  const specialty =
-    raw.specialty || raw.speciality || fallback?.specialty || "General Physician";
+  const specialty = formatSpecialtyDisplay(
+    raw.specialty || raw.speciality || fallback?.specialty
+  );
   const parsedExperience =
     typeof raw.experienceYears === "number"
       ? raw.experienceYears
@@ -103,8 +231,10 @@ export function normalizeApiDoctor(
   const consultationFee = Number(
     raw.consultationFee ?? raw.fees ?? fallback?.consultationFee ?? 60
   );
-  const avatarUrl =
-    raw.avatarUrl || raw.image || fallback?.avatarUrl || DEFAULT_FALLBACK_AVATAR;
+  const avatarUrl = resolveAvatarUrl(
+    raw.avatarUrl || raw.image,
+    fallback?.avatarUrl || fallback?.image
+  );
   const isAvailableToday =
     raw.isAvailableToday !== undefined
       ? raw.isAvailableToday
@@ -112,21 +242,30 @@ export function normalizeApiDoctor(
         ? raw.available
         : fallback?.isAvailableToday ?? true;
 
+  const rawAddressText = `${raw.hospitalName || ""} ${raw.address?.line1 || ""} ${raw.address?.line2 || ""}`;
+  const isNonNY = !rawAddressText.trim() || NON_NY_LOCATION_REGEX.test(rawAddressText);
+  const nyLoc = pickStableNYLocation(id + (raw.name || ""));
+  const hospitalName = isNonNY
+    ? nyLoc.hospitalName
+    : raw.hospitalName || raw.address?.line1 || nyLoc.hospitalName;
+  const address: DoctorAddress = isNonNY
+    ? nyLoc.address
+    : {
+        line1: raw.address?.line1 || nyLoc.address.line1,
+        line2: raw.address?.line2 || nyLoc.address.line2,
+      };
+
   return {
     id,
     _id: id,
     slug: raw.slug || fallback?.slug || id,
     name: raw.name || fallback?.name || "Dr. Attending Physician",
-    degree: sanitizeUSDegree(raw.degree || fallback?.degree),
+    degree: sanitizeUSDegree(raw.degree || fallback?.degree, specialty),
     specialty,
     speciality: specialty,
     experienceYears: parsedExperience,
     experience: parsedExperience,
-    hospitalName:
-      raw.hospitalName ||
-      raw.address?.line1 ||
-      fallback?.hospitalName ||
-      "NewCare Midtown Clinic, New York",
+    hospitalName,
     rating: Number(raw.rating ?? fallback?.rating ?? 4.9),
     reviewsCount: Number(
       raw.reviewsCount ?? raw.reviewCount ?? fallback?.reviewsCount ?? 112
@@ -162,16 +301,7 @@ export function normalizeApiDoctor(
         Saturday: ["10:00 AM", "01:00 PM"],
         Sunday: [],
       },
-    address: {
-      line1:
-        raw.address?.line1 ||
-        fallback?.address.line1 ||
-        "NewCare Clinical Suites, Suite 402",
-      line2:
-        raw.address?.line2 ||
-        fallback?.address.line2 ||
-        "Lexington Avenue, New York, NY",
-    },
+    address,
     slots_booked: raw.slots_booked,
   };
 }

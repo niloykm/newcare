@@ -331,7 +331,7 @@ export default function PatientDashboardView() {
                       type="button"
                       onClick={() => handleDownloadSlip(appt)}
                       aria-label={`Download receipt for ${appt.bookingId}`}
-                      className="w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer"
+                      className="w-10 h-10 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer"
                     >
                       <Download className="w-4 h-4" aria-hidden="true" />
                     </button>
@@ -368,7 +368,7 @@ export default function PatientDashboardView() {
                     <button
                       type="button"
                       aria-label="Close pass dialog"
-                      className="w-8 h-8 rounded-md flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                      className="w-10 h-10 rounded-md flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                     >
                       <X className="w-4 h-4" aria-hidden="true" />
                     </button>

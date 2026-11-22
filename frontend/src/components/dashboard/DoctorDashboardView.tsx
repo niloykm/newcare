@@ -160,7 +160,125 @@ export default function DoctorDashboardView() {
           </p>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile Card Queue (Zero Horizontal Clipping) */}
+        <div className="md:hidden space-y-3">
+          {queueAppointments.length === 0 ? (
+            <p className="py-8 text-center text-xs text-slate-500">
+              No appointments currently scheduled for {currentDoctor.name}.
+            </p>
+          ) : (
+            queueAppointments.map((appt) => {
+              const isConfirmed = appt.status === "Confirmed";
+              const isCompleted = appt.status === "Completed";
+              const isCancelled = appt.status === "Cancelled";
+              const isConfirming = confirmCancelId === appt.id;
+
+              return (
+                <div
+                  key={appt.id}
+                  className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {appt.patientName}
+                      </p>
+                      <p className="text-xs text-slate-500 tabular-nums mt-0.5">
+                        Age {appt.patientAge} · {appt.patientPhone}
+                      </p>
+                    </div>
+                    <span
+                      className={`badge-clinical shrink-0 ${
+                        isCompleted
+                          ? "badge-verified"
+                          : isCancelled
+                            ? "badge-danger"
+                            : "badge-info"
+                      }`}
+                    >
+                      {appt.status}
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                    <p className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+                      {appt.slotDate}, {appt.slotTime} ·{" "}
+                      {appt.consultationType === "HD Video Consultation"
+                        ? "Telehealth Video"
+                        : "In-Clinic"}
+                    </p>
+                    <p className="text-slate-600 dark:text-slate-400">{appt.reason}</p>
+                  </div>
+
+                  {(isConfirmed || isCompleted) && (
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                      {isConfirmed && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveNoteAppt(appt);
+                              setClinicalNotes(appt.notes || "");
+                            }}
+                            className="min-h-[36px] px-3 rounded-md bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold cursor-pointer"
+                          >
+                            Record Notes
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRescheduleAppt(appt);
+                              setNewSlotTime(appt.slotTime);
+                            }}
+                            className="min-h-[36px] px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#11161d] text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
+                          >
+                            Reschedule
+                          </button>
+                          {isConfirming ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                cancelAppointment(appt.id);
+                                setConfirmCancelId(null);
+                                toast.success("Appointment cancelled.");
+                              }}
+                              className="min-h-[36px] px-3 rounded-md bg-red-700 text-white text-xs font-semibold cursor-pointer"
+                            >
+                              Confirm Cancel
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setConfirmCancelId(appt.id)}
+                              className="min-h-[36px] px-2.5 text-red-700 dark:text-red-400 text-xs font-semibold cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </>
+                      )}
+                      {isCompleted && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveNoteAppt(appt);
+                            setClinicalNotes(appt.notes || "");
+                          }}
+                          className="min-h-[36px] px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#11161d] text-teal-700 dark:text-teal-400 text-xs font-semibold cursor-pointer"
+                        >
+                          Edit Notes
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table Queue */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-semibold">
@@ -233,7 +351,7 @@ export default function DoctorDashboardView() {
                                   setActiveNoteAppt(appt);
                                   setClinicalNotes(appt.notes || "");
                                 }}
-                                className="min-h-[34px] px-2.5 rounded-md bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold cursor-pointer"
+                                className="min-h-[36px] px-2.5 rounded-md bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold cursor-pointer"
                               >
                                 Record Notes
                               </button>
@@ -243,7 +361,7 @@ export default function DoctorDashboardView() {
                                   setRescheduleAppt(appt);
                                   setNewSlotTime(appt.slotTime);
                                 }}
-                                className="min-h-[34px] px-2.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold cursor-pointer"
+                                className="min-h-[36px] px-2.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold cursor-pointer"
                               >
                                 Reschedule
                               </button>
@@ -255,7 +373,7 @@ export default function DoctorDashboardView() {
                                     setConfirmCancelId(null);
                                     toast.success("Appointment cancelled.");
                                   }}
-                                  className="min-h-[34px] px-2.5 rounded-md bg-red-700 text-white text-xs font-semibold cursor-pointer"
+                                  className="min-h-[36px] px-2.5 rounded-md bg-red-700 text-white text-xs font-semibold cursor-pointer"
                                 >
                                   Confirm
                                 </button>
@@ -263,7 +381,7 @@ export default function DoctorDashboardView() {
                                 <button
                                   type="button"
                                   onClick={() => setConfirmCancelId(appt.id)}
-                                  className="min-h-[34px] px-2 text-red-700 dark:text-red-400 hover:underline text-xs font-medium cursor-pointer"
+                                  className="min-h-[36px] px-2.5 text-red-700 dark:text-red-400 hover:underline text-xs font-medium cursor-pointer"
                                 >
                                   Cancel
                                 </button>
@@ -277,7 +395,7 @@ export default function DoctorDashboardView() {
                                 setActiveNoteAppt(appt);
                                 setClinicalNotes(appt.notes || "");
                               }}
-                              className="text-teal-700 dark:text-teal-400 hover:underline text-xs font-semibold cursor-pointer"
+                              className="min-h-[36px] px-2.5 rounded-md border border-slate-200 dark:border-slate-700 text-teal-700 dark:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold cursor-pointer"
                             >
                               Edit Notes
                             </button>
@@ -318,7 +436,7 @@ export default function DoctorDashboardView() {
                     <button
                       type="button"
                       aria-label="Close notes dialog"
-                      className="w-8 h-8 rounded-md flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                      className="w-10 h-10 rounded-md flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                     >
                       <X className="w-4 h-4" aria-hidden="true" />
                     </button>

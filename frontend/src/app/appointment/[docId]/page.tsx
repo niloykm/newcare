@@ -1,10 +1,16 @@
 "use client";
 
-import { use, Suspense } from "react";
+import { use, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { FALLBACK_DOCTORS } from "@/data/doctorsData";
+import {
+  ApiDoctorRecord,
+  DoctorProfile,
+  FALLBACK_DOCTORS,
+  normalizeApiDoctor,
+} from "@/data/doctorsData";
 import MultiStepBooking from "@/components/MultiStepBooking";
+import api from "@/lib/api";
 
 export default function LegacyAppointmentPage({
   params,
@@ -14,10 +20,44 @@ export default function LegacyAppointmentPage({
   const unwrappedParams = use(params);
   const docId = unwrappedParams.docId;
 
-  const doctor =
-    FALLBACK_DOCTORS.find(
+  const [doctor, setDoctor] = useState<DoctorProfile>(() => {
+    return (
+      FALLBACK_DOCTORS.find(
+        (d) => d.id === docId || d._id === docId || d.slug === docId
+      ) || FALLBACK_DOCTORS[0]
+    );
+  });
+
+  useEffect(() => {
+    const found = FALLBACK_DOCTORS.find(
       (d) => d.id === docId || d._id === docId || d.slug === docId
-    ) || FALLBACK_DOCTORS[0];
+    );
+    if (found) {
+      setDoctor(found);
+    }
+
+    const fetchDoc = async () => {
+      try {
+        const res = await api.get<{ success?: boolean; doctors?: ApiDoctorRecord[] }>(
+          "/api/doctor/list"
+        );
+        if (res.data?.success && Array.isArray(res.data.doctors)) {
+          const idx = res.data.doctors.findIndex(
+            (d) => d._id === docId || d.id === docId
+          );
+          if (idx >= 0) {
+            const raw = res.data.doctors[idx];
+            const match =
+              found || FALLBACK_DOCTORS[idx % FALLBACK_DOCTORS.length];
+            setDoctor(normalizeApiDoctor(raw, match));
+          }
+        }
+      } catch {
+        // Fallback doctor active
+      }
+    };
+    if (docId) fetchDoc();
+  }, [docId]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-slate-100 py-8 pb-20">

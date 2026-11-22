@@ -9,6 +9,7 @@ import {
   DoctorProfile,
   FALLBACK_DOCTORS,
   normalizeApiDoctor,
+  selectFeaturedDoctors,
 } from "@/data/doctorsData";
 import {
   CARE_SERVICES,
@@ -23,6 +24,7 @@ export default function Home() {
   const [featuredDoctors, setFeaturedDoctors] = useState<DoctorProfile[]>(
     FALLBACK_DOCTORS.slice(0, 4)
   );
+  const [totalDoctorsCount, setTotalDoctorsCount] = useState<number>(FALLBACK_DOCTORS.length);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("skilled-nursing");
   const [openFaqId, setOpenFaqId] = useState<string | null>(CLINICAL_FAQS[0].id);
 
@@ -33,13 +35,14 @@ export default function Home() {
           "/api/doctor/list"
         );
         if (res.data?.success && Array.isArray(res.data.doctors) && res.data.doctors.length > 0) {
-          const normalized = res.data.doctors.slice(0, 4).map((raw, idx) => {
+          const normalized = res.data.doctors.map((raw, idx) => {
             const match =
               FALLBACK_DOCTORS.find((f) => f.id === raw._id || f.id === raw.id) ||
-              FALLBACK_DOCTORS[idx];
+              FALLBACK_DOCTORS[idx % FALLBACK_DOCTORS.length];
             return normalizeApiDoctor(raw, match);
           });
-          setFeaturedDoctors(normalized);
+          setTotalDoctorsCount(normalized.length);
+          setFeaturedDoctors(selectFeaturedDoctors(normalized, 4));
         }
       } catch {
         // Fallback verified doctors remain active
@@ -386,7 +389,7 @@ export default function Home() {
               href="/doctors"
               className="btn-secondary text-sm self-start sm:self-auto shrink-0"
             >
-              <span>View All 12 Specialists</span>
+              <span className="tabular-nums">View All {totalDoctorsCount} Specialists</span>
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Link>
           </div>

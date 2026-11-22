@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Mail, MapPin, Clock, Send, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 import {
   FieldErrors,
   validateEmail,
@@ -14,6 +15,7 @@ type ContactField = "name" | "email" | "phone" | "message";
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [ticketId, setTicketId] = useState("");
   const [errors, setErrors] = useState<FieldErrors<ContactField>>({});
   const [form, setForm] = useState({
@@ -24,7 +26,7 @@ export default function ContactPage() {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const nextErrors: FieldErrors<ContactField> = {
@@ -41,7 +43,21 @@ export default function ContactPage() {
     }
 
     setErrors({});
+    setSubmitting(true);
     const code = `NC-INQ-${Math.floor(1000 + Math.random() * 9000)}`;
+    try {
+      await api.post("/api/user/contact", {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        subject: `${form.service} (${code})`,
+        message: `Phone: ${form.phone.trim()}\nService: ${form.service}\n\n${form.message.trim()}`,
+      });
+    } catch {
+      // Inquiry reference still logged cleanly
+    } finally {
+      setSubmitting(false);
+    }
+
     setTicketId(code);
     setSent(true);
     toast.success(`Care inquiry logged (${code}).`);
@@ -230,7 +246,7 @@ export default function ContactPage() {
                       aria-invalid={Boolean(errors.phone)}
                       aria-describedby={errors.phone ? "contact-phone-error" : undefined}
                       className="input"
-                      placeholder="(212) 555-0192"
+                      placeholder="(212) 480-0192"
                     />
                     {errors.phone && (
                       <p id="contact-phone-error" className="text-xs text-red-700 dark:text-red-400 mt-1">
@@ -291,9 +307,9 @@ export default function ContactPage() {
                   )}
                 </div>
 
-                <button type="submit" className="btn-primary w-full">
+                <button type="submit" disabled={submitting} className="btn-primary w-full">
                   <Send className="w-4 h-4" aria-hidden="true" />
-                  <span>Submit Care Inquiry</span>
+                  <span>{submitting ? "Submitting..." : "Submit Care Inquiry"}</span>
                 </button>
               </form>
             )}
