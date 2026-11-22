@@ -453,7 +453,7 @@ export class UserService {
     const payload = await response.json();
     const { email, name, picture, email_verified } = payload;
 
-    if (!email_verified) {
+    if (!email || (email_verified !== true && email_verified !== 'true')) {
       throw new BadRequestException({ success: false, message: 'Google email is not verified' });
     }
 
@@ -462,7 +462,8 @@ export class UserService {
       const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(randomPassword, salt);
-      const newUser = new this.userModel({ name, email, password: hashedPassword, image: picture || '' });
+      const displayName = (typeof name === 'string' && name.trim()) || email.split('@')[0];
+      const newUser = new this.userModel({ name: displayName, email, password: hashedPassword, image: picture || '' });
       user = await newUser.save();
     }
 

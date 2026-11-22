@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
@@ -29,35 +29,62 @@ function getErrorMessage(err: unknown, fallback: string): string {
 
 function GoogleOAuthCallbackHandler() {
   const router = useRouter();
+  const hasProcessedRef = useRef(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || hasProcessedRef.current) return;
 
     const hash = window.location.hash;
-    if (!hash || !hash.includes("access_token")) return;
+    const hashParams = hash ? new URLSearchParams(hash.substring(1)) : null;
+    const queryParams = new URLSearchParams(window.location.search);
 
-    const params = new URLSearchParams(hash.substring(1));
-    const accessToken = params.get("access_token");
+    const oauthError = hashParams?.get("error") || queryParams.get("error");
+    if (oauthError) {
+      hasProcessedRef.current = true;
+      window.history.replaceState(null, "", window.location.pathname);
+      toast.error(
+        oauthError === "access_denied"
+          ? "Google sign-in was cancelled."
+          : `Google sign-in error: ${oauthError}`
+      );
+      return;
+    }
+
+    const accessToken = hashParams?.get("access_token");
     if (!accessToken) return;
 
+    hasProcessedRef.current = true;
     window.history.replaceState(null, "", window.location.pathname);
 
     const exchangeToken = async () => {
+      const toastId = toast.loading("Completing Google sign-in...");
       try {
-        const res = await api.post("/api/user/google-auth-token", { accessToken });
+        const res = await api.post(
+          "/api/user/google-auth-token",
+          { accessToken },
+          { timeout: 20000 }
+        );
         if (res.data.success) {
           localStorage.setItem("token", res.data.token);
           if (res.data.userData) {
             localStorage.setItem("userData", JSON.stringify(res.data.userData));
           }
           window.dispatchEvent(new Event("authChange"));
-          toast.success("Signed in with Google.");
+          toast.success("Signed in with Google.", { id: toastId });
           router.replace("/");
         } else {
-          toast.error(res.data.message || "Google sign-in failed.");
+          toast.error(res.data.message || "Google sign-in failed.", { id: toastId });
         }
       } catch (err: unknown) {
-        toast.error(getErrorMessage(err, "Google sign-in failed. Please try again."));
+        if (axios.isAxiosError(err) && (err.code === "ECONNABORTED" || !err.response || err.response.status >= 500)) {
+          toast.error("Authentication service is currently unavailable. Please try again shortly.", {
+            id: toastId,
+          });
+        } else {
+          toast.error(getErrorMessage(err, "Google sign-in failed. Please try again."), {
+            id: toastId,
+          });
+        }
       }
     };
 
@@ -81,31 +108,23 @@ function LoginForm() {
   const [newPassword, setNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  const handleGoogleOAuth = useCallback(async () => {
+  const handleGoogleOAuth = useCallback(() => {
     setGoogleLoading(true);
-    try {
-      const res = await api.get("/api/user/google-oauth-url");
-      if (res.data.success && res.data.url) {
-        window.location.href = res.data.url;
-      } else {
-        toast.error("Could not initiate Google sign-in.");
-        setGoogleLoading(false);
-      }
-    } catch {
-      const clientId =
-        process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-        "1089608603127-v3lig04qohrvth72o4gefodv559gh936.apps.googleusercontent.com";
-      const redirectUri =
-        typeof window !== "undefined"
-          ? `${window.location.origin}/login`
-          : "https://newcare.vercel.app/login";
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
-        clientId
-      )}&redirect_uri=${encodeURIComponent(
-        redirectUri
-      )}&response_type=token&scope=openid%20email%20profile&prompt=select_account`;
-      window.location.href = googleAuthUrl;
-    }
+    const clientId = (
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+      "1089608603127-v3lig04qohrvth72o4gefodv559gh936.apps.googleusercontent.com"
+    ).trim();
+    const redirectUri =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/login`
+        : "https://newcare.vercel.app/login";
+    const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+    googleAuthUrl.searchParams.set("client_id", clientId);
+    googleAuthUrl.searchParams.set("redirect_uri", redirectUri);
+    googleAuthUrl.searchParams.set("response_type", "token");
+    googleAuthUrl.searchParams.set("scope", "openid email profile");
+    googleAuthUrl.searchParams.set("prompt", "select_account");
+    window.location.href = googleAuthUrl.toString();
   }, []);
 
   const handleForgotRequest = async (e: React.FormEvent) => {

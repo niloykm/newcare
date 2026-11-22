@@ -16,6 +16,9 @@ import { ConsultationModule } from './modules/consultation/consultation.module';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         uri: configService.get<string>('MONGO_URI') || 'mongodb://127.0.0.1:27017/newcare',
+        retryAttempts: 2,
+        retryDelay: 500,
+        serverSelectionTimeoutMS: 5000,
       }),
       inject: [ConfigService],
     }),
